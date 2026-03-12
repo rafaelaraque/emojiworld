@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>🎮 Juegos - EMOJI WORLD GAME</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --g: #00C853;
+      --g2: #008a3a;
+      --dark: #111B21;
+      --panel: #202C33;
+      --p2: #2A3942;
+      --tx: #E9EDEF;
+      --tx2: #8696A0;
+      --tx3: #667781;
+      --bdr: #2A3942;
+      --blue: #53BDEB;
+      --yl: #FFD93D;
+      --or: #FF6B35;
+      --red: #FF4444;
+      --nav-h: 60px;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d1a0d;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Nunito', sans-serif;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    #topBar {
+      background: #0A1014;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #1a2a1a;
+      z-index: 50;
+      gap: 6px;
+    }
+
+    .tb-logo {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(13px, 3.5vw, 18px);
+      color: var(--g);
+      letter-spacing: .5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tb-stats {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .tb-stat {
+      background: rgba(255, 255, 255, .08);
+      border-radius: 12px;
+      padding: 3px 8px;
+      font-size: clamp(10px, 2.2vw, 12px);
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .tb-lvl {
+      font-size: clamp(9px, 1.8vw, 11px);
+      color: var(--g);
+      font-weight: 700;
+      background: rgba(0, 200, 83, .12);
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .tb-keys {
+      font-size: 10px;
+      color: var(--tx3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .tb-keys kbd {
+      background: var(--p2);
+      border: 1px solid var(--bdr);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: inherit;
+    }
+
+    #mainContent {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background: #0d1a0d;
+    }
+
+    .games-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .game-card {
+      background: var(--panel);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--bdr);
+      margin-bottom: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+    }
+
+    .game-header {
+      background: var(--dark);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .game-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 20px;
+      color: var(--g);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .game-content {
+      padding: 20px;
+    }
+
+    .game-description {
+      color: var(--tx);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .game-description em {
+      color: var(--yl);
+      font-style: normal;
+      font-weight: 800;
+    }
+
+    .game-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 20px 20px;
+    }
+
+    .game-btn {
+      display: inline-block;
+      background: var(--g);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .game-btn:hover {
+      background: var(--g2);
+      transform: scale(1.05);
+    }
+
+    .game-cover {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border: 2px solid var(--bdr);
+    }
+
+    .game-cover-link {
+      display: block;
+      text-decoration: none;
+    }
+
+    .game-cover-link:hover .game-cover {
+      border-color: var(--g);
+      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+    }
+
+    .game-grid-item {
+      background: var(--dark);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid var(--bdr);
+      transition: all 0.2s ease;
+      overflow: hidden;
+    }
+
+    .game-grid-cover {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid var(--bdr);
+    }
+
+    .game-grid-section {
+      background: var(--panel);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--bdr);
+      margin-bottom: 20px;
+    }
+
+    .game-grid-header {
+      background: var(--dark);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .game-grid-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 20px;
+      color: var(--g);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .game-grid-content {
+      padding: 20px;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    .game-grid-item {
+      background: var(--dark);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid var(--bdr);
+      transition: all 0.2s ease;
+    }
+
+    .game-grid-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+      border-color: var(--g);
+    }
+
+    .game-grid-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .game-grid-item h4 {
+      font-family: 'Fredoka One', cursive;
+      color: var(--tx);
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .game-grid-item p {
+      color: var(--tx2);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .game-grid-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 20px 20px;
+    }
+
+    .game-grid-btn {
+      display: inline-block;
+      background: var(--g);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .game-grid-btn:hover {
+      background: var(--g2);
+      transform: scale(1.05);
+    }
+
+    #bNav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-h);
+      background: rgba(10, 16, 20, .95);
+      border-top: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      z-index: 900;
+      backdrop-filter: blur(10px);
+    }
+
+    .bnb {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      color: var(--tx3);
+      font-size: 9px;
+      font-weight: 800;
+      transition: color .15s;
+      letter-spacing: .5px;
+      padding: 4px 14px;
+    }
+
+    .bnb:hover,
+    .bnb.on {
+      color: var(--g);
+    }
+
+    .bni {
+      font-size: clamp(18px, 5vw, 22px);
+      line-height: 1;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bni-badge {
+      position: absolute;
+      top: -8px;
+      right: -11px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      padding: 0 5px;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #0A1014;
+    }
+
+    @media(max-width:899px) {
+      :root {
+        --nav-h: 56px;
+      }
+
+      #bNav {
+        height: var(--nav-h);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .games-container {
+        padding: 0 10px;
+      }
+
+      .game-card {
+        margin-bottom: 15px;
+      }
+
+      .game-header {
+        padding: 12px;
+      }
+
+      .game-content {
+        padding: 16px;
+      }
+
+      .game-title {
+        font-size: 18px;
+      }
+
+      .game-description {
+        font-size: 14px;
+      }
+
+      .game-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+      }
+
+      .game-grid-item {
+        padding: 12px;
+      }
+
+      .game-grid-icon {
+        font-size: 32px;
+      }
+
+      .game-grid-item h4 {
+        font-size: 14px;
+      }
+
+      .game-grid-item p {
+        font-size: 12px;
+      }
+    }
+
+    @media(max-width:420px) {
+      .tb-keys {
+        display: none !important;
+      }
+
+      .tb-stat {
+        padding: 2px 6px;
+      }
+
+      .tb-logo span {
+        display: none;
+      }
+
+      .games-container {
+        padding: 0 8px;
+      }
+
+      .game-header {
+        padding: 10px;
+      }
+
+      .game-content {
+        padding: 12px;
+      }
+
+      .game-title {
+        font-size: 16px;
+      }
+
+      .game-description {
+        font-size: 12px;
+      }
+
+      .game-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+      }
+
+      .game-grid-item {
+        padding: 10px;
+      }
+
+      .game-grid-icon {
+        font-size: 28px;
+      }
+
+      .game-grid-item h4 {
+        font-size: 12px;
+      }
+
+      .game-grid-item p {
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="topBar">
+    <div class="tb-logo">
+      EMOJI WORLD
+    </div>
+    <div class="tb-stats">
+      <div class="tb-stat">
+        <span>💎</span> 0
+      </div>
+      <div class="tb-stat">
+        <span>🎯</span> 0
+      </div>
+    </div>
+    <div class="tb-lvl">NIVEL 1</div>
+    <div class="tb-keys">
+      <kbd>WASD</kbd><kbd>SPACE</kbd>
+    </div>
+  </div>
+
+  <div id="mainContent">
+    <div class="games-container">
+      <div class="game-card">
+        <div class="game-header">
+          <div class="game-title">
+            🎮 Juego Principal
+          </div>
+        </div>
+        <div class="game-content">
+          <a href="../EmojiWorldV7Storymax.html" class="game-cover-link" target="_blank">
+            <img src="emojiworldimage.png" alt="Emoji World V7 Storymax" class="game-cover">
+          </a>
+          <p class="game-description">
+            Sumérgete en la aventura definitiva de EMOJI WORLD GAME. Explora 
+            mundos diversos, resuelve puzzles desafiantes, derrota enemigos 
+            y descubre la historia detrás de cada emoji en este épico viaje.
+          </p>
+          <p class="game-description">
+            Características:<br>
+            • <em>Mundos diversos</em> para explorar<br>
+            • <em>Sistema de combate</em> estratégico<br>
+            • <em>Colección de emojis</em> únicos<br>
+            • <em>Historia profunda</em> y envolvente
+          </p>
+        </div>
+        <div class="game-footer">
+          <a href="EmojiWorldV7Storymax.html" class="game-btn" target="_blank">Jugar Ahora</a>
+          <a href="#" class="game-btn">Más Info</a>
+        </div>
+      </div>
+
+      <div class="game-grid-section">
+        <div class="game-grid-header">
+          <div class="game-grid-title">
+            🎯 Otros Juegos
+          </div>
+        </div>
+        <div class="game-grid-content">
+          <div class="game-grid">
+            <a href="emoji-game.html" class="game-grid-item" target="_blank" style="text-decoration: none; display: block;">
+              <img src="emojigameimage.png" alt="Emoji Game" class="game-cover">
+              <h4>Emoji Game</h4>
+              <p>Explora el mundo emoji.</p>
+            </a>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🧩</div>
+              <h4>Emoji Puzzle Quest</h4>
+              <p>Resuelve rompecabezas desafiantes.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">⚔️</div>
+              <h4>Emoji Battle Arena</h4>
+              <p>Compite en batallas épicas.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🏁</div>
+              <h4>Emoji Racing</h4>
+              <p>Carreras emocionantes.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🎪</div>
+              <h4>Emoji Carnival</h4>
+              <p>Minijuegos festivos.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🔍</div>
+              <h4>Emoji Detective</h4>
+              <p>Resuelve misterios.</p>
+            </div>
+          </div>
+        </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">⚔️</div>
+              <h4>Emoji Battle Arena</h4>
+              <p>Compete en batallas épicas.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🏁</div>
+              <h4>Emoji Racing</h4>
+              <p>Carreras emocionantes.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🎪</div>
+              <h4>Emoji Carnival</h4>
+              <p>Minijuegos festivos.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🔍</div>
+              <h4>Emoji Detective</h4>
+              <p>Resuelve misterios.</p>
+            </div>
+
+            <div class="game-grid-item">
+              <div class="game-grid-icon">🎨</div>
+              <h4>Emoji Art Studio</h4>
+              <p>Crea tu propio arte.</p>
+            </div>
+          </div>
+        </div>
+        <div class="game-grid-footer">
+          <a href="#" class="game-grid-btn">Ver Todos</a>
+          <a href="#" class="game-grid-btn">Nuevos</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bNav">
+    <div class="bnb" onclick="location.href='index.html'">
+      <div class="bni">🏠</div>
+      <div>Inicio</div>
+    </div>
+    
+    <div class="bnb" onclick="location.href='stories.html'">
+      <div class="bni">📖</div>
+      <div>Historias</div>
+    </div>
+    
+    <div class="bnb" onclick="location.href='videos.html'">
+      <div class="bni">📺</div>
+      <div>Videos</div>
+    </div>
+    
+    <div class="bnb on" onclick="location.href='games.html'">
+      <div class="bni">🎮</div>
+      <div>Juegos</div>
+    </div>
+    
+    <div class="bnb" onclick="location.href='mini-games.html'">
+      <div class="bni">🎯</div>
+      <div>Mini Juegos</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+      const navLinks = document.querySelectorAll('#bNav .bnb');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('onclick') || '';
+        const page = href.includes('=') ? href.split('=')[1].replace(/'/g, '') : 
+                    href.replace('location.href=', '').replace(/'/g, '');
+        
+        if (page && currentPath.includes(page)) {
+          link.classList.add('on');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

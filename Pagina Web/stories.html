@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>📖 Historias - EMOJI WORLD GAME</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --g: #00C853;
+      --g2: #008a3a;
+      --dark: #111B21;
+      --panel: #202C33;
+      --p2: #2A3942;
+      --tx: #E9EDEF;
+      --tx2: #8696A0;
+      --tx3: #667781;
+      --bdr: #2A3942;
+      --blue: #53BDEB;
+      --yl: #FFD93D;
+      --or: #FF6B35;
+      --red: #FF4444;
+      --nav-h: 60px;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d1a0d;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Nunito', sans-serif;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    #topBar {
+      background: #0A1014;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #1a2a1a;
+      z-index: 50;
+      gap: 6px;
+    }
+
+    .tb-logo {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(13px, 3.5vw, 18px);
+      color: var(--g);
+      letter-spacing: .5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tb-stats {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .tb-stat {
+      background: rgba(255, 255, 255, .08);
+      border-radius: 12px;
+      padding: 3px 8px;
+      font-size: clamp(10px, 2.2vw, 12px);
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .tb-lvl {
+      font-size: clamp(9px, 1.8vw, 11px);
+      color: var(--g);
+      font-weight: 700;
+      background: rgba(0, 200, 83, .12);
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .tb-keys {
+      font-size: 10px;
+      color: var(--tx3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .tb-keys kbd {
+      background: var(--p2);
+      border: 1px solid var(--bdr);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: inherit;
+    }
+
+    #mainContent {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background: #0d1a0d;
+    }
+
+    .story-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .story-card {
+      background: var(--panel);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--bdr);
+      margin-bottom: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .story-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+    }
+
+    .story-header {
+      background: var(--dark);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .story-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 20px;
+      color: var(--g);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .story-content {
+      padding: 20px;
+    }
+
+    .story-text {
+      color: var(--tx);
+      line-height: 1.8;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .story-text em {
+      color: var(--yl);
+      font-style: normal;
+      font-weight: 800;
+    }
+
+    .story-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 20px 20px;
+    }
+
+    .story-btn {
+      display: inline-block;
+      background: var(--g);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .story-btn:hover {
+      background: var(--g2);
+      transform: scale(1.05);
+    }
+
+    #bNav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-h);
+      background: rgba(10, 16, 20, .95);
+      border-top: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      z-index: 900;
+      backdrop-filter: blur(10px);
+    }
+
+    .bnb {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      color: var(--tx3);
+      font-size: 9px;
+      font-weight: 800;
+      transition: color .15s;
+      letter-spacing: .5px;
+      padding: 4px 14px;
+    }
+
+    .bnb:hover,
+    .bnb.on {
+      color: var(--g);
+    }
+
+    .bni {
+      font-size: clamp(18px, 5vw, 22px);
+      line-height: 1;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bni-badge {
+      position: absolute;
+      top: -8px;
+      right: -11px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      padding: 0 5px;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #0A1014;
+    }
+
+    @media(max-width:899px) {
+      :root {
+        --nav-h: 56px;
+      }
+
+      #bNav {
+        height: var(--nav-h);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .story-container {
+        padding: 0 10px;
+      }
+
+      .story-card {
+        margin-bottom: 15px;
+      }
+
+      .story-header {
+        padding: 12px;
+      }
+
+      .story-content {
+        padding: 16px;
+      }
+
+      .story-title {
+        font-size: 18px;
+      }
+
+      .story-text {
+        font-size: 14px;
+      }
+    }
+
+    @media(max-width:420px) {
+      .tb-keys {
+        display: none !important;
+      }
+
+      .tb-stat {
+        padding: 2px 6px;
+      }
+
+      .tb-logo span {
+        display: none;
+      }
+
+      .story-content {
+        padding: 12px;
+      }
+
+      .story-text {
+        font-size: 13px;
+      }
+
+      .story-footer {
+        padding: 0 12px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="topBar">
+    <div class="tb-logo">
+      EMOJI WORLD
+    </div>
+    <div class="tb-stats">
+      <div class="tb-stat">
+        <span>💎</span> 0
+      </div>
+      <div class="tb-stat">
+        <span>🎯</span> 0
+      </div>
+    </div>
+    <div class="tb-lvl">NIVEL 1</div>
+    <div class="tb-keys">
+      <kbd>WASD</kbd><kbd>SPACE</kbd>
+    </div>
+  </div>
+
+  <div id="mainContent">
+    <div class="story-container">
+      <div class="story-card">
+        <div class="story-header">
+          <div class="story-title">
+            📖 El Origen de los Emojis
+          </div>
+        </div>
+        <div class="story-content">
+          <p class="story-text">
+            Hace mucho tiempo, en una galaxia muy lejana, existía un reino digital conocido como <em>Codexia</em>. 
+            Allí, los símbolos más básicos luchaban por encontrar su propósito en el vasto universo de los teclados.
+          </p>
+          <p class="story-text">
+            Fue entonces cuando apareció el primer emoji: una simple carita sonriente 😊 que nació de la combinación 
+            de dos puntos y un paréntesis. Este pequeño símbolo revolucionó la forma en que nos comunicábamos, 
+            permitiéndonos expresar emociones complejas con un solo carácter.
+          </p>
+          <p class="story-text">
+            Con el tiempo, más emojis comenzaron a aparecer: corazones ❤️, estrellas ✨, animales 🐾 y objetos cotidianos 📱. 
+            Cada uno llevaba consigo una historia única, una emoción específica o un concepto que antes era difícil 
+            de transmitir mediante texto plano.
+          </p>
+          <p class="story-text">
+            Hoy, en EMOJI WORLD GAME, puedes explorar este fascinante universo donde cada emoji tiene su propia 
+            personalidad, sus aventuras y sus desafíos. Desde los emojis clásicos que conocemos y amamos, hasta 
+            los nuevos símbolos que constantemente están siendo añadidos a nuestro léxico digital.
+          </p>
+        </div>
+        <div class="story-footer">
+          <a href="#" class="story-btn">Leer Completo</a>
+          <a href="#" class="story-btn">Compartir</a>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-header">
+          <div class="story-title">
+            🏰 La Leyenda de Emoji City
+          </div>
+        </div>
+        <div class="story-content">
+          <p class="story-text">
+            En el corazón del reino digital se encuentra Emoji City, una metrópolis vibrante donde los edificios 
+            están formados por símbolos y las calles están pavimentadas con caracteres. Esta ciudad no es solo un 
+            lugar; es un organismo vivo que crece y evoluciona con cada nuevo emoji que se crea.
+          </p>
+          <p class="story-text">
+            Según la leyenda, Emoji City fue fundada por el primer emoji jamás creado, quien buscaba un hogar para 
+            todos los símbolos que, como él, deseaban expresar más allá de las palabras. Con el tiempo, la ciudad 
+            se expandió para incluir barrios temáticos: el Distrito de las Caritas, el Barrio de los Animales, 
+            la Zona de los Objetos y el enigmático Sector de los Símbolos Raros.
+          </p>
+          <p class="story-text">
+            Cada distrito tiene su propia arquitectura única, reflejando la naturaleza de sus habitantes. 
+            Por ejemplo, en el Distrito de las Caritas, los edificios cambian de expresión según la hora del día, 
+            mientras que en el Barrio de los Animales, las estructuras tienen formas que recuerdan a diferentes 
+            criaturas del reino zoológico digital.
+          </p>
+          <p class="story-text">
+            Pero Emoji City no está libre de desafíos. Los antiguos temen que los nuevos llegados cambien demasiado 
+            su esencia, mientras que los recién llegados luchan por encontrar su lugar en esta sociedad ya establecida. 
+            Es este delicado equilibrio entre tradición e innovación lo que mantiene a Emoji City en constante 
+            evolución.
+          </p>
+        </div>
+        <div class="story-footer">
+          <a href="#" class="story-btn">Leer Completo</a>
+          <a href="#" class="story-btn">Compartir</a>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-header">
+          <div class="story-title">
+            ⚔️ La Gran Batalla de los Símbolos
+          </div>
+        </div>
+        <div class="story-content">
+          <p class="story-text">
+            En los primeros días de Codexia, antes de que existiera Emoji City, hubo un tiempo de gran conflicto 
+            conocido como La Gran Batalla de los Símbolos. Fue un enfrentamiento épico entre los símbolos tradicionales 
+            (como letras, números y signos de puntuación) y los recién llegados emojis, quienes buscaban reconocimiento 
+            y espacio en el mundo digital.
+          </p>
+          <p class="story-text">
+            Los símbolos tradicionales, liderados por el serio punto y coma (;) y el oficial dos puntos (:), argumentaban 
+            que los emojis eran frivolamente emocionales y carecían de la precisión necesaria para una comunicación 
+            efectiva. Por otro lado, los emojis, bajo el liderazgo carismático de la carita sonriente 😊 y el determinado 
+            pulgar arriba 👍, defendían que las emociones eran tan importantes como la información y que prohibirlos 
+            sería negar una parte fundamental de la experiencia humana.
+          </p>
+          <p class="story-text">
+            La batalla se libró en los campos de ASCII, donde cada lado intentaba superar al otro en términos de uso 
+            y aceptación. Los símbolos tradicionales intentaban bloquear los emojis en cada oportunidad, mientras 
+            que los emojis encontraban formas creativas de expresarse incluso en los entornos más restrictivos.
+          </p>
+          <p class="story-text">
+            Finalmente, después de años de conflicto, llegó el Gran Compromiso: se estableció que tanto los símbolos 
+            tradicionales como los emojis tendrían su lugar en el mundo digital. Los primeros se encargarían de la 
+            precisión y la estructura, mientras que los segundos aportarían el matiz emocional y la expresión creativa.
+          </p>
+          <p class="story-text">
+            Este acuerdo sentó las bases para lo que hoy conocemos como EMOJI WORLD GAME, donde símbolos de todos 
+            tipos coexisten en armonía, cada uno aportando su valor único al rico tapiz de la comunicación digital.
+          </p>
+        </div>
+        <div class="story-footer">
+          <a href="#" class="story-btn">Leer Completo</a>
+          <a href="#" class="story-btn">Compartir</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bNav">
+    <div class="bnb" onclick="location.href='index.html'">
+      <div class="bni">🏠</div>
+      <div>Inicio</div>
+    </div>
+    
+    <div class="bnb on" onclick="location.href='stories.html'">
+      <div class="bni">📖</div>
+      <div>Historias</div>
+    </div>
+    
+    <div class="bnb" onclick="location.href='videos.html'">
+      <div class="bni">📺</div>
+      <div>Videos</div>
+    </div>
+    
+    <div class="bnb" onclick="location.href='games.html'">
+      <div class="bni">🎮</div>
+      <div>Juegos</div>
+    </div>
+    
+    <div class="bnb" onclick="location.href='mini-games.html'">
+      <div class="bni">🎯</div>
+      <div>Mini Juegos</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+      const navLinks = document.querySelectorAll('#bNav .bnb');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('onclick') || '';
+        const page = href.includes('=') ? href.split('=')[1].replace(/'/g, '') : 
+                    href.replace('location.href=', '').replace(/'/g, '');
+        
+        if (page && currentPath.includes(page)) {
+          link.classList.add('on');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

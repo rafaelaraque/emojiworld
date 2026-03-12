@@ -193,7 +193,8 @@
         repeating-conic-gradient(#72b840 0% 25%, #6db23c 25% 50%, #78bc42 50% 75%, #72b840 75% 100%) 0 0 / 96px 96px;
     }
 
-    /* Zona Oscura - dark stone */
+    /* Zona Real - royal palace */
+    .zone-title { font-size: clamp(13px, 3vw, 18px); color: var(--g); letter-spacing: .5px; }
     .z3 {
       left: 1950px;
       top: 80px;
@@ -868,8 +869,9 @@
       background: rgba(0, 0, 0, .7);
       z-index: 200;
       display: none;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
+      padding-top: 60px;
     }
 
     #npcOv.show {
@@ -3595,7 +3597,7 @@
         </div>
         <div class="zone z3">
           <div class="zlbl" style="background:rgba(25,5,30,.9);color:#e8a0ff;border:1px solid rgba(180,50,200,.3);">🏰
-            Zona Oscura</div>
+            Zona Real</div>
         </div>
         <div class="zone z4">
           <div class="zlbl" style="background:rgba(5,20,60,.9);color:#80d4ff;border:1px solid rgba(50,120,255,.3);">🔬
@@ -3615,41 +3617,62 @@
           <span class="lmi" style="font-size:44px;">🏪</span>
           <span class="lml">Mercado Feliz</span>
         </div>
+
+        <!-- EL HUERTO - hortizas alrededor del mercado -->
+        <div class="lm" style="left:130px;top:280px;"><span class="lmi">🥬</span></div>
+        <div class="lm" style="left:160px;top:250px;"><span class="lmi">🥕</span></div>
+        <div class="lm" style="left:190px;top:280px;"><span class="lmi">🥬</span></div>
+        <div class="lm" style="left:220px;top:250px;"><span class="lmi">🥕</span></div>
+        <div class="lm" style="left:250px;top:280px;"><span class="lmi">🥬</span></div>
+        <div class="lm" style="left:280px;top:250px;"><span class="lmi">🥕</span></div>
+        <div class="lm" style="left:130px;top:310px;"><span class="lmi">🥕</span></div>
+        <div class="lm" style="left:160px;top:340px;"><span class="lmi">🥬</span></div>
+        <div class="lm" style="left:190px;top:310px;"><span class="lmi">🥕</span></div>
+        <div class="lm" style="left:220px;top:340px;"><span class="lmi">🥬</span></div>
+        <div class="lm" style="left:250px;top:310px;"><span class="lmi">🥕</span></div>
+        <div class="lm" style="left:280px;top:340px;"><span class="lmi">🥬</span></div>
+
         <!-- Don Mango - dueño del mercado -->
         <div class="npc" style="left:408px; top:340px;" onclick="showNpc('mango')" data-npcid="mango">
           <span class="npe">👨‍🌾</span><span class="npn">Don Mango</span>
           <div class="prox-bubble" id="prox-mango">E Hablar</div>
         </div>
 
-        <!-- ZONA OSCURA landmarks -->
-        <div class="lm" style="left:2060px;top:110px;"><span class="lmi" style="font-size:42px;">🏰</span><span
-            class="lml">Castillo Oscuro</span></div>
-        <div class="lm" style="left:2190px;top:120px;"><span class="lmi">🗼</span><span class="lml">Torre Norte</span>
+        <!-- ZONA REAL landmarks -->
+        <!-- Castillo Real - CENTRO de la zona -->
+        <div class="lm" style="left:2275px;top:330px;"><span class="lmi" style="font-size:52px;">🏰</span><span
+            class="lml">Castillo Real</span></div>
+        <!-- Rey Roland - dentro del castillo -->
+        <div class="npc" style="left:2300px;top:400px;" onclick="showNpc('void')" data-npcid="void">
+          <div style="position:relative;"><span class="npe">🫅</span>
+            <div class="ping" id="pi-void">!</div>
+          </div><span class="npn">Rey Roland</span>
+          <div class="prox-bubble" id="prox-void">E Hablar</div>
         </div>
-        <div class="lm" style="left:2380px;top:120px;"><span class="lmi">🗼</span><span class="lml">Torre Sur</span>
+        <!-- Torres alrededor del castillo - posiciones cardinales -->
+        <!-- Torre Norte -->
+        <div class="lm" style="left:2275px;top:130px;"><span class="lmi">🗼</span><span class="lml">Torre Norte</span>
         </div>
-        <div class="lm" style="left:2060px;top:310px;"><span class="lmi">🗼</span><span class="lml">Torre Este</span>
+        <!-- Torre Sur -->
+        <div class="lm" style="left:2275px;top:630px;"><span class="lmi">🗼</span><span class="lml">Torre Sur</span>
         </div>
-        <div class="lm" style="left:2380px;top:310px;"><span class="lmi">🗼</span><span class="lml">Torre Oeste</span>
+        <!-- Torre Este -->
+        <div class="lm" style="left:2050px;top:330px;"><span class="lmi">🗼</span><span class="lml">Torre Este</span>
         </div>
-        <div class="dco" style="left:2220px;top:220px;font-size:30px;">🌀</div>
+        <!-- Torre Oeste -->
+        <div class="lm" style="left:2500px;top:330px;"><span class="lmi">🗼</span><span class="lml">Torre Oeste</span>
+        </div>
+        <div class="dco" style="left:2375px;top:350px;font-size:30px;">🌀</div>
         <div class="sgn"
           style="left:2125px;top:420px;background:rgba(50,0,0,.88);border:1px solid #ff444455;color:#ff9a9a;">🏰 Las 4
           Torres vigilan el Castillo</div>
 
         <!-- TECNOZONA landmarks -->
         <div class="lm" style="left:2080px;top:855px;"><span class="lmi" style="font-size:40px;">🏭</span><span
-            class="lml">Fábrica RoboX</span></div>
+            class="lml">Fábrica</span></div>
         <div class="lm" style="left:2260px;top:875px;"><span class="lmi">⚙️</span><span class="lml">Laboratorio</span>
         </div>
-        <div class="lm" style="left:2150px;top:1015px;"><span class="lmi">💡</span><span class="lml">Centro
-            Energía</span></div>
-        <div style="position:absolute;left:2215px;top:1095px;text-align:center;pointer-events:none;z-index:4;">
-          <div style="font-size:40px;">⚡</div>
-          <div class="sgn"
-            style="position:static;background:rgba(0,80,180,.55);border:2px solid #53BDEB;color:#53BDEB;margin-top:4px;">
-            💙 NÚCLEO AZUL</div>
-        </div>
+        <div class="lm" style="left:2150px;top:1055px;"><span class="lmi" style="font-size:48px;">🧿</span><span class="lml">Generador Nuclear</span></div>
 
         <!-- REINO FUEGO landmarks -->
         <div class="lm" style="left:1680px;top:1455px;"><span class="lmi" style="font-size:42px;">⛩️</span><span
@@ -3864,14 +3887,7 @@
         <div class="tree big" style="left:1580px;top:1360px;"></div>
 
         <!-- NPCs - better positioned per zone -->
-        <!-- VOID - Zona Oscura centro -->
-        <div class="npc" style="left:2210px;top:200px;" onclick="showNpc('void')" data-npcid="void">
-          <div style="position:relative;"><span class="npe">😈</span>
-            <div class="ping" id="pi-void">!</div>
-          </div><span class="npn">VOID</span>
-          <div class="prox-bubble" id="prox-void">E Hablar</div>
-        </div>
-        <!-- Guardia - entrada Zona Oscura -->
+        <!-- Guardia - entrada Zona Real -->
         <div class="npc" style="left:2055px;top:455px;" onclick="showNpc('guardia')" data-npcid="guardia">
           <span class="npe">💂</span><span class="npn">Guardia</span>
           <div class="prox-bubble" id="prox-guardia">E Hablar</div>
@@ -3920,6 +3936,23 @@
         <div id="player" style="left:1350px;top:930px;">
           <span id="playerSprite">😊</span>
           <div id="playerShadow"></div>
+        </div>
+
+        <!-- BURIED SPOTS -->
+        <div class="buried-spot" id="bspot-0" style="left:680px;top:320px;">
+          <div class="dig-prompt">🪏 Cavar</div>
+        </div>
+        <div class="buried-spot" id="bspot-1" style="left:920px;top:580px;">
+          <div class="dig-prompt">🪏 Cavar</div>
+        </div>
+        <div class="buried-spot" id="bspot-2" style="left:1150px;top:420px;">
+          <div class="dig-prompt">🪏 Cavar</div>
+        </div>
+        <div class="buried-spot" id="bspot-3" style="left:1480px;top:680px;">
+          <div class="dig-prompt">🪏 Cavar</div>
+        </div>
+        <div class="buried-spot" id="bspot-4" style="left:1820px;top:380px;">
+          <div class="dig-prompt">🪏 Cavar</div>
         </div>
 
       </div><!-- mapWorld -->
@@ -4054,8 +4087,8 @@
     const NPCS = {
       emma: { av: '🤗', nm: 'Emma', rl: 'Guía (solo en chat)', msgs: ['🤗 ¡Hola! Puedes contactarme por el chat para tus misiones.', '¡Espero que estés disfrutando de Emoji City! 🏙️'] },
       mango: { av: '👨‍🌾', nm: 'Don Mango', rl: 'Dueño del Mercado Feliz', msgs: ['¡Hola, aventurero! 👨‍🌾 Bienvenido a mi puesto.', 'Si me ayudas con la estantería, te daré información valiosa. 🍉', '¡Haz clic en el mercado para empezar el minijuego! 🏪'] },
-      void: { av: '😈', nm: 'VOID', rl: 'Señor de la Zona Oscura', msgs: ['...te esperaba... 😈 ¿Eres lo suficientemente valiente?', 'Tengo una pregunta para ti en el chat... si te atreves 🌀', 'Observa bien mi *Castillo*... sus torres guardan el secreto 🏰'] },
-      guardia: { av: '💂', nm: 'Guardia del Castillo', rl: 'Vigilante Oscuro', msgs: ['¡Alto! 💂 Este castillo tiene exactamente *4 torres*.', 'Una por cada punto cardinal: Norte, Sur, Este y Oeste.', 'Las *4 torres* vigilan el castillo sin descanso 🏰'] },
+      void: { av: '🫅', nm: 'Rey Roland', rl: 'Rey de la Zona Real', msgs: ['asi que eres el nuevo aventurero?', 'demuestra cuanto sabes de Emoji World', 'mi castillo real cuantas torres lo protegen?'] },
+      guardia: { av: '💂', nm: 'Guardia del Castillo', rl: 'Vigilante Real', msgs: ['¡Alto! 💂 Este castillo tiene exactamente *4 torres*.', 'Una por cada punto cardinal: Norte, Sur, Este y Oeste.', 'Las *4 torres* vigilan el Castillo Real sin descanso 🏰'] },
       robo: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Soy el científico principal de Tecnozona.', 'Tengo información valiosa sobre el generador. ¡Habla conmigo! 💻', 'El secreto: el *color del núcleo* del generador central ⚡'] },
       tecnico: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Trabajo en el laboratorio de RoboX.', 'Nuestro generador tiene un núcleo que brilla *azul 💙* intenso.', 'El *azul 💙* es la energía que alimenta toda Tecnozona.'] },
       blaze: { av: '🥷', nm: 'Blaze', rl: 'Guerrero del Fuego', msgs: ['¡FUEGO Y GLORIA! 🔥💪 ¡Soy Blaze!', '¡ACEPTA mi desafío en el chat, guerrero! ⚔️', 'El *dragón 🐉* es el guardián sagrado de este lugar.'] },
@@ -4076,16 +4109,16 @@
         ok: '¡¡CORRECTO!! 🎉 ¡La **sandía 🍉** es la fruta oficial de Emoji City! ¡Eres increíble!', dn: '😊 ¡Ya completaste esta misión! ¡Eres el mejor aventurero!'
       },
       void: {
-        id: 'void', nm: 'VOID 😈', em: '😈', bg: 'bg1', mt: '¿Cuántas torres tiene el Castillo Oscuro?', xp: 150, co: 50, tm: '09:38', unr: 1, pv: '...¿Así que te crees héroe? 😈',
-        init: ['...jejeje... 😈 ¿Así que eres el nuevo aventurero?', 'Si fallas... ¡absorberé tus emociones! 💀', 'Mi **Castillo Oscuro**... ¿cuántas torres lo vigilan? Observa el mapa 🏰'],
-        ans: ['4', 'cuatro'], hints: ['💀 Acércate al *Castillo Oscuro* al noreste 🏰', '💀 Habla con el *Guardia del Castillo* 💂', '💀 Una torre por cada punto cardinal 🗺️'],
-        wrong: ['...error... 😈 ¿Tan difícil es contar? 🌀', '¡INCORRECTO! Observa las estructuras del castillo 🏰', '...sigue fallando... habla con el Guardia 💂'],
-        ok: '...impresionante... 😈 **4 torres**. Correcto. Eres más listo de lo que pensaba.', dn: '...ya me conoces... 😈 No tengo más secretos.'
+        id: 'void', nm: 'Rey Roland 🫅', em: '🫅', bg: 'bg1', mt: '¿Cuántas torres tiene el Castillo Real?', xp: 150, co: 50, tm: '09:38', unr: 1, pv: 'asi que eres el nuevo aventurero?',
+        init: ['asi que eres el nuevo aventurero?', 'demuestra cuanto sabes de Emoji World', 'mi castillo real cuantas torres lo protegen?'],
+        ans: ['4', 'cuatro'], hints: ['🏰 El Castillo Real está en el centro de la zona', '🏰 Hay 4 torres: Norte, Sur, Este y Oeste', '🏰 Habla con el Guardia del castillo 💂'],
+        wrong: ['...error... ¿Tan difícil es contar?', '¡INCORRECTO! Cuenta las torres del castillo', '...sigue fallando... habla con el Guardia 💂'],
+        ok: '...impresionante... **4 torres**. Correcto. Eres más listo de lo que pensaba.', dn: '...ya me conoces... No tengo más secretos.'
       },
       robo: {
         id: 'robo', nm: 'Dr. Bits 👨‍🔬', em: '👨‍🔬', bg: 'bg2', mt: '¿De qué color es el núcleo del generador?', xp: 120, co: 35, tm: '09:35', unr: 2, pv: '¡Tengo información sobre el generador! 👨‍🔬',
         init: ['¡Bienvenido a Tecnozona! 👨‍🔬', 'SOY EL DR. BITS, científico principal 💻', 'Mi laboratorio tiene un **generador especial**. ¿De qué color brilla? Explora Tecnozona ⚡'],
-        ans: ['azul', 'blue', '💙', 'celeste'], hints: ['💻 Dirígete a *Tecnozona* al este ⚡', '💻 Busca el *Centro de Energía*, hay un cartel 💡', '💻 El Dr. Bits del laboratorio sabe el color 👨‍🔬'],
+        ans: ['azul', 'blue', '💙', 'celeste'], hints: ['💻 Dirígete a *Tecnozona* al este ⚡', '💻 Busca el *Centro de Energía*, hay un cartel 🧿', '💻 El Dr. Bits del laboratorio sabe el color 👨‍🔬'],
         wrong: ['¡ERROR! 👨‍🔬 Respuesta incorrecta. Analiza la evidencia 🗺️', '¡INCORRECTO! El color está en Tecnozona 💻', '¡FALLO! Consulta al científico 👨‍🔬'],
         ok: '¡CORRECTO! 👨‍🔬💙 El núcleo brilla **azul**. ¡Protocolo completado! ✅', dn: '¡MISIÓN ARCHIVADA! ¡Bien hecho, investigador!'
       },
@@ -4940,8 +4973,9 @@
       dot.style.top = clamp((G.my / (MH - vpH)) * 58, 2, 58) + '%';
       const cx = G.mx + vpW / 2, cy = G.my + vpH / 2;
       let z = '🏙️ Emoji City';
-      if (cx < 800 && cy < 700) z = '🏪 Mercado Feliz';
-      else if (cx > 2000 && cy < 700) z = '🏰 Zona Oscura';
+      if (cx > 130 && cx < 350 && cy > 200 && cy < 450) z = '🥬 El Huerto';
+      else if (cx < 800 && cy < 700) z = '🥬 El Huerto';
+      else if (cx > 2000 && cy < 700) z = '🏰 Zona Real';
       else if (cx > 2000 && cy > 700) z = '🔬 Tecnozona';
       else if (cx > 1600 && cy > 1400) z = '🔥 Reino de Fuego';
       else if (cx < 800 && cy > 1200) z = '🌳 Bosque Ancestral';
