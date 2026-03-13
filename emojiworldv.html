@@ -4081,7 +4081,7 @@
     let vpW = 800, vpH = 600;
     const MW = 2800, MH = 2000, SPD = 7;
     let keys = {};
-    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:1}, caveRingObtained: false, ringQuestActive: false, ringQuestCompleted: false };
+    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:1} };
 
     // ── DATA ──────────────────────────────
     const NPCS = {
@@ -4373,15 +4373,6 @@
           + (G.inv[id] > 1 ? `<div class="inv-qty">×${G.inv[id]}</div>` : '');
         d.title = def.hint;
         d.onclick = () => {
-          if (id === 'ring' && G.inv.ring > 0 && G.caveRingObtained && !G.ringQuestCompleted) {
-            closeInv();
-            openChat('emma');
-            setTimeout(() => {
-              const inp = document.getElementById('minp');
-              if (inp) { inp.value = '💍'; inp.focus(); }
-            }, 300);
-            return;
-          }
           activeItem = activeItem === id ? null : id;
           renderInv();
           const lbl = document.getElementById('invActiveLbl');
@@ -4557,8 +4548,6 @@
       frame.onload = () => {
         if (loader) loader.style.display = 'none';
         frame.style.opacity = '1';
-        // Injectar código para modificar el comportamiento del juego de la cueva
-        injectCaveModifications(frame);
       };
       // Fallback: hide loader after 3s regardless
       setTimeout(() => {
@@ -4569,194 +4558,10 @@
       frame.srcdoc = html;
     }
 
-    // Función para inyectar modificaciones en el juego de la cueva
-    function injectCaveModifications(frame) {
-      try {
-        const caveDoc = frame.contentDocument || frame.contentWindow.document;
-        
-        // Añadir estilo para el indicador de anillo y punto de salida
-        const style = caveDoc.createElement('style');
-        style.textContent = `
-          .ring-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,215,0,0.9);
-            color: #000;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 100;
-            display: none;
-          }
-          .ring-indicator.has-ring {
-            display: block;
-          }
-          .exit-point {
-            position: absolute;
-            width: 50px;
-            height: 70px;
-            left: 50%;
-            top: 30px;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            animation: exitPulse 1.5s ease-in-out infinite;
-            z-index: 10;
-            pointer-events: none;
-          }
-          .exit-label {
-            background: rgba(0,0,0,0.8);
-            color: #FFD700;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-top: 2px;
-          }
-          @keyframes exitPulse {
-            0%, 100% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.1); }
-          }
-        `;
-        caveDoc.head.appendChild(style);
-        
-        // Crear y ejecutar el script de modificaciones
-        const script = caveDoc.createElement('script');
-        script.textContent = `
-          // Variables de estado para el anillo
-          window.caveHasRing = false;
-          
-          // Variable para el punto de salida (al final del ascenso)
-          window.exitPoint = { x: 250, y: 50 };
-          
-          // Crear indicadores visuales
-          (function() {
-            // Indicador de anillo en HUD
-            const ringInd = document.createElement('div');
-            ringInd.id = 'ring-indicator';
-            ringInd.className = 'ring-indicator';
-            ringInd.textContent = '💍 Tienes el anillo';
-            document.body.appendChild(ringInd);
-            
-            // Punto de salida (al final del ascenso)
-            const exitDiv = document.createElement('div');
-            exitDiv.className = 'exit-point';
-            exitDiv.innerHTML = '🚪<div class="exit-label">SALIDA</div>';
-            document.getElementById('game-container').appendChild(exitDiv);
-          })();
-          
-          // Función para mostrar mensaje interno en la cueva
-          window.showCaveMessage = function(msg) {
-            const existing = document.getElementById('cave-msg');
-            if (existing) existing.remove();
-            const div = document.createElement('div');
-            div.id = 'cave-msg';
-            div.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);color:white;padding:20px;border-radius:10px;font-size:18px;text-align:center;z-index:100;border:2px solid #FFD700;';
-            div.innerHTML = '<div style="font-size:32px;margin-bottom:10px;">' + (msg.includes('anillo') ? '💍' : '🕳️') + '</div>' + msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3500);
-          };
-          
-          // Función para actualizar indicador de anillo
-          window.updateRingIndicator = function() {
-            const ind = document.getElementById('ring-indicator');
-            if (ind) {
-              ind.classList.toggle('has-ring', window.caveHasRing);
-            }
-          };
-          
-          // Variable para controlar si ya se recolectó el anillo
-          window.ringAlreadyCollected = false;
-          
-          // Función que se llama cuando se recolecta el anillo
-          window.onRingCollected = function() {
-            if (window.ringAlreadyCollected) return;
-            window.ringAlreadyCollected = true;
-            window.caveHasRing = true;
-            window.updateRingIndicator();
-            // Mostrar mensaje de que tiene el anillo y debe buscar la salida
-            window.showCaveMessage('💍 ¡Tienes el anillo!<br>🏃 Busca la SALIDA arriba');
-          };
-          
-          // Añadir detección de punto de salida y del anillo en el gameLoop
-          const originalGameLoop = window.gameLoop || function(){};
-          window.gameLoop = function() {
-            originalGameLoop();
-            
-            // Verificar colisión con el anillo (buscar objeto del anillo en el juego)
-            if (!window.ringAlreadyCollected) {
-              try {
-                // Buscar el anillo en los objetos del juego
-                const ringObj = document.querySelector('.ring, [data-ring], #ring, .item-ring');
-                if (ringObj && window.player) {
-                  const ringRect = ringObj.getBoundingClientRect();
-                  const playerX = window.player.x || 0;
-                  const playerY = window.player.y || 0;
-                  // Aproximar la posición del anillo (ajustar según sea necesario)
-                  const ringX = 600; // Posición típica del anillo en la cueva
-                  const ringY = 400;
-                  const distToRing = Math.sqrt(Math.pow(playerX - ringX, 2) + Math.pow(playerY - ringY, 2));
-                  if (distToRing < 40) {
-                    // Tocó el anillo - recolectarlo
-                    window.onRingCollected();
-                  }
-                }
-                
-                // Verificar si el jugador llegó a la salida
-                if (window.player && window.exitPoint && window.caveHasRing) {
-                  const playerX = window.player.x || 0;
-                  const playerY = window.player.y || 0;
-                  const dx = playerX - window.exitPoint.x;
-                  const dy = playerY - window.exitPoint.y;
-                  const dist = Math.sqrt(dx*dx + dy*dy);
-                  if (dist < 60) {
-                    // El jugador llegó a la salida con el anillo - cerrar cueva
-                    if (window.parent) window.parent.postMessage('CAVE_EXIT_SUCCESS', '*');
-                  }
-                }
-          };
-        `;
-        caveDoc.body.appendChild(script);
-      } catch(e) {
-        console.log('Error injectando modificaciones de cueva:', e);
-      }
-    }
-
     function onCaveMessage(e) {
-      // Manejo de salida exitosa de la cueva (con anillo) - CAVE_WIN es enviado cuando el jugador llega a la salida
-      if (e.data === 'CAVE_EXIT_SUCCESS' || e.data === 'CAVE_WIN') {
+      if (e.data === 'RING_FOUND' || e.data && e.data.type === 'RING_FOUND') {
         closeCave();
-        // Añadir el anillo al inventario
-        if (!G.inv.ring) G.inv.ring = 0;
-        G.inv.ring++;
-        G.caveRingObtained = true;
-        G.ringQuestActive = true; // Activar misión del anillo
-        G.inv.permit = 0;
-        hud();
-        renderInv();
-        sv();
-        toast('💍 ¡Tienes el anillo! Ahora busca a Emma 💬');
-        // Activar mensaje de Emma después de un momento
-        setTimeout(() => {
-          if (!G.cv.emma) G.cv.emma = [];
-          const m = '¿Ya completaste la misión? Si tienes el anillo, envíamelo desde tu inventario 🎒💍';
-          const ts = now();
-          G.cv.emma.push({ t: m, s: 'c', ts });
-          showMsgNotif('emma', m);
-          // Abrir automáticamente el chat con Emma para que vea el mensaje
-          openChat('emma');
-        }, 1500);
-        return;
-      }
-      
-      // Manejo de salida fallida (sin anillo)
-      if (e.data === 'CAVE_EXIT_FAILURE') {
-        // El juego de la cueva mostrará el mensaje internamente
-        return;
+        onRingFound();
       }
     }
 
@@ -5586,66 +5391,6 @@
             }, 800);
           }, 400);
           return;
-        }
-        // NUEVO: Manejo de envío de anillo desde inventario después de salir de la cueva
-        if (id === 'emma' && G.ringQuestActive && G.caveRingObtained && (text.includes('anillo') || text.includes('💍') || text.includes('enviar') || text.includes('aquí') || text.includes('tengo'))) {
-          if (G.inv.ring > 0) {
-            G.inv.ring--;
-            G.ringQuestActive = false;
-            G.ringQuestCompleted = true;
-            G.xp += 100;
-            G.coins += 50;
-            G.ms++;
-            hud();
-            sv();
-            setTimeout(() => {
-              showTyp();
-              setTimeout(() => {
-                hideTyp();
-                const msgs = [
-                  '💍 ¡No lo puedo creer! ¡Encontraste mi anillo!',
-                  '¡Eres increíble, aventurero! 😊✨',
-                  '¡Has completado la primera fase de Emoji City! 🏆',
-                  '...pero algo se siente mal en el aire... 👀',
-                ];
-                let delay = 0;
-                msgs.forEach((m, i) => {
-                  setTimeout(() => {
-                    const ts2 = now();
-                    if (!G.cv.emma) G.cv.emma = [];
-                    G.cv.emma.push({ t: m, s: 'c', ts: ts2 });
-                    bub(m, 'c', ts2, true);
-                    showMsgNotif('emma', m);
-                    if (i === msgs.length - 1) {
-                      phase1Done = true; G.phase1 = true; G.caveRingObtained = false; sv();
-                      const t = document.getElementById('toast');
-                      t.textContent = '🏆 ¡FASE 1 COMPLETADA! +100 XP ⚡ +50 🪙';
-                      t.classList.add('show');
-                      setTimeout(() => t.classList.remove('show'), 3500);
-                      setTimeout(triggerInvasion, 90000);
-                    }
-                  }, delay + i * 1400);
-                });
-              }, 600);
-            }, 400);
-            return;
-          } else {
-            setTimeout(() => {
-              showTyp();
-              setTimeout(() => {
-                hideTyp();
-                const replies = [
-                  '¡Se parece pero ese no es mi anillo! 😅',
-                  'No veo ningún anillo... ¿Ya saliste de la cueva? 🕳️',
-                  'Ese no es... sigue buscando en la Cueva Oscura 🕳️',
-                ];
-                const r = replies[Math.floor(Math.random() * replies.length)];
-                const rt = now(); bub(r, 'c', rt, true); G.cv[id].push({ t: r, s: 'c', ts: rt });
-                showMsgNotif(id, r);
-              }, 800);
-            }, 400);
-            return;
-          }
         }
         setTimeout(() => {
           showTyp();
