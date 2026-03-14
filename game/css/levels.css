@@ -1,0 +1,249 @@
+/**
+ * Level-specific styles
+ * Shared styles for all level HTML files
+ */
+
+/* Level container */
+.level-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Game canvas area */
+.level-canvas {
+  display: block;
+  width: 100%;
+  height: 65%;
+}
+
+/* Level HUD */
+.level-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.level-hud-item {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: white;
+}
+
+/* Progress bar */
+.level-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.level-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #81C784, #2E7D32);
+  transition: width 0.3s ease;
+}
+
+/* Level screens (start, game over, victory) */
+.level-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 5, 15, 0.96);
+  z-index: 30;
+  gap: 15px;
+  padding: 20px;
+  text-align: center;
+}
+
+.level-screen.hidden {
+  display: none;
+}
+
+.level-screen-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 28px;
+  color: #d4a574;
+}
+
+.level-screen-subtitle {
+  font-size: 14px;
+  color: #a09080;
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+.level-button {
+  background: linear-gradient(135deg, #78580a, #c68642);
+  border: none;
+  border-radius: 28px;
+  padding: 14px 36px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #5a4008;
+  transition: all 0.1s;
+}
+
+.level-button:hover {
+  transform: translateY(-2px);
+}
+
+.level-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #5a4008;
+}
+
+.level-button.primary {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  box-shadow: 0 4px 0 #144a18;
+}
+
+.level-button.danger {
+  background: linear-gradient(135deg, #c62828, #8e0000);
+  box-shadow: 0 4px 0 #6a0000;
+}
+
+/* Tip grid for level intros */
+.level-tips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.level-tip {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Inventory bar */
+.level-inventory {
+  position: absolute;
+  bottom: 180px;
+  width: 100%;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.65);
+  border-top: 2px solid #c68642;
+  border-bottom: 2px solid #c68642;
+  z-index: 10;
+}
+
+.level-slot {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: rgba(40, 25, 10, 0.85);
+  border: 2px solid #8b5e3c;
+  cursor: pointer;
+}
+
+.level-slot.filled {
+  border-color: #fbbf24;
+  box-shadow: 0 0 16px #fbbf24;
+}
+
+/* Controls area */
+.level-controls {
+  position: absolute;
+  bottom: 50px;
+  width: 100%;
+  height: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.level-controls-left,
+.level-controls-right {
+  display: flex;
+  gap: 10px;
+}
+
+.level-btn {
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s;
+}
+
+.level-btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Toast notifications */
+.level-toast {
+  position: fixed;
+  top: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(12, 6, 0, 0.95);
+  border: 1px solid rgba(212, 165, 116, 0.35);
+  border-radius: 18px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #f0d0a0;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+
+.level-toast.show {
+  opacity: 1;
+}
+
+/* Health bar */
+.level-health {
+  display: flex;
+  gap: 4px;
+}
+
+.level-heart {
+  font-size: 16px;
+}
+
+/* Timer display */
+.level-timer {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Zone indicator */
+.level-zone {
+  font-size: 12px;
+  padding: 4px 12px;
+}

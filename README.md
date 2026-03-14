@@ -2,7 +2,6 @@
 
 ¡Bienvenido a **Emoji World**, un vasto mundo abierto de aventuras construido completamente con emojis! Explora diversas zonas, completa misiones, chatea con personajes, juega minijuegos y descubre la historia de Emoji City.
 
-
 ## 🌟 Características
 
 - **Mundo abierto expansivo** – Recorre un mapa de 2800×2000 píxeles con seis zonas únicas:
@@ -13,95 +12,120 @@
   - 🔥 Reino de Fuego
   - 🌳 Bosque Ancestral
 - **NPCs interactivos** – Habla con ciudadanos, resuelve acertijos y obtén recompensas.
-- **Sistema de misiones** – Misiones con varias fases:
-  - Encuentra la fruta oficial de Emoji City 🍉
-  - Recupera el anillo perdido de Emma de la cueva oscura 💍
-  - Sobrevive a la invasión alienígena 👾
-- **Minijuegos** – Organiza estanterías en *Mercado Feliz*, explora la *Cueva Oscura*, defiende la ciudad en *Emoji Game*.
-- **Chat en tiempo real** – Sistema de mensajería con notificaciones y contador de no leídos.
-- **Inventario y objetos** – Recoge y usa objetos como pala, permiso, anillo.
-- **Controles táctiles** – Joystick virtual y botón de salto para móviles.
-- **Controles por teclado** – Flechas + E, C, Espacio.
-- **Ciclo día/noche dinámico** – El fondo cambia mientras viajas.
-- **Música procedural** – Banda sonora adaptativa con síntesis Web Audio.
-- **Persistencia** – El estado del juego se guarda en el almacenamiento del navegador.
+- **Sistema de misiones** – Misiones con varias fases
+- **Minijuegos** – Organiza estanterías en *Mercado Feliz*, explora la *Cueva Oscura*, defende la ciudad en *Emoji Game*
+- **Niveles independientes** – Cada nivel es un archivo HTML independiente que puede editarse sin modificar el motor del juego
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+emoji-world/
+│
+├── website/              # Sitio web principal
+│   ├── index.html       # Página de inicio
+│   ├── stories.html     # Historias
+│   ├── videos.html      # Videos
+│   ├── games.html       # Juegos
+│   └── mini-games.html # Minijuegos
+│
+├── game/                # Directorio del juego
+│   ├── index.html       # Punto de entrada del juego
+│   │
+│   ├── css/
+│   │   └── game.css    # Estilos del juego
+│   │
+│   ├── js/
+│   │   ├── game.js     # Motor principal del juego
+│   │   └── levelLoader.js  # Sistema de carga de niveles
+│   │
+│   ├── levels/         # Niveles del juego (HTML independientes)
+│   │   ├── cave.html           # Cave Escape
+│   │   ├── mercado-don-mango.html  # Mercado Feliz
+│   │   └── emoji-city.html     # Nivel principal
+│   │
+│   └── assets/
+│       ├── images/
+│       ├── audio/
+│       └── effects/
+│
+├── docs/                # Documentación
+├── README.md
+└── .gitignore
+```
 
 ---
 
 ## 🎯 Cómo jugar
 
-Eres un aventurero en Emoji City. Muévete, habla con los personajes y completa misiones para descubrir la historia.
+1. Abre `website/index.html` en un navegador
+2. Haz clic en **"JUGAR"** para iniciar el juego principal
+3. O navega directamente a `game/index.html`
 
-1. **Explora** – Camina por las diferentes zonas usando el joystick o las flechas.
-2. **Interactúa** – Presiona `E` cerca de un NPC o haz clic en ellos para hablar.
-3. **Acepta misiones** – Habla con Emma (la guía) y sigue las pistas.
-4. **Usa el inventario** – Recoge objetos y selecciónalos desde la mochila.
-5. **Juega minijuegos** – Haz clic en el Mercado Feliz o entra a la cueva cuando tengas permiso.
-6. **Progresa en la historia** – Tras completar la misión de la fruta, Emma te enviará a buscar el anillo, lo que llevará a la fase de invasión alienígena.
-
----
-
-## ⌨️ Controles
+### Controles
 
 | Acción          | Teclado          | Táctil               |
 |-----------------|------------------|----------------------|
 | Moverse         | Flechas          | Joystick virtual     |
 | Saltar          | Espacio          | Botón ▲              |
-| Interactuar / Hablar | E             | Burbuja de proximidad|
-| Abrir chat      | C                | Botón 💬 / Menú inferior |
-| Abrir inventario| -                | Botón 🎒 (menú inferior) |
-| Cavar (con pala)| -                | Botón 🪏 (aparece cerca de puntos) |
+| Interactuar     | E                | Burbuja de proximidad|
 
 ---
 
-## 📦 Instalación
+## ➕ Cómo agregar nuevos niveles
 
-¡No requiere instalación! Solo abre el archivo `index.html` en cualquier navegador web moderno.
+1. Crea un nuevo archivo HTML en `game/levels/`
+2. Usa la plantilla de nivel:
 
-Para una mejor experiencia, usa un navegador que soporte:
-- ES6 JavaScript
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nombre del Nivel - Emoji World</title>
+  <style>
+    /* Tus estilos */
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <!-- Contenido del nivel -->
+  </div>
+  <script>
+    // Lógica del nivel
+  </script>
+</body>
+</html>
+```
+
+3. Registra el nivel en `game/js/levelLoader.js`
+
+### Cargando niveles
+
+```javascript
+// Cargar por ruta de archivo
+loadLevel('levels/cave.html');
+
+// O por nombre
+LevelLoader.loadLevelByName('cave');
+```
+
+---
+
+## 🛠️ Tecnologías
+
+- HTML5
+- CSS3
+- JavaScript (ES6)
 - Web Audio API
-- CSS Grid & Flexbox
-- Local Storage
-
-Recomendado: Chrome, Firefox, Edge o Safari (últimas versiones).
-
----
-
-## 🛠️ Tecnologías utilizadas
-
-- **HTML5** – Estructura y renderizado canvas
-- **CSS3** – Estilos, animaciones, diseño responsive
-- **JavaScript (ES6)** – Lógica del juego, física, IA, síntesis de música
-- **Web Audio API** – Banda sonora procedural y efectos de sonido
-- **LocalStorage API** – Guardado de progreso
-
----
-
-## 📚 Estructura del juego
-
-- `index.html` – Archivo principal (todo en uno)
-- CSS y JavaScript en línea para simplicidad
-- Minijuegos incrustados: Cave Escape, Emoji Game (como strings HTML)
+- LocalStorage API
 
 ---
 
 ## 👤 Créditos
 
-- **Rafael Araque** – Creador y desarrollador original
-- Agradecimientos especiales a todos los jugadores de prueba y colaboradores
-
----
-
-
----
-
-## � Planes futuros
-
-- Más zonas y NPCs
-- Chat multijugador
-- Misiones diarias y tablas de clasificación
-- Versión como aplicación móvil
+- **Rafael Araque** – Creador y desarrollador
 
 ---
 

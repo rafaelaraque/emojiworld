@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>🕳️ Cave Escape · Emoji World</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/game.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; color: white; touch-action: none; }
+    #game-container { position: relative; width: 95%; max-width: 800px; height: 95vh; background: rgba(0, 0, 30, 0.7); border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); overflow: hidden; border: 4px solid #c68642; }
+    canvas { display: block; width: 100%; height: 65%; }
+    #hud-container { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 15px; z-index: 5; gap: 10px; }
+    .hud-item { font-size: 16px; background: rgba(0, 0, 0, 0.5); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px; min-width: 80px; }
+    #hearts-display { border: 2px solid #ff4757; box-shadow: 0 0 10px rgba(255, 71, 87, 0.5); justify-content: center; }
+    #zone-hud { border: 2px solid #8b5e3c; font-size: 12px; }
+    .heart { font-size: 16px; display: inline-block; }
+    #hearts-display.damage-shake { animation: hudShake .4s ease-out; }
+    @keyframes hudShake { 0%, 100% { transform: translateX(0) } 20% { transform: translateX(-5px) } 40% { transform: translateX(5px) } 60% { transform: translateX(-3px) } 80% { transform: translateX(3px) } }
+    #inventory { position: absolute; bottom: 180px; width: 100%; height: 70px; display: flex; justify-content: center; gap: 8px; padding: 10px; background: rgba(0, 0, 0, 0.65); border-top: 2px solid #c68642; border-bottom: 2px solid #c68642; z-index: 10; }
+    .power-slot { position: relative; width: 50px; height: 50px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; background: rgba(40, 25, 10, 0.85); border: 2px solid #8b5e3c; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); cursor: pointer; transition: all .2s; overflow: visible; }
+    .power-slot .plus { font-size: 30px; color: rgba(212, 165, 116, 0.8); line-height: 1; }
+    .power-slot:active { transform: scale(.9); }
+    .power-slot.glow { border-color: #fbbf24; box-shadow: 0 0 16px #fbbf24; animation: spulse .5s infinite alternate; }
+    @keyframes spulse { from { box-shadow: 0 0 8px #fbbf24 } to { box-shadow: 0 0 26px #fbbf24, 0 0 40px rgba(251, 191, 36, .4) } }
+    .power-slot .sclr { position: absolute; top: -6px; right: -6px; width: 17px; height: 17px; border-radius: 50%; background: #ff4444; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; line-height: 1; }
+    #controls { position: absolute; bottom: 50px; width: 100%; height: 100px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+    #left-controls { display: flex; gap: 10px; }
+    #right-controls { display: flex; gap: 10px; align-items: center; }
+    .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; font-size: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: all .1s; }
+    .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
+    #jump-btn-wrapper, #attack-btn-wrapper { width: 65px; height: 65px; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; transition: all .1s; }
+    #jump-btn-wrapper:active, #attack-btn-wrapper:active { transform: scale(0.9); }
+    #attack-btn-wrapper.ready { background: rgba(255,200,100,0.25); border-color: #fbbf24; }
+    #picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; align-items: center; justify-content: center; }
+    #picker-overlay.show { display: flex; }
+    #picker-box { background: linear-gradient(160deg, #2a1a10, #3d2815); border: 2px solid #8b5e3c; border-radius: 20px; padding: 20px; width: min(380px, 92vw); max-height: 80vh; overflow-y: auto; }
+    #picker-box h3 { font-family: 'Fredoka One', cursive; font-size: 18px; color: #d4a574; margin-bottom: 15px; text-align: center; }
+    #picker-label { font-size: 14px; color: #a08060; margin-bottom: 10px; }
+    .quick-pick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .quick-pick-item { width: 42px; height: 42px; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(212,165,116,0.3); border-radius: 10px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .1s; }
+    .quick-pick-item:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
+    #picker-recent-lbl { font-size: 11px; color: #706050; margin-bottom: 6px; }
+    .qe-hint { font-size: 11px; color: #605040; text-align: center; padding: 10px; }
+    .qe { width: 38px; height: 38px; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .qe:active { background: rgba(255,255,255,0.12); }
+    #qgrid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+    #picker-row { display: flex; gap: 7px; align-items: center; margin-bottom: 8px; }
+    #picker-display { flex: 1; background: rgba(255, 255, 255, .06); border: 1px solid rgba(212, 165, 116, .25); border-radius: 9px; padding: 7px 10px; font-size: 26px; min-height: 44px; display: flex; align-items: center; justify-content: center; cursor: text; color: rgba(255, 255, 255, .3); }
+    #picker-display.has { color: #fff; }
+    #picker-kbd { background: linear-gradient(135deg, #8b5e3c, #c68642); border: none; border-radius: 8px; padding: 7px 12px; color: #fff; font-size: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+    #picker-real { position: absolute; opacity: 0; width: 1px; height: 1px; top: -200px; font-size: 16px; border: none; outline: none; }
+    #picker-ok { width: 100%; background: linear-gradient(135deg, #78580a, #c68642); border: none; border-radius: 10px; padding: 11px; font-size: 15px; color: #fff; cursor: pointer; font-weight: 700; display: none; margin-bottom: 5px; }
+    #picker-ok.show { display: block; }
+    #picker-cancel { width: 100%; background: rgba(212, 165, 116, .08); border: 1px solid rgba(212, 165, 116, .2); border-radius: 10px; padding: 9px; font-size: 13px; color: rgba(212, 165, 116, .7); cursor: pointer; }
+    #toast { position: absolute; top: 54px; left: 50%; transform: translateX(-50%); background: rgba(12, 6, 0, .95); border: 1px solid rgba(212, 165, 116, .35); border-radius: 18px; padding: 6px 16px; font-size: 12px; color: #f0d0a0; pointer-events: none; opacity: 0; transition: opacity .3s; z-index: 45; white-space: nowrap; max-width: 88%; text-align: center; }
+    #toast.show { opacity: 1; }
+    #boss-health-bar { position: absolute; top: 55px; left: 50%; transform: translateX(-50%); width: 180px; height: 14px; background: #330000; border: 2px solid #c68642; border-radius: 12px; display: none; overflow: hidden; z-index: 15; }
+    #boss-health-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff4d4d, #ff1a1a); border-radius: 10px; transition: width 0.1s; }
+    @media(max-width:480px) { .btn { width: 80px; height: 80px; font-size: 44px; } #jump-btn-wrapper, #attack-btn-wrapper { width: 72px; height: 72px; } }
+    /* Screens */
+    #start-screen, #game-over, #victory-screen { position: absolute; inset: 0; background: rgba(10,5,15,.96); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; gap: 15px; padding: 20px; text-align: center; }
+    #start-screen .si, #game-over .si, #victory-screen .si { font-size: 70px; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    #start-screen .stitle, #game-over h2, #victory-screen h2 { font-family: 'Fredoka One', cursive; font-size: 28px; color: #d4a574; }
+    #start-screen .sstory { font-size: 14px; color: #a09080; max-width: 320px; line-height: 1.6; }
+    #start-screen .tip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+    #start-screen .tip { font-size: 12px; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 8px; }
+    .pbtn { background: linear-gradient(135deg, #78580a, #c68642); border: none; border-radius: 28px; padding: 14px 36px; font-family: 'Fredoka One', cursive; font-size: 18px; color: #fff; cursor: pointer; box-shadow: 0 4px 0 #5a4008; transition: all .1s; }
+    .pbtn:hover { transform: translateY(-2px); }
+    .pbtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #5a4008; }
+    .pbtn.red { background: linear-gradient(135deg, #c62828, #8e0000); box-shadow: 0 4px 0 #6a0000; }
+    .pbtn.grn { background: linear-gradient(135deg, #2e7d32, #1b5e20); box-shadow: 0 4px 0 #144a18; }
+    #game-over h2 { color: #ff6b6b; }
+    #game-over p { color: #aaa; max-width: 260px; }
+    #victory-screen h2 { color: #c68642; }
+    #victory-screen p { color: #d4a574; max-width: 280px; }
+    #win-stats { color: #ffd700; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="hud-container">
+      <div class="hud-item" id="hearts-display">
+        <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+      </div>
+      <div class="hud-item" id="zone-hud">🕳️ Cueva</div>
+    </div>
+    <div id="boss-health-bar"><div id="boss-health-fill"></div></div>
+    <div id="inventory">
+      <div class="power-slot" id="ps0"></div>
+      <div class="power-slot" id="ps1"></div>
+      <div class="power-slot" id="ps2"></div>
+      <div class="power-slot" id="ps3"></div>
+      <div class="power-slot" id="ps4"></div>
+    </div>
+    <div id="controls">
+      <div id="left-controls">
+        <div class="btn" id="btn-left">⬅️</div>
+        <div class="btn" id="btn-right">➡️</div>
+      </div>
+      <div id="right-controls">
+        <div id="jump-btn-wrapper">🔵</div>
+        <div id="attack-btn-wrapper"><span id="atk-em">⚡</span></div>
+      </div>
+    </div>
+    <div id="picker-overlay">
+      <div id="picker-box">
+        <h3>🎒 EQUIPAR ÍTEM</h3>
+        <div id="picker-label">→ Slot 1</div>
+        <div class="quick-pick" id="quick-pick"></div>
+        <div id="picker-recent-lbl">Usados recientemente</div>
+        <div class="qgrid" id="qgrid"></div>
+        <div id="picker-row">
+          <div id="picker-display">↑ elige o escribe</div>
+          <button id="picker-kbd">⌨️ Teclado</button>
+        </div>
+        <input id="picker-real" type="text" inputmode="emoji" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button id="picker-ok">✅ Equipar</button>
+        <button id="picker-cancel">✕ Cancelar</button>
+      </div>
+    </div>
+    <div id="toast"></div>
+    <div id="start-screen">
+      <div class="si">🕳️</div>
+      <div class="stitle">Cave Escape<br><small style="font-size:.42em;opacity:.55">Emoji World</small></div>
+      <div class="sstory">
+        Caíste en las cavernas bajo Emoji City 😱<br>
+        Recorre el túnel, derrota a la araña gigante 🕷️, recupera el 💍 de Emma y sube el pozo vertical hasta la salida ☀️<br>
+        Toca un slot vacío (+) y elige rápido abajo.
+      </div>
+      <div class="tip-grid">
+        <div class="tip">🔦 ilumina la cueva</div>
+        <div class="tip">🌬️ viento empuja →</div>
+        <div class="tip">🫧 burbujas ¡suben el pozo!</div>
+        <div class="tip">🌧️ lluvia apaga 🔥, forma charcos</div>
+        <div class="tip">💣 bomba destruye 🧱 y daña jefe</div>
+        <div class="tip">🔫 pistola de agua (recarga en 💧)</div>
+        <div class="tip">🍎 comida = +❤️</div>
+        <div class="tip">⬆️⬆️ doble salto</div>
+      </div>
+      <button class="pbtn" id="btn-play">⬇️ ¡Entrar a la cueva!</button>
+    </div>
+    <div id="game-over">
+      <div class="si" style="font-size:70px">😵</div>
+      <h2 style="color:#ff6b6b;font-size:2rem">¡Atrapado!</h2>
+      <p style="color:#aaa;text-align:center;max-width:260px">La oscuridad de la cueva te venció.</p>
+      <button class="pbtn red" id="btn-restart">🔄 Reintentar</button>
+    </div>
+    <div id="victory-screen">
+      <div class="si" style="font-size:70px">☀️</div>
+      <h2 style="color:#c68642;font-size:2rem">¡Escapaste!</h2>
+      <p style="color:#d4a574;text-align:center;max-width:280px">¡Saliste de las cavernas de Emoji City!</p>
+      <div id="win-stats" style="color:#ffd700;margin-top:4px"></div>
+      <button class="pbtn grn" id="btn-win">🔄 Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <script src="cave-level.js"></script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>🏪 Mercado Feliz – Planimetría</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/game.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--cs:clamp(32px,8.5vw,54px);--gap:clamp(3px,.6vw,5px);--wood1:#6D4C41;--wood2:#5D4037;--wood3:#4E342E;--board:#8D6E63;--board2:#795548;--wall:#FFF8F0;--wall2:#FFF3E0;--g:#2E7D32;--g2:#43A047;--g3:#C8E6C9;--gold:#F9A825;--gold2:#FF8F00;--gold3:#FFF9C4;--dark:#2d1a08;--tx2:#5a3e28;--shadow:rgba(0,0,0,.22);}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-family:'Nunito',sans-serif;color:var(--dark);user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;transition:opacity .35s,transform .35s;background:var(--wall);}
+.screen.off{opacity:0;pointer-events:none;transform:translateY(18px);}
+#sIntro{background:linear-gradient(180deg,#FFE0A3 0%,#FFD07A 40%,#FFC55A 100%);align-items:center;justify-content:flex-end;padding:0;overflow-y:auto;}
+.intro-sky{flex:1;display:flex;align-items:flex-end;justify-content:center;padding:12px 12px 0;min-height:0;}
+.store-building{width:min(460px,98vw);display:flex;flex-direction:column;}
+.store-roof{background:linear-gradient(180deg,#D4813A,#C4712A);border-radius:20px 20px 0 0;padding:16px 16px 0;box-shadow:0 -3px 0 #A05020;}
+.store-sign{background:linear-gradient(135deg,#2E7D32,#1B5E20);border-radius:12px;padding:10px 16px;text-align:center;border:3px solid #FFD700;box-shadow:0 0 20px rgba(255,215,0,.35),inset 0 1px 0 rgba(255,255,255,.18);margin-bottom:12px;}
+.sign-em{font-size:clamp(26px,6vw,36px);display:block;}
+.sign-nm{font-family:'Fredoka One',cursive;font-size:clamp(17px,4.5vw,25px);color:#FFD700;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.sign-sub{font-size:clamp(9px,2.5vw,11px);color:#A5D6A7;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.store-windows{display:flex;gap:10px;justify-content:center;margin-bottom:0;}
+.win{width:clamp(64px,17vw,84px);height:clamp(50px,13vw,64px);background:linear-gradient(135deg,#87CEEB,#B0E0FF);border:4px solid #8B6914;border-radius:6px;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;font-size:15px;}
+.win::after{content:'';position:absolute;top:50%;left:0;right:0;height:3px;background:rgba(139,105,20,.4);}
+.win::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;background:rgba(139,105,20,.4);}
+.store-door{background:linear-gradient(180deg,#FFF8F0,#FFF0D8);border-radius:16px 16px 0 0;padding:14px 16px 0;margin-top:8px;border:3px solid #C4712A;border-bottom:none;}
+.shopkeeper-row{display:flex;align-items:flex-end;gap:10px;}
+.sk{font-size:clamp(46px,11vw,64px);line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.2));animation:skBob 2s ease-in-out infinite;flex-shrink:0;}
+@keyframes skBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.bubble{background:#fff;border-radius:16px 16px 16px 3px;padding:12px 14px;box-shadow:0 3px 12px var(--shadow);border:2px solid #E8D5B0;flex:1;min-width:0;}
+.bubble-name{font-family:'Fredoka One',cursive;font-size:12px;color:var(--g);margin-bottom:4px;letter-spacing:.4px;}
+.bubble-txt{font-size:clamp(12px,3vw,14px);color:var(--dark);line-height:1.5;font-weight:700;}
+.bubble-txt em{color:var(--g2);font-style:normal;font-weight:900;}
+.bubble-txt strong{color:var(--gold2);font-weight:900;}
+.intro-actions{width:min(460px,98vw);padding:12px 16px clamp(12px,4vw,24px);background:linear-gradient(180deg,#FFF8F0,#FFF0D8);display:flex;flex-direction:column;gap:8px;border-top:none;flex-shrink:0;}
+.btn-main{background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border:none;border-radius:28px;padding:clamp(11px,2.5vw,14px) 24px;font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,17px);cursor:pointer;letter-spacing:.4px;box-shadow:0 4px 0 var(--g),0 6px 20px rgba(46,125,50,.3);transition:all .1s;width:100%;}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--g);}
+.btn-main:active{transform:translateY(2px);box-shadow:0 2px 0 var(--g);}
+.btn-skip{background:none;border:2px solid rgba(0,0,0,.12);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:800;color:var(--tx2);cursor:pointer;font-family:inherit;transition:all .12s;align-self:center;}
+.btn-skip:hover{background:rgba(0,0,0,.05);}
+#sGame{background:var(--wall);}
+#hud{background:linear-gradient(135deg,var(--g),#1B5E20);padding:clamp(6px,1.5vw,9px) clamp(10px,2.5vw,16px);display:flex;align-items:center;gap:8px;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.3);z-index:10;}
+.hud-t{font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,18px);color:#fff;flex:1;}
+.hud-chip{background:rgba(255,255,255,.15);border-radius:12px;padding:3px 9px;font-size:clamp(11px,2.5vw,12px);font-weight:800;color:#fff;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.hud-hint-btn{background:rgba(255,215,0,.18);border:1.5px solid rgba(255,215,0,.5);border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#FFD700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+.hud-hint-btn:hover{background:rgba(255,215,0,.32);}
+#progWrap{height:5px;background:rgba(0,0,0,.1);flex-shrink:0;}
+#progBar{height:100%;background:linear-gradient(90deg,#81C784,#2E7D32);transition:width .35s ease;}
+#gameMain{flex:1;display:flex;overflow:hidden;min-height:0;}
+@media(min-width:680px){#gameMain{flex-direction:row;}}
+#shelfZone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,2vw,14px);overflow:hidden;min-width:0;min-height:0;}
+.shelf-wrap{background:linear-gradient(180deg,var(--wood1),var(--wood2));border-radius:12px;padding:clamp(6px,1.5vw,10px) clamp(8px,2vw,12px);box-shadow:0 6px 0 var(--wood3),0 10px 28px rgba(0,0,0,.38);border:3px solid var(--board);width:100%;max-width:600px;position:relative;}
+.shelf-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.07));border-radius:12px 12px 0 0;}
+.shelf-row{display:grid;grid-template-columns:repeat(8,var(--cs));gap:var(--gap);justify-content:center;padding:var(--gap) 0;}
+.shelf-board{height:clamp(10px,1.8vw,13px);background:linear-gradient(180deg,var(--board),var(--board2));margin:0 -1px;box-shadow:0 3px 0 var(--wood3),inset 0 1px 0 rgba(255,255,255,.15);border-radius:2px;}
+.cell{width:var(--cs);height:var(--cs);border-radius:7px;border:2.5px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.2vw,26px);transition:background .1s,border-color .1s,transform .1s;position:relative;background:rgba(0,0,0,.1);}
+.cell.filled{border-style:solid;cursor:grab;}
+.cell.filled:active{cursor:grabbing;}
+.cell.hl-ok{background:rgba(129,199,132,.35)!important;border:2.5px solid #66BB6A!important;transform:scale(1.05);}
+.cell.hl-bad{background:rgba(239,83,80,.22)!important;border:2.5px solid #EF5350!important;}
+.cell.star-hint{border-color:rgba(255,215,0,.5);animation:sPulse 1.3s ease-in-out infinite;}
+@keyframes sPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.3);}50%{box-shadow:0 0 0 6px rgba(255,215,0,0);}}
+.cell.fok{animation:fok .4s ease-out;}
+@keyframes fok{0%{background:rgba(76,175,80,.6);transform:scale(1.14);}100%{transform:scale(1);}}
+.cell.fbad{animation:fbad .35s ease-out;}
+@keyframes fbad{0%,50%{background:rgba(229,57,53,.45);transform:scale(.93);}100%{transform:scale(1);}}
+#sidePanel{background:var(--wall2);display:flex;flex-direction:column;border-top:2px solid rgba(0,0,0,.07);overflow:hidden;flex-shrink:0;max-height:48vh;}
+@media(min-width:680px){.sidePanel{width:260px;border-top:none;border-left:2px solid rgba(0,0,0,.07);max-height:none;}}
+@media(min-width:860px){.sidePanel{width:290px;}}
+.mango-bar{display:flex;align-items:flex-start;gap:9px;padding:clamp(7px,1.8vw,11px);background:#FFF3E0;border-bottom:1.5px solid rgba(0,0,0,.06);flex-shrink:0;}
+.mango-em{font-size:clamp(28px,5vw,38px);line-height:1;flex-shrink:0;animation:skBob 2s ease-in-out infinite;}
+.mango-bbl{background:#fff;border-radius:9px 9px 9px 2px;padding:8px 11px;font-size:clamp(11px,2.6vw,13px);font-weight:700;color:var(--dark);line-height:1.45;border:1.5px solid #E8D5B0;flex:1;}
+.mango-bbl em{color:var(--g2);font-style:normal;font-weight:900;}
+.mango-bbl strong{color:var(--gold2);font-weight:900;}
+.tray-lbl{padding:6px 10px 3px;font-size:10px;font-weight:900;color:var(--g);letter-spacing:.7px;text-transform:uppercase;flex-shrink:0;}
+.tray{flex:1;overflow-y:auto;overflow-x:hidden;padding:3px 7px 7px;display:flex;flex-direction:column;gap:4px;}
+.tray::-webkit-scrollbar{width:4px;}
+.tray::-webkit-scrollbar-thumb{background:#C8A97E;border-radius:4px;}
+.ti{display:flex;align-items:center;gap:9px;background:#fff;border-radius:10px;padding:7px 9px;border:2px solid transparent;cursor:grab;box-shadow:0 2px 5px rgba(0,0,0,.07);transition:all .14s;position:relative;flex-shrink:0;}
+.ti:active{cursor:grabbing;}
+.ti:hover:not(.placed){transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.13);}
+.ti.placed{opacity:.4;pointer-events:none;filter:grayscale(.5);}
+.ti.dragging{border-color:var(--gold);background:var(--gold3);box-shadow:0 0 0 3px rgba(249,168,37,.22);}
+.ti-em{font-size:clamp(22px,5vw,28px);line-height:1;flex-shrink:0;}
+.ti-nm{font-size:clamp(11px,2.7vw,13px);font-weight:800;color:var(--dark);}
+.ti-plan{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.ti-shape{display:grid;gap:2px;}
+.ti-sc{width:8px;height:8px;border-radius:2px;}
+.ti-txt{font-size:9px;font-weight:700;color:var(--tx2);}
+.ti-check{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:16px;}
+.ti-star{position:absolute;top:-5px;right:-5px;background:var(--gold);color:#7A4800;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;letter-spacing:.4px;box-shadow:0 2px 4px rgba(0,0,0,.15);}
+.emoji-row{padding:7px 9px;border-top:1.5px solid rgba(0,0,0,.07);display:flex;gap:6px;flex-shrink:0;background:#FFF8F0;}
+.emoji-inp{flex:1;background:#fff;border:2px solid #E8D5B0;border-radius:20px;padding:8px 13px;font-size:20px;outline:none;font-family:inherit;color:var(--dark);caret-color:var(--g);transition:border-color .14s;}
+.emoji-inp:focus{border-color:var(--g2);}
+.emoji-inp::placeholder{font-size:11px;color:#bbb;}
+.add-btn{background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border:none;border-radius:20px;padding:8px 12px;font-family:'Fredoka One',cursive;font-size:12px;cursor:pointer;white-space:nowrap;box-shadow:0 3px 0 var(--g);transition:all .1s;}
+.add-btn:hover{transform:translateY(-1px);}
+.add-btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--g);}
+#ghost{position:fixed;z-index:999;pointer-events:none;display:none;transform:translate(-50%,-65%);}
+.gcell{border-radius:7px;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,4vw,24px);opacity:.82;}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+.ov.show{display:flex;}
+.ov-bottom{align-items:flex-end;justify-content:center;padding:0 10px 10px;}
+.win-card{background:linear-gradient(160deg,#1B5E20,#2E7D32);border:3px solid #FFD700;border-radius:22px;padding:clamp(20px,4vw,30px);text-align:center;width:min(370px,96vw);box-shadow:0 0 50px rgba(255,215,0,.2),0 20px 50px rgba(0,0,0,.5);animation:pop .4s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.win-em{font-size:clamp(56px,13vw,76px);display:block;margin-bottom:10px;animation:wRock 2s ease-in-out infinite;}
+@keyframes wRock{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg) scale(1.07);}}
+.win-t{font-family:'Fredoka One',cursive;font-size:clamp(20px,5vw,27px);color:#FFD700;margin-bottom:6px;}
+.win-s{font-size:clamp(12px,3vw,14px);color:rgba(255,255,255,.82);margin-bottom:14px;line-height:1.5;}
+.clue-box{background:rgba(0,0,0,.3);border:2px solid rgba(255,215,0,.38);border-radius:13px;padding:13px;margin-bottom:14px;}
+.clue-lbl{font-size:9px;font-weight:900;color:rgba(255,215,0,.7);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.clue-body{font-size:clamp(13px,3.2vw,15px);color:#fff;font-weight:700;line-height:1.5;}
+.clue-body strong{color:#FFD700;}
+.win-btn{background:var(--gold);color:#7A4800;border:none;border-radius:22px;padding:11px 28px;font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,16px);cursor:pointer;box-shadow:0 4px 0 #E65100;transition:all .1s;}
+.win-btn:hover{transform:translateY(-2px);}
+.win-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #E65100;}
+.hint-card{background:#FFF8F0;border-radius:20px;padding:16px 16px 18px;width:min(440px,100%);animation:slideUp .25s ease-out;border:2px solid #E8D5B0;box-shadow:0 -4px 22px rgba(0,0,0,.22);}
+@keyframes slideUp{from{transform:translateY(36px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.hint-head{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.hint-face{font-size:36px;line-height:1;}
+.hint-nm{font-family:'Fredoka One',cursive;font-size:16px;color:var(--g);}
+.hint-role{font-size:10px;color:var(--tx2);font-weight:600;}
+.hint-msgs{display:flex;flex-direction:column;gap:7px;margin-bottom:13px;}
+.hint-msg{background:rgba(46,125,50,.07);border-left:3px solid var(--g2);border-radius:0 9px 9px 0;padding:8px 11px;font-size:clamp(12px,3vw,13px);font-weight:700;color:var(--dark);line-height:1.45;}
+.hint-msg em{color:var(--g2);font-style:normal;font-weight:900;}
+.hint-msg strong{color:var(--gold2);font-weight:900;}
+.hint-close{width:100%;background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border:none;border-radius:18px;padding:10px;font-family:'Fredoka One',cursive;font-size:14px;cursor:pointer;}
+#toast{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-6px);background:rgba(20,20,20,.88);color:#fff;padding:7px 16px;border-radius:18px;font-size:12px;font-weight:700;z-index:600;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.cf{position:fixed;pointer-events:none;z-index:700;font-size:20px;animation:cfFall 1.1s ease-out forwards;}
+@keyframes cfFall{0%{opacity:1;transform:translateY(-10px) rotate(0);}100%{opacity:0;transform:translateY(88vh) rotate(520deg);}}
+</style>
+</head>
+<body>
+
+<!-- INTRO SCREEN -->
+<div class="screen" id="sIntro">
+  <div class="intro-sky">
+    <div class="store-building">
+      <div class="store-roof">
+        <div class="store-sign">
+          <span class="sign-em">🏪</span>
+          <div class="sign-nm">Mercado Feliz</div>
+          <div class="sign-sub">Frutas · Verduras · Emojis</div>
+        </div>
+        <div class="store-windows">
+          <div class="win"><span style="position:relative;z-index:1">🍎🍊</span></div>
+          <div class="win"><span style="position:relative;z-index:1">🍉🍇</span></div>
+          <div class="win"><span style="position:relative;z-index:1">🍍🥭</span></div>
+        </div>
+        <div class="store-door">
+          <div class="shopkeeper-row">
+            <div class="sk" id="skFace">👨‍🌾</div>
+            <div class="bubble">
+              <div class="bubble-name">🌾 Don Mango – Dueño</div>
+              <div id="dlgTxt" class="bubble-txt"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="intro-actions">
+    <button class="btn-main" id="btnDlg" onclick="nextDlg()">Siguiente ›</button>
+    <button class="btn-skip" onclick="startGame()">Saltar intro →</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen off" id="sGame">
+  <div id="hud">
+    <div class="hud-t">🏪 Organiza la Estantería</div>
+    <div class="hud-chip">📦 <span id="placedC">0</span>/<span id="totalC">24</span></div>
+    <button class="hud-hint-btn" onclick="showHint()">💡 Don Mango</button>
+  </div>
+  <div id="progWrap"><div id="progBar" style="width:0%"></div></div>
+  <div id="gameMain">
+    <div id="shelfZone">
+      <div class="shelf-wrap">
+        <div class="shelf-row" id="row0"></div>
+        <div class="shelf-board"></div>
+        <div class="shelf-row" id="row1"></div>
+        <div class="shelf-board"></div>
+        <div class="shelf-row" id="row2"></div>
+        <div class="shelf-board" style="margin-top:2px;height:clamp(10px,2vw,14px);"></div>
+      </div>
+    </div>
+    <div id="sidePanel">
+      <div class="mango-bar">
+        <div class="mango-em">👨‍🌾</div>
+        <div class="mango-bbl" id="mangoMsg">
+          ¡Arrastra las frutas a la estantería! Cada una tiene su <em>planimetría</em> — el diagrama ■ te muestra cuánto espacio ocupa. La <strong>Sandía ⭐</strong> va siempre arriba.
+        </div>
+      </div>
+      <div class="tray-lbl">📋 Productos a ubicar</div>
+      <div class="tray" id="tray"></div>
+      <div class="emoji-row">
+        <input class="emoji-inp" id="eField" type="text" placeholder="📱 Escribe un emoji..." inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8"/>
+        <button class="add-btn" onclick="addFromField()">Añadir ➕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GHOST -->
+<div id="ghost"></div>
+
+<!-- WIN -->
+<div class="ov" id="winOv">
+  <div class="win-card">
+    <span class="win-em">🍉</span>
+    <div class="win-t">!!Estantería Perfecta!!</div>
+    <div class="win-s">Don Mango está muy contenido y cumple su promesa 🤝</div>
+    <div class="clue-box">
+      <div class="clue-lbl">🔑 Pista Revelada</div>
+      <div class="clue-body" id="clueBody"></div>
+    </div>
+    <button class="win-btn" onclick="closeWin()">¡Continuar la aventura! 🎮</button>
+  </div>
+</div>
+
+<!-- HINT -->
+<div class="ov ov-bottom" id="hintOv" onclick="closeHint(event)">
+  <div class="hint-card">
+    <div class="hint-head">
+      <span class="hint-face">👨‍🌾</span>
+      <div><div class="hint-nm">Don Mango</div><div class="hint-role">Dueño del Mercado Feliz</div></div>
+    </div>
+    <div class="hint-msgs" id="hintMsgs"></div>
+    <button class="hint-close" onclick="closeHint()">¡Entendido! 👍</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="mercado-level.js"></script>
+</body>
+</html>
