@@ -122,7 +122,7 @@ const LevelLoader = {
     const levelHtmlPaths = {
       'cave': 'levels/cave/cave.html',
       'mercado-don-mango': 'levels/mercado-don-mango/mercado.html',
-      'emoji-city': 'levels/emoji-city.html'
+      'emoji-city': 'levels/emoji-city/emoji-city.html'
     };
     
     const htmlPath = levelHtmlPaths[levelId];

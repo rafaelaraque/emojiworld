@@ -1,5 +1,12 @@
-﻿  <script>
-    // â”€â”€ roundRect polyfill for older browsers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/**
+ * Emoji City Level - Full Game Logic
+ * Migrated from emoji-city.html
+ */
+
+(function() {
+  'use strict';
+
+  // roundRect polyfill
     if (!CanvasRenderingContext2D.prototype.roundRect) {
       CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
         const radii = Array.isArray(r) ? r : [r,r,r,r];
@@ -5555,3 +5562,22 @@
       // play-btn starts game
       playBtn.addEventListener('click', () => startGame());
     };
+  </script>
+  <script>
+    // Auto-start when embedded in iframe
+    try {
+      if (window.parent && window.parent !== window) {
+        var _ss = document.getElementById('start-screen');
+        if (_ss) _ss.style.cssText += ';display:none!important';
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            if (typeof resizeCanvas === 'function') resizeCanvas();
+            if (typeof startGame === 'function') startGame();
+            // Send ready message to parent
+            if (window.parent) window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
+          });
+        });
+      }
+    } catch(e) {}
+
+})();

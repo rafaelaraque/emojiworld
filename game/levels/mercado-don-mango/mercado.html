@@ -6,18 +6,50 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>🏪 Mercado Feliz – Planimetría</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../css/game.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-:root{--cs:clamp(32px,8.5vw,54px);--gap:clamp(3px,.6vw,5px);--wood1:#6D4C41;--wood2:#5D4037;--wood3:#4E342E;--board:#8D6E63;--board2:#795548;--wall:#FFF8F0;--wall2:#FFF3E0;--g:#2E7D32;--g2:#43A047;--g3:#C8E6C9;--gold:#F9A825;--gold2:#FF8F00;--gold3:#FFF9C4;--dark:#2d1a08;--tx2:#5a3e28;--shadow:rgba(0,0,0,.22);}
+:root{
+  --cs:clamp(32px,8.5vw,54px);  /* Ajustado para pantallas pequeñas */
+  --gap:clamp(3px,.6vw,5px);
+  --wood1:#6D4C41;--wood2:#5D4037;--wood3:#4E342E;
+  --board:#8D6E63;--board2:#795548;
+  --wall:#FFF8F0;--wall2:#FFF3E0;
+  --g:#2E7D32;--g2:#43A047;--g3:#C8E6C9;
+  --gold:#F9A825;--gold2:#FF8F00;--gold3:#FFF9C4;
+  --dark:#2d1a08;--tx2:#5a3e28;
+  --shadow:rgba(0,0,0,.22);
+}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-family:'Nunito',sans-serif;color:var(--dark);user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;}
+
+/* ── SCREENS ── */
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;transition:opacity .35s,transform .35s;background:var(--wall);}
 .screen.off{opacity:0;pointer-events:none;transform:translateY(18px);}
-#sIntro{background:linear-gradient(180deg,#FFE0A3 0%,#FFD07A 40%,#FFC55A 100%);align-items:center;justify-content:flex-end;padding:0;overflow-y:auto;}
+
+/* ═══════════════ INTRO ═══════════════ */
+#sIntro{
+  background:linear-gradient(180deg,#FFE0A3 0%,#FFD07A 40%,#FFC55A 100%);
+  align-items:center;justify-content:flex-end;
+  padding:0;
+  overflow-y:auto;
+}
 .intro-sky{flex:1;display:flex;align-items:flex-end;justify-content:center;padding:12px 12px 0;min-height:0;}
-.store-building{width:min(460px,98vw);display:flex;flex-direction:column;}
-.store-roof{background:linear-gradient(180deg,#D4813A,#C4712A);border-radius:20px 20px 0 0;padding:16px 16px 0;box-shadow:0 -3px 0 #A05020;}
-.store-sign{background:linear-gradient(135deg,#2E7D32,#1B5E20);border-radius:12px;padding:10px 16px;text-align:center;border:3px solid #FFD700;box-shadow:0 0 20px rgba(255,215,0,.35),inset 0 1px 0 rgba(255,255,255,.18);margin-bottom:12px;}
+.store-building{
+  width:min(460px,98vw);
+  display:flex;flex-direction:column;
+}
+.store-roof{
+  background:linear-gradient(180deg,#D4813A,#C4712A);
+  border-radius:20px 20px 0 0;
+  padding:16px 16px 0;
+  box-shadow:0 -3px 0 #A05020;
+}
+.store-sign{
+  background:linear-gradient(135deg,#2E7D32,#1B5E20);
+  border-radius:12px;padding:10px 16px;text-align:center;
+  border:3px solid #FFD700;
+  box-shadow:0 0 20px rgba(255,215,0,.35),inset 0 1px 0 rgba(255,255,255,.18);
+  margin-bottom:12px;
+}
 .sign-em{font-size:clamp(26px,6vw,36px);display:block;}
 .sign-nm{font-family:'Fredoka One',cursive;font-size:clamp(17px,4.5vw,25px);color:#FFD700;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
 .sign-sub{font-size:clamp(9px,2.5vw,11px);color:#A5D6A7;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
@@ -25,7 +57,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .win{width:clamp(64px,17vw,84px);height:clamp(50px,13vw,64px);background:linear-gradient(135deg,#87CEEB,#B0E0FF);border:4px solid #8B6914;border-radius:6px;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;font-size:15px;}
 .win::after{content:'';position:absolute;top:50%;left:0;right:0;height:3px;background:rgba(139,105,20,.4);}
 .win::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;background:rgba(139,105,20,.4);}
-.store-door{background:linear-gradient(180deg,#FFF8F0,#FFF0D8);border-radius:16px 16px 0 0;padding:14px 16px 0;margin-top:8px;border:3px solid #C4712A;border-bottom:none;}
+
+.store-door{
+  background:linear-gradient(180deg,#FFF8F0,#FFF0D8);
+  border-radius:16px 16px 0 0;
+  padding:14px 16px 0;
+  margin-top:8px;
+  border:3px solid #C4712A;border-bottom:none;
+}
 .shopkeeper-row{display:flex;align-items:flex-end;gap:10px;}
 .sk{font-size:clamp(46px,11vw,64px);line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.2));animation:skBob 2s ease-in-out infinite;flex-shrink:0;}
 @keyframes skBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
@@ -34,13 +73,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .bubble-txt{font-size:clamp(12px,3vw,14px);color:var(--dark);line-height:1.5;font-weight:700;}
 .bubble-txt em{color:var(--g2);font-style:normal;font-weight:900;}
 .bubble-txt strong{color:var(--gold2);font-weight:900;}
-.intro-actions{width:min(460px,98vw);padding:12px 16px clamp(12px,4vw,24px);background:linear-gradient(180deg,#FFF8F0,#FFF0D8);display:flex;flex-direction:column;gap:8px;border-top:none;flex-shrink:0;}
-.btn-main{background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border:none;border-radius:28px;padding:clamp(11px,2.5vw,14px) 24px;font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,17px);cursor:pointer;letter-spacing:.4px;box-shadow:0 4px 0 var(--g),0 6px 20px rgba(46,125,50,.3);transition:all .1s;width:100%;}
+
+.intro-actions{
+  width:min(460px,98vw);
+  padding:12px 16px clamp(12px,4vw,24px);
+  background:linear-gradient(180deg,#FFF8F0,#FFF0D8);
+  display:flex;flex-direction:column;gap:8px;
+  border-top:none;
+  flex-shrink:0;
+}
+.btn-main{
+  background:linear-gradient(135deg,var(--g2),var(--g));
+  color:#fff;border:none;border-radius:28px;
+  padding:clamp(11px,2.5vw,14px) 24px;
+  font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,17px);
+  cursor:pointer;letter-spacing:.4px;
+  box-shadow:0 4px 0 var(--g),0 6px 20px rgba(46,125,50,.3);
+  transition:all .1s;width:100%;
+}
 .btn-main:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--g);}
 .btn-main:active{transform:translateY(2px);box-shadow:0 2px 0 var(--g);}
 .btn-skip{background:none;border:2px solid rgba(0,0,0,.12);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:800;color:var(--tx2);cursor:pointer;font-family:inherit;transition:all .12s;align-self:center;}
 .btn-skip:hover{background:rgba(0,0,0,.05);}
+
+/* ═══════════════ GAME ═══════════════ */
 #sGame{background:var(--wall);}
+
+/* HUD */
 #hud{background:linear-gradient(135deg,var(--g),#1B5E20);padding:clamp(6px,1.5vw,9px) clamp(10px,2.5vw,16px);display:flex;align-items:center;gap:8px;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.3);z-index:10;}
 .hud-t{font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,18px);color:#fff;flex:1;}
 .hud-chip{background:rgba(255,255,255,.15);border-radius:12px;padding:3px 9px;font-size:clamp(11px,2.5vw,12px);font-weight:800;color:#fff;display:flex;align-items:center;gap:3px;white-space:nowrap;}
@@ -48,13 +107,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .hud-hint-btn:hover{background:rgba(255,215,0,.32);}
 #progWrap{height:5px;background:rgba(0,0,0,.1);flex-shrink:0;}
 #progBar{height:100%;background:linear-gradient(90deg,#81C784,#2E7D32);transition:width .35s ease;}
+
+/* Main layout */
 #gameMain{flex:1;display:flex;overflow:hidden;min-height:0;}
 @media(min-width:680px){#gameMain{flex-direction:row;}}
+
+/* Shelf zone */
 #shelfZone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,2vw,14px);overflow:hidden;min-width:0;min-height:0;}
 .shelf-wrap{background:linear-gradient(180deg,var(--wood1),var(--wood2));border-radius:12px;padding:clamp(6px,1.5vw,10px) clamp(8px,2vw,12px);box-shadow:0 6px 0 var(--wood3),0 10px 28px rgba(0,0,0,.38);border:3px solid var(--board);width:100%;max-width:600px;position:relative;}
 .shelf-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.07));border-radius:12px 12px 0 0;}
 .shelf-row{display:grid;grid-template-columns:repeat(8,var(--cs));gap:var(--gap);justify-content:center;padding:var(--gap) 0;}
 .shelf-board{height:clamp(10px,1.8vw,13px);background:linear-gradient(180deg,var(--board),var(--board2));margin:0 -1px;box-shadow:0 3px 0 var(--wood3),inset 0 1px 0 rgba(255,255,255,.15);border-radius:2px;}
+
+/* Cells */
 .cell{width:var(--cs);height:var(--cs);border-radius:7px;border:2.5px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.2vw,26px);transition:background .1s,border-color .1s,transform .1s;position:relative;background:rgba(0,0,0,.1);}
 .cell.filled{border-style:solid;cursor:grab;}
 .cell.filled:active{cursor:grabbing;}
@@ -66,18 +131,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 @keyframes fok{0%{background:rgba(76,175,80,.6);transform:scale(1.14);}100%{transform:scale(1);}}
 .cell.fbad{animation:fbad .35s ease-out;}
 @keyframes fbad{0%,50%{background:rgba(229,57,53,.45);transform:scale(.93);}100%{transform:scale(1);}}
+
+/* Side panel */
 #sidePanel{background:var(--wall2);display:flex;flex-direction:column;border-top:2px solid rgba(0,0,0,.07);overflow:hidden;flex-shrink:0;max-height:48vh;}
-@media(min-width:680px){.sidePanel{width:260px;border-top:none;border-left:2px solid rgba(0,0,0,.07);max-height:none;}}
-@media(min-width:860px){.sidePanel{width:290px;}}
+@media(min-width:680px){#sidePanel{width:260px;border-top:none;border-left:2px solid rgba(0,0,0,.07);max-height:none;}}
+@media(min-width:860px){#sidePanel{width:290px;}}
+
 .mango-bar{display:flex;align-items:flex-start;gap:9px;padding:clamp(7px,1.8vw,11px);background:#FFF3E0;border-bottom:1.5px solid rgba(0,0,0,.06);flex-shrink:0;}
 .mango-em{font-size:clamp(28px,5vw,38px);line-height:1;flex-shrink:0;animation:skBob 2s ease-in-out infinite;}
 .mango-bbl{background:#fff;border-radius:9px 9px 9px 2px;padding:8px 11px;font-size:clamp(11px,2.6vw,13px);font-weight:700;color:var(--dark);line-height:1.45;border:1.5px solid #E8D5B0;flex:1;}
 .mango-bbl em{color:var(--g2);font-style:normal;font-weight:900;}
 .mango-bbl strong{color:var(--gold2);font-weight:900;}
+
 .tray-lbl{padding:6px 10px 3px;font-size:10px;font-weight:900;color:var(--g);letter-spacing:.7px;text-transform:uppercase;flex-shrink:0;}
 .tray{flex:1;overflow-y:auto;overflow-x:hidden;padding:3px 7px 7px;display:flex;flex-direction:column;gap:4px;}
 .tray::-webkit-scrollbar{width:4px;}
 .tray::-webkit-scrollbar-thumb{background:#C8A97E;border-radius:4px;}
+
 .ti{display:flex;align-items:center;gap:9px;background:#fff;border-radius:10px;padding:7px 9px;border:2px solid transparent;cursor:grab;box-shadow:0 2px 5px rgba(0,0,0,.07);transition:all .14s;position:relative;flex-shrink:0;}
 .ti:active{cursor:grabbing;}
 .ti:hover:not(.placed){transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.13);}
@@ -91,6 +161,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .ti-txt{font-size:9px;font-weight:700;color:var(--tx2);}
 .ti-check{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:16px;}
 .ti-star{position:absolute;top:-5px;right:-5px;background:var(--gold);color:#7A4800;font-size:8px;font-weight:900;padding:2px 5px;border-radius:6px;letter-spacing:.4px;box-shadow:0 2px 4px rgba(0,0,0,.15);}
+
+/* Emoji input */
 .emoji-row{padding:7px 9px;border-top:1.5px solid rgba(0,0,0,.07);display:flex;gap:6px;flex-shrink:0;background:#FFF8F0;}
 .emoji-inp{flex:1;background:#fff;border:2px solid #E8D5B0;border-radius:20px;padding:8px 13px;font-size:20px;outline:none;font-family:inherit;color:var(--dark);caret-color:var(--g);transition:border-color .14s;}
 .emoji-inp:focus{border-color:var(--g2);}
@@ -98,11 +170,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .add-btn{background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border:none;border-radius:20px;padding:8px 12px;font-family:'Fredoka One',cursive;font-size:12px;cursor:pointer;white-space:nowrap;box-shadow:0 3px 0 var(--g);transition:all .1s;}
 .add-btn:hover{transform:translateY(-1px);}
 .add-btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--g);}
+
+/* Ghost */
 #ghost{position:fixed;z-index:999;pointer-events:none;display:none;transform:translate(-50%,-65%);}
 .gcell{border-radius:7px;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,4vw,24px);opacity:.82;}
+
+/* ── OVERLAYS ── */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
 .ov.show{display:flex;}
 .ov-bottom{align-items:flex-end;justify-content:center;padding:0 10px 10px;}
+
+/* Win */
 .win-card{background:linear-gradient(160deg,#1B5E20,#2E7D32);border:3px solid #FFD700;border-radius:22px;padding:clamp(20px,4vw,30px);text-align:center;width:min(370px,96vw);box-shadow:0 0 50px rgba(255,215,0,.2),0 20px 50px rgba(0,0,0,.5);animation:pop .4s cubic-bezier(.175,.885,.32,1.275);}
 @keyframes pop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
 .win-em{font-size:clamp(56px,13vw,76px);display:block;margin-bottom:10px;animation:wRock 2s ease-in-out infinite;}
@@ -116,6 +194,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .win-btn{background:var(--gold);color:#7A4800;border:none;border-radius:22px;padding:11px 28px;font-family:'Fredoka One',cursive;font-size:clamp(14px,3.5vw,16px);cursor:pointer;box-shadow:0 4px 0 #E65100;transition:all .1s;}
 .win-btn:hover{transform:translateY(-2px);}
 .win-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #E65100;}
+
+/* Hint panel */
 .hint-card{background:#FFF8F0;border-radius:20px;padding:16px 16px 18px;width:min(440px,100%);animation:slideUp .25s ease-out;border:2px solid #E8D5B0;box-shadow:0 -4px 22px rgba(0,0,0,.22);}
 @keyframes slideUp{from{transform:translateY(36px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .hint-head{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
@@ -127,15 +207,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
 .hint-msg em{color:var(--g2);font-style:normal;font-weight:900;}
 .hint-msg strong{color:var(--gold2);font-weight:900;}
 .hint-close{width:100%;background:linear-gradient(135deg,var(--g2),var(--g));color:#fff;border:none;border-radius:18px;padding:10px;font-family:'Fredoka One',cursive;font-size:14px;cursor:pointer;}
+
+/* Toast */
 #toast{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-6px);background:rgba(20,20,20,.88);color:#fff;padding:7px 16px;border-radius:18px;font-size:12px;font-weight:700;z-index:600;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Confetti */
 .cf{position:fixed;pointer-events:none;z-index:700;font-size:20px;animation:cfFall 1.1s ease-out forwards;}
 @keyframes cfFall{0%{opacity:1;transform:translateY(-10px) rotate(0);}100%{opacity:0;transform:translateY(88vh) rotate(520deg);}}
 </style>
 </head>
 <body>
 
-<!-- INTRO SCREEN -->
+<!-- ══════ INTRO SCREEN ══════ -->
 <div class="screen" id="sIntro">
   <div class="intro-sky">
     <div class="store-building">
@@ -168,7 +252,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
   </div>
 </div>
 
-<!-- GAME SCREEN -->
+<!-- ══════ GAME SCREEN ══════ -->
 <div class="screen off" id="sGame">
   <div id="hud">
     <div class="hud-t">🏪 Organiza la Estantería</div>
@@ -176,7 +260,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
     <button class="hud-hint-btn" onclick="showHint()">💡 Don Mango</button>
   </div>
   <div id="progWrap"><div id="progBar" style="width:0%"></div></div>
+
   <div id="gameMain">
+    <!-- Shelf -->
     <div id="shelfZone">
       <div class="shelf-wrap">
         <div class="shelf-row" id="row0"></div>
@@ -187,6 +273,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
         <div class="shelf-board" style="margin-top:2px;height:clamp(10px,2vw,14px);"></div>
       </div>
     </div>
+
+    <!-- Side -->
     <div id="sidePanel">
       <div class="mango-bar">
         <div class="mango-em">👨‍🌾</div>
@@ -204,15 +292,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
   </div>
 </div>
 
-<!-- GHOST -->
+<!-- Ghost -->
 <div id="ghost"></div>
 
-<!-- WIN -->
+<!-- Win -->
 <div class="ov" id="winOv">
   <div class="win-card">
     <span class="win-em">🍉</span>
-    <div class="win-t">!!Estantería Perfecta!!</div>
-    <div class="win-s">Don Mango está muy contenido y cumple su promesa 🤝</div>
+    <div class="win-t">¡¡Estantería Perfecta!!</div>
+    <div class="win-s">Don Mango está muy contento y cumple su promesa 🤝</div>
     <div class="clue-box">
       <div class="clue-lbl">🔑 Pista Revelada</div>
       <div class="clue-body" id="clueBody"></div>
@@ -221,7 +309,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
   </div>
 </div>
 
-<!-- HINT -->
+<!-- Hint -->
 <div class="ov ov-bottom" id="hintOv" onclick="closeHint(event)">
   <div class="hint-card">
     <div class="hint-head">
@@ -233,9 +321,560 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--wall);font-fam
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- Toast -->
 <div id="toast"></div>
 
-<script src="mercado-level.js"></script>
+<script>
+'use strict';
+
+// ════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════
+const COLS=8, ROWS=3;
+
+// Planimetría: faces × levels
+const P={
+  '🍉':{f:3,l:1,color:'#2E7D32',bg:'#E8F5E9',name:'Sandía',star:true},
+  '🍍':{f:2,l:2,color:'#6D4C41',bg:'#EFEBE9',name:'Piña'},
+  '🥭':{f:2,l:2,color:'#E65100',bg:'#FFF3E0',name:'Mango'},
+  '🍎':{f:2,l:1,color:'#B71C1C',bg:'#FFEBEE',name:'Manzana'},
+  '🍊':{f:2,l:1,color:'#E65100',bg:'#FFF3E0',name:'Naranja'},
+  '🍋':{f:2,l:1,color:'#F57F17',bg:'#FFFDE7',name:'Limón'},
+  '🍇':{f:1,l:2,color:'#6A1B9A',bg:'#F3E5F5',name:'Uvas'},
+  '🍐':{f:1,l:1,color:'#558B2F',bg:'#F1F8E9',name:'Pera'},
+  '🍒':{f:1,l:1,color:'#AD1457',bg:'#FCE4EC',name:'Cerezas'},
+  '🍓':{f:1,l:2,color:'#C62828',bg:'#FFEBEE',name:'Fresa'},  // CORREGIDO: ahora 1x2
+  '🍑':{f:1,l:1,color:'#BF360C',bg:'#FBE9E7',name:'Durazno'},
+};
+
+// 3 layouts: 🍉 at left / center / right of row 0
+// grid[row][col] = emoji
+const LAYOUTS=[
+  // A – 🍉 cols 0-2
+  [
+    ['🍉','🍉','🍉','🍍','🍍','🥭','🥭','🍒'],
+    ['🍎','🍎','🍍','🍍','🥭','🥭','🍇','🍓'],
+    ['🍊','🍊','🍋','🍋','🍐','🍑','🍇','🍓'],
+  ],
+  // B – 🍉 cols 2-4  (swap 🍍 left)
+  [
+    ['🍍','🍍','🍉','🍉','🍉','🥭','🥭','🍒'],
+    ['🍍','🍍','🍎','🍎','🍇','🥭','🥭','🍓'],
+    ['🍊','🍊','🍋','🍋','🍇','🍐','🍑','🍓'],
+  ],
+  // C – 🍉 cols 5-7  (🥭 left, 🍍 center)
+  [
+    ['🥭','🥭','🍍','🍍','🍒','🍉','🍉','🍉'],
+    ['🥭','🥭','🍍','🍍','🍓','🍎','🍎','🍇'],
+    ['🍊','🍊','🍋','🍋','🍑','🍐','🍓','🍇'],
+  ],
+];
+
+const DIALOGS=[
+  '¡Hola, aventurero! 👋 Bienvenido al <em>Mercado Feliz</em>, el mejor mercado de Emoji City.',
+  'Oye… escuché que andas buscando <em>pistas</em> sobre Emoji City. Yo sé <strong>todo lo que pasa aquí</strong>. 🤫',
+  '¡Pero estoy en apuros! Llegó el camión de entrega y mi estantería está <em>completamente vacía</em>. 📦😰',
+  'Cada fruta tiene una <em>planimetría</em>: ocupa un número exacto de <strong>caras y niveles</strong> en la estantería.',
+  'Si me ayudas a organizarla y colocas el <strong>producto estrella ⭐</strong>... <em>te cuento todo lo que sé</em>. ¡Trato hecho! 🤝',
+];
+
+const HINTS=[
+  [
+    {t:'El diagrama ■ en la lista te muestra cuánto espacio ocupa cada fruta. Por ejemplo <em>🍍 Piña = 2 caras × 2 niveles</em>.'},
+    {t:'Arrastra la fruta hacia la estantería. El juego coloca el bloque completo. Si hay algún conflicto, las celdas <em>parpadean en rojo</em>.'},
+    {t:'Para mover una fruta ya colocada, <strong>arrástrala de nuevo</strong> desde la estantería hacia otro lugar libre.'},
+  ],
+  [
+    {t:'Consejo: coloca primero los <em>productos grandes</em> (🍍 y 🥭, que son 2×2) para asegurar su espacio.'},
+    {t:'La <strong>Sandía 🍉 siempre va en la fila superior</strong> — ocupa 3 caras seguidas. ¡Búscale espacio ahí!'},
+  ],
+  [
+    {t:'¡Último consejo! Una vez colocados 🍍 🥭 y 🍉, los espacios restantes se llenan solos con los productos pequeños.'},
+    {t:'¿Ves las celdas que parpadean en dorado? Eso es donde <strong>debe ir la sandía ⭐</strong>.'},
+  ],
+];
+
+// ════════════════════════════════════════
+//  INTRO / DIALOG
+// ════════════════════════════════════════
+let dlgIdx=0;
+function renderDlg(){
+  document.getElementById('dlgTxt').innerHTML=DIALOGS[dlgIdx];
+  const btn=document.getElementById('btnDlg');
+  btn.textContent=dlgIdx>=DIALOGS.length-1?'¡Acepto el trato! 🤝':'Siguiente ›';
+  if(dlgIdx>=DIALOGS.length-1){
+    btn.style.background='linear-gradient(135deg,#FF6F00,#E65100)';
+    btn.style.boxShadow='0 4px 0 #BF360C,0 6px 18px rgba(255,111,0,.3)';
+  }
+}
+function nextDlg(){
+  if(dlgIdx>=DIALOGS.length-1){startGame();return;}
+  dlgIdx++;
+  renderDlg();
+}
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let LAYOUT;
+let grid;       // grid[r][c] = null | {emoji,gid}
+let groups;     // gid -> {emoji,cells:[{r,c}]}
+let gidSeq;
+let hintIdx=0;
+let drag=null;  // {emoji,fromGid|null}
+let touchId=null;
+let highlighted=[];
+let mangoTimer;
+
+// ════════════════════════════════════════
+//  START GAME
+// ════════════════════════════════════════
+function startGame(){
+  LAYOUT=LAYOUTS[Math.floor(Math.random()*3)];
+  grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  groups={};gidSeq=0;
+  document.getElementById('sIntro').classList.add('off');
+  document.getElementById('sGame').classList.remove('off');
+  buildCells();
+  buildTray();
+  updateHUD();
+}
+
+// ════════════════════════════════════════
+//  BUILD CELLS
+// ════════════════════════════════════════
+function buildCells(){
+  for(let r=0;r<ROWS;r++){
+    const row=document.getElementById('row'+r);
+    row.innerHTML='';
+    for(let c=0;c<COLS;c++){
+      const el=document.createElement('div');
+      el.className='cell';
+      el.dataset.r=r; el.dataset.c=c;
+      // star hint
+      if(LAYOUT[r][c]==='🍉') el.classList.add('star-hint');
+      el.addEventListener('mousedown',onCellMD);
+      el.addEventListener('touchstart',onCellTS,{passive:false});
+      row.appendChild(el);
+    }
+  }
+}
+
+function cellEl(r,c){return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);}
+
+// ════════════════════════════════════════
+//  BUILD TRAY
+// ════════════════════════════════════════
+function buildTray(){
+  const tray=document.getElementById('tray');
+  tray.innerHTML='';
+  ['🍉','🍍','🥭','🍎','🍊','🍋','🍇','🍐','🍒','🍓','🍑'].forEach(em=>{
+    if(!P[em])return;
+    tray.appendChild(makeTI(em));
+  });
+}
+
+function makeTI(em){
+  const p=P[em];
+  const d=document.createElement('div');
+  d.className='ti'; d.id='ti-'+em; d.dataset.em=em;
+  if(p.star){const b=document.createElement('div');b.className='ti-star';b.textContent='⭐ ESTRELLA';d.appendChild(b);}
+  const eSpan=document.createElement('span');eSpan.className='ti-em';eSpan.textContent=em;
+  const info=document.createElement('div');info.style.flex='1';info.style.minWidth='0';
+  const nm=document.createElement('div');nm.className='ti-nm';nm.textContent=p.name;
+  const planRow=document.createElement('div');planRow.className='ti-plan';
+  const shape=document.createElement('div');shape.className='ti-shape';
+  shape.style.gridTemplateColumns=`repeat(${p.f},8px)`;shape.style.gridTemplateRows=`repeat(${p.l},8px)`;
+  for(let i=0;i<p.f*p.l;i++){const sc=document.createElement('div');sc.className='ti-sc';sc.style.background=p.color;shape.appendChild(sc);}
+  const txt=document.createElement('div');txt.className='ti-txt';txt.textContent=`${p.f} cara${p.f>1?'s':''} × ${p.l} nivel${p.l>1?'es':''}`;
+  planRow.appendChild(shape);planRow.appendChild(txt);
+  info.appendChild(nm);info.appendChild(planRow);
+  d.appendChild(eSpan);d.appendChild(info);
+  d.addEventListener('mousedown',e=>beginDragTray(em,e));
+  d.addEventListener('touchstart',e=>beginDragTrayT(em,e),{passive:false});
+  return d;
+}
+
+function tiState(em,state){
+  const d=document.getElementById('ti-'+em);
+  if(!d)return;
+  d.classList.remove('placed','dragging');
+  const chk=d.querySelector('.ti-check');if(chk)chk.remove();
+  if(state==='placed'){d.classList.add('placed');const c=document.createElement('span');c.className='ti-check';c.textContent='✅';d.appendChild(c);}
+  else if(state==='dragging'){d.classList.add('dragging');}
+}
+
+// ════════════════════════════════════════
+//  DRAG – SHARED
+// ════════════════════════════════════════
+function beginDrag(em,fromGid,x,y){
+  const p=P[em];if(!p)return;
+  const ghost=document.getElementById('ghost');
+  ghost.innerHTML='';
+  ghost.style.display='grid';
+  ghost.style.gridTemplateColumns=`repeat(${p.f},var(--cs))`;
+  ghost.style.gridTemplateRows=`repeat(${p.l},var(--cs))`;
+  ghost.style.gap='var(--gap)';
+  for(let i=0;i<p.f*p.l;i++){
+    const gc=document.createElement('div');gc.className='gcell';
+    gc.style.background=p.bg;gc.style.borderColor=p.color;
+    gc.style.width='var(--cs)';gc.style.height='var(--cs)';
+    gc.textContent=em;ghost.appendChild(gc);
+  }
+  drag={em,fromGid};
+  posGhost(x,y);
+  tiState(em,'dragging');
+}
+
+function posGhost(x,y){
+  const g=document.getElementById('ghost');
+  g.style.left=x+'px';g.style.top=y+'px';
+}
+
+function endDrag(x,y){
+  clearHL();
+  document.getElementById('ghost').style.display='none';
+  if(!drag)return;
+  const cell=cellAt(x,y);
+  if(cell){
+    const r=+cell.dataset.r,c=+cell.dataset.c;
+    const ok=tryPlace(drag.em,r,c);
+    if(!ok){
+      flashArea(drag.em,r,c,'fbad');
+      tiState(drag.em,'available');
+      mangoSay(badMsg(drag.em));
+    }
+  }else{
+    tiState(drag.em,'available');
+  }
+  drag=null;touchId=null;
+}
+
+function moveDrag(x,y){
+  if(!drag)return;
+  posGhost(x,y);
+  const cell=cellAt(x,y);
+  if(cell) hlPlan(drag.em,+cell.dataset.r,+cell.dataset.c);
+  else clearHL();
+}
+
+// ════════════════════════════════════════
+//  MOUSE EVENTS
+// ════════════════════════════════════════
+function beginDragTray(em,e){
+  if(document.getElementById('ti-'+em).classList.contains('placed'))return;
+  e.preventDefault();
+  beginDrag(em,null,e.clientX,e.clientY);
+}
+
+function onCellMD(e){
+  const el=e.currentTarget;
+  const gid=el.dataset.gid?+el.dataset.gid:null;
+  if(!gid||!groups[gid])return;
+  e.preventDefault();e.stopPropagation();
+  const em=groups[gid].emoji;
+  liftGroup(gid);
+  beginDrag(em,gid,e.clientX,e.clientY);
+}
+
+document.addEventListener('mousemove',e=>{if(drag)moveDrag(e.clientX,e.clientY);});
+document.addEventListener('mouseup',e=>{if(drag)endDrag(e.clientX,e.clientY);});
+
+// ════════════════════════════════════════
+//  TOUCH EVENTS
+// ════════════════════════════════════════
+function beginDragTrayT(em,e){
+  if(document.getElementById('ti-'+em).classList.contains('placed'))return;
+  e.preventDefault();
+  const t=e.touches[0];touchId=t.identifier;
+  beginDrag(em,null,t.clientX,t.clientY);
+}
+
+function onCellTS(e){
+  const el=e.currentTarget;
+  const gid=el.dataset.gid?+el.dataset.gid:null;
+  if(!gid||!groups[gid])return;
+  e.preventDefault();e.stopPropagation();
+  const em=groups[gid].emoji;
+  const t=e.touches[0];touchId=t.identifier;
+  liftGroup(gid);
+  beginDrag(em,gid,t.clientX,t.clientY);
+}
+
+document.addEventListener('touchmove',e=>{
+  if(!drag)return;
+  e.preventDefault();
+  const t=[...e.touches].find(t=>t.identifier===touchId)||e.touches[0];
+  moveDrag(t.clientX,t.clientY);
+},{passive:false});
+
+document.addEventListener('touchend',e=>{
+  if(!drag)return;
+  const t=[...e.changedTouches].find(t=>t.identifier===touchId)||e.changedTouches[0];
+  endDrag(t.clientX,t.clientY);
+},{passive:false});
+
+// ════════════════════════════════════════
+//  PLACEMENT LOGIC
+// ════════════════════════════════════════
+function canPlace(em,r0,c0){
+  const p=P[em];if(!p)return false;
+  if(c0+p.f>COLS||r0+p.l>ROWS)return false;
+  for(let r=r0;r<r0+p.l;r++)
+    for(let c=c0;c<c0+p.f;c++)
+      if(grid[r][c])return false;
+  return true;
+}
+
+function tryPlace(em,r0,c0){
+  if(!canPlace(em,r0,c0))return false;
+  const p=P[em];
+  const gid=++gidSeq;
+  const cells=[];
+  for(let r=r0;r<r0+p.l;r++){
+    for(let c=c0;c<c0+p.f;c++){
+      grid[r][c]={emoji:em,gid};
+      cells.push({r,c});
+    }
+  }
+  groups[gid]={emoji:em,cells};
+  renderCells(cells);
+  flashCells(cells,'fok');
+  tiState(em,'placed');
+  updateHUD();
+  checkWin();
+  return true;
+}
+
+function liftGroup(gid){
+  const g=groups[gid];if(!g)return;
+  g.cells.forEach(({r,c})=>grid[r][c]=null);
+  delete groups[gid];
+  tiState(g.emoji,'dragging');
+  renderCells(g.cells);
+  updateHUD();
+}
+
+// ════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════
+function renderCells(cells){
+  cells.forEach(({r,c})=>{
+    const el=cellEl(r,c);if(!el)return;
+    const s=grid[r][c];
+    if(s){
+      const p=P[s.emoji];
+      el.textContent=s.emoji;
+      el.style.background=p.bg;
+      el.style.borderColor=p.color;
+      el.style.borderStyle='solid';
+      el.dataset.gid=s.gid;
+      el.classList.add('filled');
+      el.classList.remove('star-hint');
+    }else{
+      el.textContent='';
+      el.style.background='';
+      el.style.borderColor='';
+      el.style.borderStyle='';
+      el.dataset.gid='';
+      el.classList.remove('filled');
+      if(LAYOUT[r][c]==='🍉')el.classList.add('star-hint');
+    }
+  });
+}
+
+function flashCells(cells,cls){
+  cells.forEach(({r,c})=>{
+    const el=cellEl(r,c);if(!el)return;
+    el.classList.remove(cls);void el.offsetWidth;
+    el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),450);
+  });
+}
+
+function flashArea(em,r0,c0,cls){
+  const p=P[em];if(!p)return;
+  const cells=[];
+  for(let r=r0;r<Math.min(r0+p.l,ROWS);r++)
+    for(let c=c0;c<Math.min(c0+p.f,COLS);c++)
+      cells.push({r,c});
+  flashCells(cells,cls);
+}
+
+// ════════════════════════════════════════
+//  HIGHLIGHT
+// ════════════════════════════════════════
+function hlPlan(em,r0,c0){
+  clearHL();
+  const p=P[em];if(!p)return;
+  const valid=canPlace(em,r0,c0);
+  for(let r=r0;r<r0+p.l;r++){
+    for(let c=c0;c<c0+p.f;c++){
+      if(r>=ROWS||c>=COLS)continue;
+      const el=cellEl(r,c);if(!el)continue;
+      el.classList.add(valid?'hl-ok':'hl-bad');
+      highlighted.push(el);
+    }
+  }
+}
+
+function clearHL(){
+  highlighted.forEach(el=>el.classList.remove('hl-ok','hl-bad'));
+  highlighted=[];
+}
+
+// ════════════════════════════════════════
+//  CELL AT POINT
+// ════════════════════════════════════════
+function cellAt(x,y){
+  const g=document.getElementById('ghost');
+  g.style.display='none';
+  let el=document.elementFromPoint(x,y);
+  g.style.display='grid';
+  if(!el)return null;
+  if(el.classList.contains('cell'))return el;
+  el=el.closest('.cell');
+  return el||null;
+}
+
+// ════════════════════════════════════════
+//  HUD & PROGRESS
+// ════════════════════════════════════════
+function updateHUD(){
+  let n=0;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c])n++;
+  document.getElementById('placedC').textContent=n;
+  document.getElementById('totalC').textContent=ROWS*COLS;
+  document.getElementById('progBar').style.width=Math.round(n/(ROWS*COLS)*100)+'%';
+}
+
+// ════════════════════════════════════════
+//  WIN
+// ════════════════════════════════════════
+function checkWin(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(!grid[r][c])return;
+  setTimeout(showWin,600);
+}
+
+function showWin(){
+  const CONF=['🍉','⭐','🎉','✨','🏆','🍃','💚','🌟'];
+  for(let i=0;i<22;i++){
+    setTimeout(()=>{
+      const c=document.createElement('div');c.className='cf';
+      c.textContent=CONF[Math.floor(Math.random()*CONF.length)];
+      c.style.left=Math.random()*100+'vw';
+      c.style.animationDuration=(.65+Math.random()*.75)+'s';
+      c.style.animationDelay=(Math.random()*.35)+'s';
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(),1900);
+    },i*55);
+  }
+  document.getElementById('clueBody').innerHTML=
+    'La <strong>🍉 Sandía</strong> es la fruta oficial de Emoji City y de todo Emoji World.<br>¡Díselo a <strong>Emma</strong> para completar tu misión!';
+  document.getElementById('winOv').classList.add('show');
+}
+
+function closeWin(){
+  document.getElementById('winOv').classList.remove('show');
+  toast('🗝️ ¡Habla con Emma en el mapa y dile: SANDÍA 🍉!');
+}
+
+// ════════════════════════════════════════
+//  DON MANGO MESSAGES
+// ════════════════════════════════════════
+function mangoSay(msg){
+  clearTimeout(mangoTimer);
+  document.getElementById('mangoMsg').innerHTML=msg;
+  mangoTimer=setTimeout(()=>{
+    document.getElementById('mangoMsg').innerHTML=
+      'Arrastra las frutas a la estantería. <em>Cada una tiene su planimetría</em> — fíjate en el diagrama ■ de la lista.';
+  },4000);
+}
+
+function badMsg(em){
+  const p=P[em];
+  const opts=[
+    `¡No hay espacio para ${em}! Necesita ${p.f} cara${p.f>1?'s':''} × ${p.l} nivel${p.l>1?'es':''} libres. 📦`,
+    `${em} no cabe ahí — está ocupado. <em>Mueve algo</em> para hacer espacio.`,
+    `¡Ese hueco es muy pequeño para ${em}! Necesita ${p.f*p.l} celdas juntas. 🤔`,
+  ];
+  return opts[Math.floor(Math.random()*opts.length)];
+}
+
+// ════════════════════════════════════════
+//  HINT PANEL
+// ════════════════════════════════════════
+function showHint(){
+  const msgs=HINTS[Math.min(hintIdx,HINTS.length-1)];
+  document.getElementById('hintMsgs').innerHTML=msgs.map(m=>`<div class="hint-msg">${m.t}</div>`).join('');
+  document.getElementById('hintOv').classList.add('show');
+  hintIdx++;
+}
+
+function closeHint(e){
+  if(!e||e.target===document.getElementById('hintOv'))
+    document.getElementById('hintOv').classList.remove('show');
+}
+
+// ════════════════════════════════════════
+//  EMOJI KEYBOARD INPUT
+// ════════════════════════════════════════
+const eField=document.getElementById('eField');
+
+eField.addEventListener('input',function(){
+  const em=firstEmoji(this.value.trim());
+  if(em){
+    const item=document.getElementById('ti-'+em);
+    if(item&&!item.classList.contains('placed')){
+      document.querySelectorAll('.ti').forEach(i=>i.style.outline='');
+      item.style.outline='3px solid var(--gold)';
+      item.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  }
+});
+
+function addFromField(){
+  const val=eField.value.trim();
+  eField.value='';
+  document.querySelectorAll('.ti').forEach(i=>i.style.outline='');
+  if(!val){toast('Escribe un emoji del teclado 📱');return;}
+  const em=firstEmoji(val);
+  if(!em){toast('No reconocí un emoji. Prueba: 🍉 🍎 🍊 🍋 🍍');return;}
+  if(P[em]){
+    const item=document.getElementById('ti-'+em);
+    if(item&&item.classList.contains('placed')){mangoSay(`¡Ya colocaste ${em}! Está en la estantería. ✅`);}
+    else if(item){
+      mangoSay(`¡Perfecto! Ahora <em>arrastra ${em}</em> a la estantería. 🎯`);
+      item.style.outline='3px solid var(--gold)';
+      setTimeout(()=>item.style.outline='',2500);
+      item.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  }else{
+    mangoSay(`${em} no está en el pedido de hoy 😅 Prueba: <strong>🍉 🍍 🥭 🍎 🍊 🍋 🍇 🍐 🍒 🍓 🍑</strong>`);
+  }
+}
+
+eField.addEventListener('keydown',e=>{if(e.key==='Enter')addFromField();});
+
+function firstEmoji(s){
+  const m=s.match(/\p{Emoji_Presentation}\uFE0F?(?:\u200D\p{Emoji_Presentation}\uFE0F?)*|\p{Emoji}\uFE0F/gu);
+  return m?m[0]:null;
+}
+
+// ════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════
+let toastT;
+function toast(msg){
+  clearTimeout(toastT);
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════
+renderDlg();
+</script>
 </body>
 </html>
