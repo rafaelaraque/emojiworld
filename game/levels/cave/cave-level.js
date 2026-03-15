@@ -32,6 +32,7 @@
   // Jefe
   let boss = null; // objeto especial
 
+  let playerHasRing = false;  // Track if player collected the ring
   let abyssX = 1750, abyssW = 380;
   let roadY, CEIL_Y, HORIZ_END, SHAFT_L, SHAFT_R, SHAFT_MID, SHAFT_TOP_Y;
   const CEIL_H = 195;
@@ -594,6 +595,7 @@
       if (d.collected) continue;
       if (Math.abs(player.x - d.x) < 30 && Math.abs(player.y - d.y) < 30) {
         d.collected = true;
+        playerHasRing = true;  // Mark ring as collected
         toast('💍 ¡Encontraste el anillo de Emma!');
         SFX_pick();
         drops.splice(i, 1);
@@ -1274,6 +1276,9 @@
     if (victoryDone) return; victoryDone = true; gameActive = false; stopMusic();
     document.getElementById('win-stats').textContent = `¡Has escapado!`;
     document.getElementById('victory-screen').classList.add('show');
+    
+    // Send message to main game with ring status
+    window.parent.postMessage({ type: 'CAVE_EXIT', hasRing: playerHasRing }, '*');
   }
 
   function showDead() {
@@ -1286,6 +1291,7 @@
     document.getElementById('start-screen').style.display = 'none';
     for (let i = 0; i < 5; i++) { clearEffect(i); slots[i] = null; }
     actionSlot = null; clearActionSlot();
+    playerHasRing = false;  // Reset ring status
     rainOn = false; windOn = false; bubblesOn = false; lightOn = false;
     hearts = 3; energy = 100; gunAmmo = 0; frameCount = 0;
     victoryDone = false; cameraX = 0; cameraY = 0; inShaft = false; atkCd = 0; lastLandTime = 0;
