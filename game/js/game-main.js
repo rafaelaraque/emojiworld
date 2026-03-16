@@ -30,7 +30,7 @@
 
       sage: { av: '🧙', nm: 'Sage', rl: 'El Sabio Ancestral', msgs: ['...te esperaba, joven... 🧙✨', 'Tengo una pregunta profunda en el chat... reflexiona 📜', 'La respuesta yace *bajo el Árbol Dorado* del bosque'] },
       anciano: { av: '👴', nm: 'Guardián del Árbol', rl: 'Bosque Ancestral', msgs: ['Cuido el *Árbol Dorado ✨*, el más antiguo de Emoji City. 👴', 'Bajo sus raíces está el *grimorio ancestral* 📜', 'El *Árbol Dorado* guarda todos los secretos del bosque 🌳✨'] },
-      c1: { av: '👨‍🦰', nm: 'Luis', rl: 'Ciudadano', msgs: ['¡Buenos días! 😄 ¡Emoji City es increíble!', '¿Ya exploraste todas las zonas? ¡Hay mucho por descubrir! 🗺️'] },
+      c1: { av: '🧒', nm: 'Luis', rl: 'Ciudadano', msgs: ['¡Buenos días! 😄 ¡Emoji City es increíble!', '¿Ya exploraste todas las zonas? ¡Hay mucho por descubrir! 🗺️'] },
       c2: { av: '👩', nm: 'Sara', rl: 'Vecina de la Plaza', msgs: ['¡Hola! 👋 ¡Me encanta la Plaza Central!', '¡No olvides revisar el tablón de misiones! 📋'] }
     };
 
