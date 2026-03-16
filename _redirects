@@ -1,0 +1,4 @@
+# Netlify redirects
+/game/*  /game/:splat  200
+/emoji-memory  /website/emoji-memory.html  200
+/mini-games  /website/mini-games.html  200
