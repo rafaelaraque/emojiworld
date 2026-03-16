@@ -20,17 +20,17 @@
     // ── DATA ──────────────────────────────
     const NPCS = {
       emma: { av: '🤗', nm: 'Emma', rl: 'Guía (solo en chat)', msgs: ['🤗 ¡Hola! Puedes contactarme por el chat para tus misiones.', '¡Espero que estés disfrutando de Emoji City! 🏙️'] },
-      mango: { av: '👨‍🌾', nm: 'Don Mango', rl: 'Dueño del Mercado Feliz', msgs: ['¡Hola, aventurero! 👨‍🌾 Bienvenido a mi puesto.', 'Si me ayudas con la estantería, te daré información valiosa. 🍉', '¡Haz clic en el mercado para empezar el minijuego! 🏪'] },
+      mango: { av: '👨‍🌾', nm: 'Don Mango', rl: 'Dueño del Mercado Feliz', msgs: ['¡Hola, aventurero! 👨‍🌾 Bienvenido a mi puesto.', 'Si me ayudas con la estantería, te daré información valiosa.', '¡Haz clic en el mercado para empezar el minijuego! 🏪'] },
       void: { av: '🫅', nm: 'Rey Roland', rl: 'Rey de la Zona Real', msgs: ['asi que eres el nuevo aventurero?', 'demuestra cuanto sabes de Emoji World', 'mi castillo real cuantas torres lo protegen?'] },
-      guardia: { av: '💂', nm: 'Guardia del Castillo', rl: 'Vigilante Real', msgs: ['¡Alto! 💂 Este castillo tiene exactamente *4 torres*.', 'Una por cada punto cardinal: Norte, Sur, Este y Oeste.', 'Las *4 torres* vigilan el Castillo Real sin descanso 🏰'] },
+      guardia: { av: '💂', nm: 'Guardia del Castillo', rl: 'Vigilante Real', msgs: ['¡Alto! 💂 Este castillo esta protegido', 'los puntos cardinales te daran la pista.', 'estamos vigilando el Castillo Real sin descanso 🏰'] },
       robo: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Soy el científico principal de Tecnozona.', 'Tengo información valiosa sobre el generador. ¡Habla conmigo! 💻', 'El secreto: el *color del núcleo* del generador central ⚡'] },
-      tecnico: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Trabajo en el laboratorio de RoboX.', 'Nuestro generador tiene un núcleo que brilla *azul 💙* intenso.', 'El *azul 💙* es la energía que alimenta toda Tecnozona.'] },
-      blaze: { av: '🥷', nm: 'Blaze', rl: 'Guerrero del Fuego', msgs: ['¡FUEGO Y GLORIA! 🔥💪 ¡Soy Blaze!', '¡ACEPTA mi desafío en el chat, guerrero! ⚔️', 'El *dragón 🐉* es el guardián sagrado de este lugar.'] },
-      guerrero: { av: '⚔️', nm: 'Kiran', rl: 'Templo de Fuego', msgs: ['¡El honor del fuego me guía! ⚔️🔥', 'Nuestro símbolo sagrado es el *dragón 🐉*.', 'Sin el *dragón* el Reino de Fuego no existiría.'] },
+      tecnico: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Trabajo en el laboratorio de RoboX.', 'Nuestro generador tiene un núcleo principal', 'Es la energía que alimenta toda Tecnozona.'] },
+      blaze: { av: '🥷', nm: 'Blaze', rl: 'Guerrero del Fuego', msgs: ['¡FUEGO Y GLORIA! 🔥💪 ¡Soy Blaze!', '¡ACEPTA mi desafío en el chat, guerrero! ⚔️'] },
+      guerrero: { av: '🙅', nm: 'Kiran', rl: 'Templo de Fuego', msgs: ['¡El honor del fuego me guía! ⚔️🔥', 'Nuestro símbolo es un *animal sagrado*.', 'Sin su poder el *Reino de Fuego* no existiría.'] },
 
-      sage: { av: '🧙', nm: 'Sage', rl: 'El Sabio Ancestral', msgs: ['...te esperaba, joven... 🧙✨', 'Tengo una pregunta profunda en el chat... reflexiona 📜', 'La respuesta yace *bajo el Árbol Dorado* del bosque 🌳'] },
+      sage: { av: '🧙', nm: 'Sage', rl: 'El Sabio Ancestral', msgs: ['...te esperaba, joven... 🧙✨', 'Tengo una pregunta profunda en el chat... reflexiona 📜', 'La respuesta yace *bajo el Árbol Dorado* del bosque'] },
       anciano: { av: '👴', nm: 'Guardián del Árbol', rl: 'Bosque Ancestral', msgs: ['Cuido el *Árbol Dorado ✨*, el más antiguo de Emoji City. 👴', 'Bajo sus raíces está el *grimorio ancestral* 📜', 'El *Árbol Dorado* guarda todos los secretos del bosque 🌳✨'] },
-      c1: { av: '🧑', nm: 'Luis', rl: 'Ciudadano', msgs: ['¡Buenos días! 😄 ¡Emoji City es increíble!', '¿Ya exploraste todas las zonas? ¡Hay mucho por descubrir! 🗺️'] },
+      c1: { av: '👨‍🦰', nm: 'Luis', rl: 'Ciudadano', msgs: ['¡Buenos días! 😄 ¡Emoji City es increíble!', '¿Ya exploraste todas las zonas? ¡Hay mucho por descubrir! 🗺️'] },
       c2: { av: '👩', nm: 'Sara', rl: 'Vecina de la Plaza', msgs: ['¡Hola! 👋 ¡Me encanta la Plaza Central!', '¡No olvides revisar el tablón de misiones! 📋'] }
     };
 
