@@ -8,13 +8,13 @@
 </head>
 <body>
   <div id="game-container">
-    <!-- ===== PRÃ“LOGO ===== -->
+    <!-- ===== PRÓLOGO ===== -->
     <div id="start-screen">
       <!-- TOP BAR -->
       <div class="chat-topbar">
-        <div class="chat-avatar-icon">ðŸŒ</div>
+        <div class="chat-avatar-icon">🌍</div>
         <div class="chat-contact-info">
-          <div class="chat-contact-name">Emoji World â€” Historia</div>
+          <div class="chat-contact-name">Emoji World — Historia</div>
           <div class="chat-status">Conectado ahora</div>
         </div>
       </div>
@@ -22,69 +22,69 @@
       <div class="chat-messages" id="chat-messages-area"></div>
       <!-- BOTTOM BAR -->
       <div class="chat-bottombar">
-        <button class="chat-nav-btn" id="prev-page" disabled>â—€</button>
+        <button class="chat-nav-btn" id="prev-page" disabled>◀</button>
         <div class="chat-page-dots" id="page-dots"></div>
-        <button class="chat-nav-btn" id="next-page">â–¶</button>
+        <button class="chat-nav-btn" id="next-page">▶</button>
       </div>
       <div style="width:100%;max-width:540px;padding:10px 18px;box-sizing:border-box;flex-shrink:0;text-align:center;">
-        <button id="play-btn" class="hidden">ðŸŽ® Â¡JUGAR AHORA!</button>
+        <button id="play-btn" class="hidden">🎮 ¡JUGAR AHORA!</button>
       </div>
     </div>
 
-    <!-- CRÃ‰DITOS FINALES -->
+    <!-- CRÉDITOS FINALES -->
     <div id="credits-screen">
       <div class="credits-stars" id="credits-stars-bg"></div>
-      <div class="credits-badge">ðŸ†</div>
-      <div class="credits-title">Â¡FELICITACIONES!</div>
+      <div class="credits-badge">🏆</div>
+      <div class="credits-title">¡FELICITACIONES!</div>
       <div class="credits-subtitle">EMOJI WORLD COMPLETADO</div>
       <div class="credits-card">
         <div class="credits-label">Creado por</div>
         <div class="credits-name">Rafael Araque</div>
       </div>
       <div class="credits-card">
-        <div class="credits-text">â³ Muy pronto mÃ¡s niveles...</div>
+        <div class="credits-text">⏳ Muy pronto más niveles...</div>
       </div>
       <div class="credits-card">
-        <div class="credits-thankyou">Â¡Gracias por jugar! ðŸŽ‰</div>
+        <div class="credits-thankyou">¡Gracias por jugar! 🎉</div>
       </div>
-      <button class="credits-play-again" id="credits-play-again-btn">ðŸ”„ Jugar de nuevo</button>
+      <button class="credits-play-again" id="credits-play-again-btn">🔄 Jugar de nuevo</button>
     </div>
     
     <canvas id="gameCanvas"></canvas>
     
     <div id="hud-container">
       <div id="hearts-display" class="hud-item">
-        <span class="heart">â¤ï¸</span>
-        <span class="heart">â¤ï¸</span>
-        <span class="heart">â¤ï¸</span>
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
       </div>
-      <div id="coins-hud" class="hud-item">ðŸ’°: 0</div>
-      <div id="timer-display" class="hud-item">â±: 300s</div>
+      <div id="coins-hud" class="hud-item">💰: 0</div>
+      <div id="timer-display" class="hud-item">⏱: 300s</div>
     </div>
     
     <div id="inventory">
-      <div class="power-slot" data-power="angry" title="ðŸ˜¡ Furia - Destruye enemigos y vehÃ­culos">
-        ðŸ˜¡
+      <div class="power-slot" data-power="angry" title="😡 Furia - Destruye enemigos y vehículos">
+        😡
         <div class="cooldown-overlay"></div>
         <div class="cooldown-clock" style="display: none;"></div>
       </div>
-      <div class="power-slot" data-power="ice" title="ðŸ¥¶ Hielo - Congela enemigos y vehÃ­culos">
-        ðŸ¥¶
+      <div class="power-slot" data-power="ice" title="🥶 Hielo - Congela enemigos y vehículos">
+        🥶
         <div class="cooldown-overlay"></div>
         <div class="cooldown-clock" style="display: none;"></div>
       </div>
-      <div class="power-slot" data-power="fire" title="ðŸ”¥ Fuego - Quema obstÃ¡culos">
-        ðŸ”¥
+      <div class="power-slot" data-power="fire" title="🔥 Fuego - Quema obstáculos">
+        🔥
         <div class="cooldown-overlay"></div>
         <div class="cooldown-clock" style="display: none;"></div>
       </div>
-      <div class="power-slot" data-power="cool" title="ðŸ˜Ž Cool - ProtecciÃ³n contra sol">
-        ðŸ˜Ž
+      <div class="power-slot" data-power="cool" title="😎 Cool - Protección contra sol">
+        😎
         <div class="cooldown-overlay"></div>
         <div class="cooldown-clock" style="display: none;"></div>
       </div>
-      <div class="power-slot" data-power="ghost" title="ðŸ«¥ Fantasma - Sin colisiÃ³n">
-        ðŸ«¥
+      <div class="power-slot" data-power="ghost" title="🫥 Fantasma - Sin colisión">
+        🫥
         <div class="cooldown-overlay"></div>
         <div class="cooldown-clock" style="display: none;"></div>
       </div>
@@ -92,29 +92,29 @@
     
     <div id="controls">
       <div id="left-controls">
-        <div class="btn" id="left">â¬…ï¸</div>
-        <div class="btn" id="right">âž¡ï¸</div>
+        <div class="btn" id="left">⬅️</div>
+        <div class="btn" id="right">➡️</div>
       </div>
       <div id="right-controls">
-        <div id="jump-btn-wrapper" class="btn">ðŸ”µ</div>
+        <div id="jump-btn-wrapper" class="btn">🔵</div>
         <div id="attack-btn-wrapper" class="btn inactive" id="attack">
-          <span class="base-emoji">ðŸŸ£</span>
+          <span class="base-emoji">🟣</span>
           <span class="overlay-emoji"></span>
         </div>
       </div>
     </div>
     
     <div id="game-over">
-      <h2>Â¡GAME OVER!</h2>
+      <h2>¡GAME OVER!</h2>
       <div id="go-checkpoint-label" style="display:none; font-size:1rem; color:#aef; margin-top:8px; text-align:center;"></div>
       <div id="score-display">Distancia: 0m</div>
-      <div id="coins-display">ðŸ’°: 0</div>
-      <button id="checkpoint-btn" style="display:none" onclick="resumeFromCheckpoint()">ðŸ“ CONTINUAR DESDE PUNTO DE CONTROL</button>
-      <button id="restart-btn">ðŸ”„ EMPEZAR DE NUEVO</button>
+      <div id="coins-display">💰: 0</div>
+      <button id="checkpoint-btn" style="display:none" onclick="resumeFromCheckpoint()">📍 CONTINUAR DESDE PUNTO DE CONTROL</button>
+      <button id="restart-btn">🔄 EMPEZAR DE NUEVO</button>
     </div>
     
     <div id="bonus-stage">
-      <h2>ðŸŒŸ NIVEL BONUS ðŸŒŸ</h2>
+      <h2>🌟 NIVEL BONUS 🌟</h2>
       <p>Encuentra todos los pares en 60 segundos</p>
       <p>Tiempo restante: <span id="bonus-timer">30</span> segundos</p>
       <div id="bonus-grid"></div>
@@ -122,35 +122,35 @@
     </div>
     
     <div id="store">
-      <div id="back-btn">â¬…ï¸</div>
+      <div id="back-btn">⬅️</div>
       <h2 class="menu-title">TIENDA DE AVATARES</h2>
       
       <div class="store-item">
-        <div class="avatar-emoji">ðŸ¤œ</div>
+        <div class="avatar-emoji">🤜</div>
         <div class="avatar-info">
-          <div class="avatar-name">PuÃ±o</div>
-          <div class="avatar-desc">Saltos potentes y puÃ±etazos!</div>
-          <div class="avatar-cost">ðŸ’°: 10</div>
+          <div class="avatar-name">Puño</div>
+          <div class="avatar-desc">Saltos potentes y puñetazos!</div>
+          <div class="avatar-cost">💰: 10</div>
         </div>
         <button class="buy-btn" data-avatar="fist" data-cost="10">COMPRAR</button>
       </div>
       
       <div class="store-item">
-        <div class="avatar-emoji">ðŸ¤ </div>
+        <div class="avatar-emoji">🤠</div>
         <div class="avatar-info">
           <div class="avatar-name">Cowboy</div>
           <div class="avatar-desc">Lanza boomerang a tus enemigos! </div>
-          <div class="avatar-cost">ðŸ’°: 15</div>
+          <div class="avatar-cost">💰: 15</div>
         </div>
         <button class="buy-btn" data-avatar="cowboy" data-cost="15">COMPRAR</button>
       </div>
       
       <div class="store-item">
-        <div class="avatar-emoji">ðŸ¦…</div>
+        <div class="avatar-emoji">🦅</div>
         <div class="avatar-info">
-          <div class="avatar-name">Ãguila</div>
-          <div class="avatar-desc">Â¡Vuelo estilo Flappy Bird!</div>
-          <div class="avatar-cost">ðŸ’°: 20</div>
+          <div class="avatar-name">Águila</div>
+          <div class="avatar-desc">¡Vuelo estilo Flappy Bird!</div>
+          <div class="avatar-cost">💰: 20</div>
         </div>
         <button class="buy-btn" data-avatar="eagle" data-cost="20">COMPRAR</button>
       </div>
@@ -158,11 +158,11 @@
     </div>
     
     <div id="victory-screen">
-      <h2>Â¡Felicidades!</h2>
+      <h2>¡Felicidades!</h2>
       <div id="score-victory">Distancia: 0m</div>
-      <div id="coins-victory">ðŸ’°: 0</div>
+      <div id="coins-victory">💰: 0</div>
       <div id="victory-message">Has completado el nivel.</div>
-      <button id="next-level-btn" style="display:none;">ðŸš€ SIGUIENTE NIVEL</button>
+      <button id="next-level-btn" style="display:none;">🚀 SIGUIENTE NIVEL</button>
       <button id="play-again-btn">JUGAR DE NUEVO</button>
     </div>
 
@@ -171,7 +171,7 @@
       background:rgba(0,0,30,0.88);border:2px solid rgba(0,200,255,0.6);border-radius:14px;
       padding:8px 18px;font-size:12px;color:#88eeff;z-index:15;text-align:center;
       animation:hintPulse 2s infinite;pointer-events:none;white-space:nowrap;">
-      ðŸ¥¶ Congela aliens â†’ sÃºbete â†’ golpea la nave con ðŸ˜¡ðŸ”¥ o ðŸ¤ 
+      🥶 Congela aliens → súbete → golpea la nave con 😡🔥 o 🤠
     </div>
 
     <!-- Boss defeat dialogue cutscene -->
@@ -186,7 +186,7 @@
         <div id="bcomic-right-char"></div>
       </div>
       <div id="bcomic-dots"></div>
-      <div id="bcomic-tap-hint">Toca para continuar â–¶</div>
+      <div id="bcomic-tap-hint">Toca para continuar ▶</div>
     </div>
 
     <!-- Boss 2 arrival dialogue (short, auto-dismisses) -->
@@ -195,7 +195,7 @@
          align-items:center; justify-content:center; gap:0;">
       <div id="b2d-content" style="width:88%; max-width:440px; display:flex; flex-direction:column; gap:10px;"></div>
       <div id="b2d-hint" style="margin-top:18px; color:rgba(255,255,255,0.45); font-size:11px;
-           animation:bcomicHintBlink 1.4s ease-in-out infinite;">Toca para continuar â–¶</div>
+           animation:bcomicHintBlink 1.4s ease-in-out infinite;">Toca para continuar ▶</div>
     </div>
 
     <div id="stars" style="position:absolute;top:0;left:0;width:100%;height:65%;pointer-events:none;z-index:1;display:none;overflow:hidden;"></div>
@@ -204,20 +204,22 @@
   <script src="emoji-city-level.js"></script>
   <script>
     // Auto-start when embedded in iframe
-    try {
-      if (window.parent && window.parent !== window) {
-        var _ss = document.getElementById('start-screen');
-        if (_ss) _ss.style.cssText += ';display:none!important';
-        requestAnimationFrame(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        if (window.parent && window.parent !== window) {
+          var _ss = document.getElementById('start-screen');
+          if (_ss) _ss.style.cssText += ';display:none!important';
           requestAnimationFrame(function() {
-            if (typeof resizeCanvas === 'function') resizeCanvas();
-            if (typeof startGame === 'function') startGame();
-            // Send ready message to parent
-            if (window.parent) window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
+            requestAnimationFrame(function() {
+              if (typeof resizeCanvas === 'function') resizeCanvas();
+              if (typeof startGame === 'function') startGame();
+              // Send ready message to parent
+              if (window.parent) window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
+            });
           });
-        });
-      }
-    } catch(e) {}
+        }
+      } catch(e) {}
+    });
   </script>
 </body>
 </html>
