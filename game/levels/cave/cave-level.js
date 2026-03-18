@@ -575,18 +575,41 @@
       }
     }
 
-    // Burbuja
-    if (!player.rideBubble) {
-      for (const b of bubbles) {
-        if (!b.dead && Math.abs(b.x - player.x) < 32 && Math.abs(b.y - player.y) < 32) {
-          player.rideBubble = b; SFX_bub(); toast('🫧 ¡Montando burbuja!');
-        }
+    if (player.rideBubble && player.rideBubble.dead) {
+      player.rideBubble = null;
+    }
+
+    for (const b of bubbles) {
+      if (b.dead) continue;
+      const topOfBubble = b.y - b.r;
+      const playerBottom = player.y + player.h / 2;
+      const prevBottom = playerBottom - player.vy;
+
+      const inXRange = player.x + player.w / 2 > b.x - b.r * 0.85 &&
+                       player.x - player.w / 2 < b.x + b.r * 0.85;
+
+      if (inXRange && player.vy >= 0 && prevBottom <= topOfBubble + 6 && playerBottom >= topOfBubble - 4) {
+        player.y = topOfBubble - player.h / 2;
+        player.vy = 0;
+        player.onGround = true;
+        player.jumpCount = 0;
+        player.rideBubble = b;
       }
     }
-    if (player.rideBubble) {
+
+    if (player.rideBubble && !player.rideBubble.dead) {
       const b = player.rideBubble;
-      if (b.dead) { player.rideBubble = null; }
-      else { player.x = b.x; player.y = b.y - 38; player.vy = 0; player.onGround = false; }
+      const topOfBubble = b.y - b.r;
+      const stillOnTop = player.x + player.w / 2 > b.x - b.r * 0.85 &&
+                         player.x - player.w / 2 < b.x + b.r * 0.85 &&
+                         Math.abs((player.y + player.h / 2) - topOfBubble) < 10;
+      if (stillOnTop && player.vy >= 0) {
+        player.y = topOfBubble - player.h / 2;
+        player.vy = 0;
+        player.onGround = true;
+      } else {
+        player.rideBubble = null;
+      }
     }
 
     // Drops (anillo) - NO termina el juego
@@ -640,10 +663,14 @@
       if (e.x > e.maxX || e.x < e.minX) e.vx *= -1;
     }
 
-    // Mostrar/ocultar barra de vida del jefe (solo cuando está vivo)
-    if (boss && !boss.dead) {
-      document.getElementById('boss-health-bar').style.display = 'block';
-      document.getElementById('boss-health-fill').style.width = (boss.hp / boss.maxHp * 100) + '%';
+    if (boss && !boss.dead && player) {
+      const distToBoss = Math.hypot(boss.x - player.x, boss.y - player.y);
+      if (distToBoss < 380) {
+        document.getElementById('boss-health-bar').style.display = 'block';
+        document.getElementById('boss-health-fill').style.width = (boss.hp / boss.maxHp * 100) + '%';
+      } else {
+        document.getElementById('boss-health-bar').style.display = 'none';
+      }
     } else {
       document.getElementById('boss-health-bar').style.display = 'none';
     }
@@ -701,9 +728,14 @@
         if (o.dead) continue;
         if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 2 - p.y) < 28) {
           if (o.type === 'rock' && p.type === 'bomb') { explode(p.x, p.y); o.dead = true; toast('💥 ¡Roca destruida!'); }
-          else if (o.type === 'fire' && p.type === 'water') { o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado'); }
-          else if (p.type === 'bomb') explode(p.x, p.y);
-          else if (!o.hint) { o.hint = true; toast(o.type === 'rock' ? '🧱 Usa 💣' : '🔥 Usa 🔫 o 🌧️'); }
+          else if (o.type === 'fire' && p.type === 'water') {
+            o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado');
+          } else if (o.type === 'fire' && p.type === 'bomb') {
+            explode(p.x, p.y);
+            spreadFireFrom(o.x, o.y);
+          } else if (p.type === 'bomb') {
+            explode(p.x, p.y);
+          } else if (!o.hint) { o.hint = true; toast(o.type === 'rock' ? '🧱 Usa 💣' : '🔥 Usa 🌧️ o 🔫 de agua'); }
           projectiles.splice(i, 1); break;
         }
       }
@@ -713,7 +745,11 @@
   function explode(x, y) {
     SFX_boom(); spawnParts(x, y, '#f97316', 18, '💥'); spawnParts(x, y, '#fbbf24', 8);
     enemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 85) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); } });
-    obstacles.forEach(o => { if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) { o.dead = true; } });
+    obstacles.forEach(o => {
+      if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) {
+        spreadFireFrom(o.x, o.y);
+      }
+    });
     brickWalls.forEach(bw => {
       if (!bw.dead && Math.hypot(bw.x + bw.w / 2 - x, bw.y + bw.h / 2 - y) < 80) {
         bw.hp = 0; bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 10, '🧱');
@@ -727,6 +763,28 @@
         drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
       }
     }
+  }
+
+  function spreadFireFrom(originX, originY) {
+    const offsets = [
+      { dx: -110, dy: 0 },
+      { dx:  110, dy: 0 },
+      { dx: -220, dy: 0 },
+    ];
+    let added = 0;
+    for (const off of offsets) {
+      const nx = originX + off.dx;
+      const ny = roadY - 20;
+      if (nx < 40 || nx > HORIZ_END - 40) continue;
+      if (nx + 18 > abyssX && nx < abyssX + abyssW) continue;
+      const tooClose = obstacles.some(o => !o.dead && o.type === 'fire' && Math.abs(o.x - nx) < 60);
+      if (tooClose) continue;
+      obstacles.push({ x: nx, y: ny, w: 36, h: 36, type: 'fire', dead: false, hint: false, ff: 0 });
+      spawnParts(nx + 18, ny, '#f97316', 6, '🔥');
+      added++;
+      if (added >= 2) break;
+    }
+    if (added > 0) toast('🔥 ¡El fuego se propagó!');
   }
 
   function updateRain() {
