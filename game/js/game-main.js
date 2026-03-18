@@ -38,8 +38,8 @@
       emma: {
         id: 'emma', nm: 'Emma 🤗', em: '🤗', bg: 'bg0', mt: '¿Cuál es la fruta oficial de Emoji City?', xp: 80, co: 20, tm: '09:41', unr: 3, pv: '¡Hola! Tengo una misión para ti 🌟',
         init: ['¡Hola aventurero! 😊 ¡Bienvenido a Emoji City!', 'Soy Emma, tu guía oficial. Tengo una misión 🎯', '¿Sabes cuál es la **fruta oficial** de Emoji City? Explora el Mercado Feliz 🏪'],
-        ans: ['sandía', 'sandia', '🍉'], hints: ['💡 Visita el *Mercado Feliz* al noroeste 🏪', '💡 Habla con la *Vendedora* del puesto de frutas 🧑‍🍳', '💡 Es verde por fuera, roja por dentro y MUY grande 🍉'],
-        wrong: ['¡Mmm no es esa! 🤔 Explora el Mercado Feliz 🗺️', '¡Casi! Habla con la vendedora del mercado 🧑‍🍳', '¡Sigue buscando! La pista está en el mapa 🌍'],
+        ans: ['sandía', 'sandia', '🍉'], hints: ['💡 Visita el *Mercado Feliz* al noroeste 🏪', '💡 Habla con *Don Mango* 🧑‍🍳', '💡 Es verde por fuera, roja por dentro y MUY grande 🍉'],
+        wrong: ['¡Mmm no es esa! 🤔 Explora el Mercado Feliz 🗺️', '¡Casi! Habla con el dueño del mercado 🧑‍🍳', '¡Sigue buscando! La pista está en el mapa 🌍'],
         ok: '¡¡CORRECTO!! 🎉 ¡La **sandía 🍉** es la fruta oficial de Emoji City! ¡Eres increíble!', dn: '😊 ¡Ya completaste esta misión! ¡Eres el mejor aventurero!'
       },
       void: {
@@ -81,8 +81,8 @@
       sage: {
         id: 'sage', nm: 'Sage 🧙', em: '🧙', bg: 'bg4', mt: '¿Dónde está el grimorio ancestral?', xp: 200, co: 80, tm: '09:15', unr: 3, pv: '...Joven aventurero, te esperaba 🧙',
         init: ['...te esperaba, joven... 🧙 He visto muchas lunas pasar.', 'El grimorio ancestral ha desaparecido... 📜✨', '¿Dónde está el **grimorio**? La respuesta yace en el Bosque Ancestral 🌳'],
-        ans: ['árbol dorado', 'arbol dorado', 'árbol', 'dorado', 'bosque', 'grimorio'], hints: ['✨ El secreto está en el *Bosque Ancestral* al suroeste 🌳', '✨ No cualquier árbol... el *Árbol Dorado* 🌟', '✨ El *Guardián del Árbol* sabe dónde está 👴'],
-        wrong: ['...medita más... 🧙 El bosque guarda el secreto 🌳', '...no es ese lugar... Ve al Bosque Ancestral 🌿', '...paciencia... El Guardián del Árbol Dorado sabe 👴'],
+        ans: ['árbol dorado', 'arbol dorado', 'árbol', 'dorado', 'bosque', 'grimorio'], hints: ['✨ El secreto está en el *Bosque Ancestral* al suroeste', '✨ No cualquier árbol... el *Árbol Dorado* 🌟', '✨ El *Guardián del Árbol* sabe dónde está 👴'],
+        wrong: ['...medita más... 🧙 El bosque guarda el secreto', '...no es ese lugar... Ve al Bosque Ancestral 🌿', '...paciencia... El sabio del bosque te puede ayudar 👴'],
         ok: '...lo encontraste... 🧙✨ El grimorio descansa **bajo el Árbol Dorado** del bosque.',
         dn: '...ya lo sabes... 🧙 Sigue tu camino de sabiduría, joven aventurero.',
       },
@@ -100,10 +100,10 @@
         permissionBased: true,
       },
       elfa: {
-        id:'elfa', nm:'Elfa Mágica 🧝🏻', em:'🧝🏻', bg:'bg5',
+        id:'elfa', nm:'Elfa Mágica 🧝‍♂️', em:'🧝‍♂️', bg:'bg5',
         mt:'La magia del bosque',
         init:[
-          '🧝🏻 El viento susurra tu nombre, aventurero...',
+          '🧝‍♂️ El viento susurra tu nombre, aventurero...',
           'La oscuridad avanza sobre Emoji City. 🌑',
           'Cuando la invasión llegue... vuelve a mí. ✨',
         ],
@@ -448,7 +448,7 @@
             }
           }, delay);
         });
-      }, 120000); // 120 seconds after completion
+      }, 30000); // 30 seconds after completion
     }
 
     // ── Cave system ────────────────────────────────────────
@@ -571,7 +571,7 @@
             if (i === msgs.length - 1) {
               phase1Done = true; G.phase1 = true; sv();
               toast('🏆 ¡FASE 1 COMPLETADA!');
-              setTimeout(triggerInvasion, 90000); // 1.5 min later
+              setTimeout(triggerInvasion, 60000); // 1 min later
             }
           }, delay + i * 1400);
         });
@@ -682,7 +682,7 @@
         const msgs = [
           '¡Alto! 👷 Esta cueva es zona restringida.',
           'Necesitas un permiso oficial de Emma. 📃',
-          'Sin permiso no entras. 🚫',
+          'Sin permiso no puedes entrar. 🚫',
         ];
         let delay = 0;
         msgs.forEach((m, i) => {
@@ -736,13 +736,13 @@
       const msg = document.getElementById('elfaMsg');
       if (!phase2Started && !G.phase2) {
         // Before invasion - just intro
-        if (msg) msg.innerHTML = `🧝🏻 El viento susurra tu nombre...<br>
+        if (msg) msg.innerHTML = `🧝‍♂️ El viento susurra tu nombre...<br>
           Siento que grandes pruebas se acercan.<br>
           Cuando llegue la oscuridad, <strong style="color:#FFD700">vuelve a mí</strong>. ✨`;
         const btn = document.getElementById('elfaAcceptBtn');
         if (btn) { btn.style.display = 'none'; }
       } else {
-        if (msg) msg.innerHTML = `¡Ha llegado el momento! 🧝🏻✨<br>
+        if (msg) msg.innerHTML = `¡Ha llegado el momento! 🧝‍♂️✨<br>
           La nave alienígena amenaza Emoji City.<br>
           Recibe mis poderes mágicos: <strong style="color:#FFD700">😡🔥🫥🥶😎</strong><br>
           ¡Úsalos para destruir la nave invasora!`;
@@ -772,7 +772,7 @@
     // ── Emoji Game (alien level) ───────────────────────────
     function openAlienGate() {
       if (!elfaPowersGiven && !G.elfaPowers) {
-        toast('🧝🏻 Primero habla con la Elfa Mágica del Bosque!');
+        toast('🧝‍♂️ Primero habla con la Elfa Mágica del Bosque!');
         return;
       }
       const ov = document.getElementById('emojiGameOv');
@@ -893,7 +893,7 @@
       if (!ov) return;
       
       if (!elfaPowersGiven && !G.elfaPowers) {
-        toast('🧝🏻 Primero habla con la Elfa Mágica del Bosque!');
+        toast('🧝‍♂️ Primero habla con la Elfa Mágica del Bosque!');
         return;
       }
       
@@ -1225,24 +1225,28 @@
     });
     document.addEventListener('keyup', e => { delete keys[e.key]; });
 
+    const MAP_DRAG_ENABLED = false;
+
     let drag = null, tdrag = null;
     const vp = document.getElementById('mapVP');
-    vp.addEventListener('mousedown', e => {
-      if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#fab') || e.target.closest('#bNav') || e.target.closest('#invPanel') || e.target.closest('#digBtn') || e.target.closest('#caveOv') || e.target.closest('#emojiGameOv') || e.target.closest('#elfaGateOv') || e.target.closest('#alienGateOv')) return;
-      drag = { sx: e.clientX, sy: e.clientY, mx: G.mx, my: G.my };
-      vp.classList.add('drag'); e.preventDefault();
-    });
-    window.addEventListener('mousemove', e => { if (!drag) return; G.mx = drag.mx - (e.clientX - drag.sx); G.my = drag.my - (e.clientY - drag.sy); applyMap(); });
-    window.addEventListener('mouseup', () => { drag = null; vp.classList.remove('drag'); });
-    vp.addEventListener('touchstart', e => {
-      if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#bNav') || e.target.closest('#invPanel') || e.target.closest('#digBtn')) return;
-      const t = e.touches[0]; tdrag = { sx: t.clientX, sy: t.clientY, mx: G.mx, my: G.my };
-    }, { passive: true });
-    vp.addEventListener('touchmove', e => {
-      if (!tdrag) return; const t = e.touches[0];
-      G.mx = tdrag.mx - (t.clientX - tdrag.sx); G.my = tdrag.my - (t.clientY - tdrag.sy); applyMap(); e.preventDefault();
-    }, { passive: false });
-    vp.addEventListener('touchend', () => tdrag = null);
+    if (MAP_DRAG_ENABLED) {
+      vp.addEventListener('mousedown', e => {
+        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#fab') || e.target.closest('#bNav') || e.target.closest('#invPanel') || e.target.closest('#digBtn') || e.target.closest('#caveOv') || e.target.closest('#emojiGameOv') || e.target.closest('#elfaGateOv') || e.target.closest('#alienGateOv')) return;
+        drag = { sx: e.clientX, sy: e.clientY, mx: G.mx, my: G.my };
+        vp.classList.add('drag'); e.preventDefault();
+      });
+      window.addEventListener('mousemove', e => { if (!drag) return; G.mx = drag.mx - (e.clientX - drag.sx); G.my = drag.my - (e.clientY - drag.sy); applyMap(); });
+      window.addEventListener('mouseup', () => { drag = null; vp.classList.remove('drag'); });
+      vp.addEventListener('touchstart', e => {
+        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#bNav') || e.target.closest('#invPanel') || e.target.closest('#digBtn')) return;
+        const t = e.touches[0]; tdrag = { sx: t.clientX, sy: t.clientY, mx: G.mx, my: G.my };
+      }, { passive: true });
+      vp.addEventListener('touchmove', e => {
+        if (!tdrag) return; const t = e.touches[0];
+        G.mx = tdrag.mx - (t.clientX - tdrag.sx); G.my = tdrag.my - (t.clientY - tdrag.sy); applyMap(); e.preventDefault();
+      }, { passive: false });
+      vp.addEventListener('touchend', () => tdrag = null);
+    }
 
     function showNpc(id) {
       if (id === 'miner') { handleMinerDialog(); return; }
@@ -1389,7 +1393,7 @@
             hideTyp();
             const replies = [
               '¡Visita el Mercado Feliz y ayúdame con la estantería! 🏪',
-              'Las frutas no se organizan solas 😅 ¡Te espero en el mercado! 🍉',
+              'Las frutas no se organizan solas 😅 ¡Te espero en el mercado!',
               '¡Haz clic en mi tienda para empezar el minijuego! 👆',
             ];
             const r = replies[Math.floor(Math.random() * replies.length)];
