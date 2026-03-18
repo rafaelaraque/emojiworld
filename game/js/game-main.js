@@ -661,10 +661,9 @@
       const hasPermit = G.inv.permit > 0 && !G.caveUnlocked;
       
       // Show NPC dialog directly
-      const n = NPCS.miner;
-      document.getElementById('ndAv').textContent = n.em;
-      document.getElementById('ndNm').textContent = n.nm;
-      document.getElementById('ndRl').textContent = n.rl;
+      document.getElementById('ndAv').textContent = '👷';
+      document.getElementById('ndNm').textContent = 'Minero 👷';
+      document.getElementById('ndRl').textContent = 'Guardián de la Cueva';
       
       let msgs;
       if (hasPermit) {
