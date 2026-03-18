@@ -1198,13 +1198,15 @@
       const list = document.getElementById('clist'); list.innerHTML = '';
       let tot = 0;
       Object.values(CHARS).forEach(ch => {
-        const c = G.cv[ch.id] || [], last = c[c.length - 1];
+        const c = G.cv[ch.id] || [];
+        const last = c[c.length - 1];
         const pv = last ? last.t.substring(0, 44) + (last.t.length > 44 ? '…' : '') : ch.pv;
         const isOut = last && last.s === 'u';
         const unr = ch.id === 'mango'
           ? (G.mangoUnr || 0)
-          : (ch.done ? 0 : (c.length === 0 ? ch.unr : 0));
-        tot += unr;
+          : (ch.done ? 0 : ch.unr);
+        const pending = (G._pendingUnr && G._pendingUnr[ch.id]) || 0;
+        tot += unr + pending;
         const d = document.createElement('div'); d.className = 'ci'; d.onclick = () => openChat(ch.id);
         d.innerHTML = `<div class="ciav ${ch.bg}">${ch.em}${ch.done ? '' : '<div class="cidot"></div>'}</div>
       <div class="cimeta">
@@ -1216,8 +1218,11 @@
       </div>`;
         list.appendChild(d);
       });
-      document.getElementById('fbadge').textContent = tot || '';
-      document.getElementById('fbadge').style.display = tot ? 'flex' : 'none';
+      const badge = document.getElementById('fbadge');
+      if (badge) {
+        badge.textContent = tot || (tot > 0 ? tot : '');
+        badge.style.display = tot ? 'flex' : 'none';
+      }
       hud();
     }
 
