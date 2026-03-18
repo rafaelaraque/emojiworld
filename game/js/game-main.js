@@ -15,7 +15,7 @@
     let vpW = 800, vpH = 600;
     const MW = 2800, MH = 2000, SPD = 7;
     let keys = {};
-    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:1} };
+    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:1}, _pendingUnr: {} };
 
     // ── DATA ──────────────────────────────
     const NPCS = {
@@ -2045,7 +2045,7 @@
       // Check if emoji game was won
       checkEmojiGameWin();
 
-      getVP(); setupJoystick(); setPlayerPos(PX, PY); updatePlayerViewport(); hud(); renderList();
+      getVP(); setupJoystick(); setPlayerPos(PX, PY); updatePlayerViewport(); hud(); renderList(); updateBadge();
       requestAnimationFrame(loop);
       Object.keys(CHARS).forEach(id => {
         if (CHARS[id].done) {
