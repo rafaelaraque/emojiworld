@@ -86,19 +86,6 @@
         ok: '...lo encontraste... 🧙✨ El grimorio descansa **bajo el Árbol Dorado** del bosque.',
         dn: '...ya lo sabes... 🧙 Sigue tu camino de sabiduría, joven aventurero.',
       },
-      miner: {
-        id:'miner', nm:'Minero 👷', em:'👷', bg:'bg2',
-        mt:'Entrada a la Cueva',
-        init:[
-          '¡Alto ahí! 👷 Esta cueva es zona restringida.',
-          'Nadie entra sin el permiso oficial... 📃',
-          'Si tienes el permiso, te dejo pasar.',
-        ],
-        ans:[], hints:[], wrong:[],
-        ok:'', dn:'¡Pasa! La cueva es peligrosa. Ten cuidado. 🪨',
-        taskBased: false, done: false,
-        permissionBased: true,
-      },
       elfa: {
         id:'elfa', nm:'Elfa Mágica 🧝‍♂️', em:'🧝‍♂️', bg:'bg5',
         mt:'La magia del bosque',
@@ -439,12 +426,6 @@
               sv();
               toast('📃 ¡Emma te envió un Permiso para la Cueva!');
               updatePermitChip();
-              // Update miner knowledge
-              CHARS.miner.init = [
-                '¡Alto ahí! 👷',
-                'Déjame ver ese permiso...',
-                '✅ ¡Todo en orden! Puedes entrar. ¡Cuídate! 🪨',
-              ];
             }
           }, delay);
         });
@@ -576,77 +557,6 @@
           }, delay + i * 1400);
         });
       }, 2000);
-    }
-
-    // ── Miner chat responses ───────────────────────────────
-    function handleMinerChatMessage(text) {
-      const id = 'miner', ts = now();
-      if (!G.cv[id]) G.cv[id] = [];
-      // User message already added by send()
-      const hasPermit = G.inv.permit > 0;
-      setTimeout(() => {
-        showTyp();
-        setTimeout(() => {
-          hideTyp();
-          let reply;
-          if (hasPermit) {
-            // Prompt them to use the permit button
-            reply = '📃 Veo que tienes algo... ¿Es el permiso de Emma? ¡Entrégamelo con el botón de abajo!';
-          } else {
-            const noPermitReplies = [
-              '🚫 No puedes entrar sin el Permiso Oficial de Emma. 📃',
-              '¿Qué haces por aquí? Esta zona es RESTRINGIDA. 👷',
-              '¡Sin permiso no hay paso! Habla con Emma primero. 😤',
-              'No es posible, amigo. Necesito ver un permiso oficial. 📃',
-            ];
-            reply = noPermitReplies[Math.floor(Math.random() * noPermitReplies.length)];
-          }
-          const rt = now();
-          bub(reply, 'c', rt, true);
-          G.cv[id].push({ t: reply, s: 'c', ts: rt });
-          sv(); showMsgNotif(id, reply);
-        }, 700 + Math.random() * 500);
-      }, 400);
-    }
-
-    function sendPermitToMiner() {
-      if (!G.inv.permit || G.inv.permit <= 0) return;
-      const id = 'miner', ts = now();
-      if (!G.cv[id]) G.cv[id] = [];
-      // User sends permit
-      bub('📃 Aquí tienes mi Permiso Oficial', 'u', ts, true);
-      G.cv[id].push({ t: '📃 Aquí tienes mi Permiso Oficial', s: 'u', ts });
-      // Consume permit
-      G.inv.permit = 0; sv();
-      // Update permit chip
-      updatePermitChip();
-      // Miner responds
-      const msgs = [
-        '✅ ¡Permiso válido! Todo en orden, puedes pasar.',
-        '🕳️ La cueva es peligrosa. Hay una araña gigante en las profundidades. 🕷️',
-        '...y si encuentras un anillo brillante ahí dentro, probablemente es el de la chica. 💍',
-      ];
-      let delay = 800;
-      msgs.forEach((m, i) => {
-        setTimeout(() => {
-          showTyp();
-          setTimeout(() => {
-            hideTyp();
-            const rt = now();
-            bub(m, 'c', rt, true);
-            G.cv[id].push({ t: m, s: 'c', ts: rt });
-            sv(); showMsgNotif(id, m);
-            if (i === msgs.length - 1) {
-              // Unlock cave
-              G.caveUnlocked = true; sv();
-              const ce = document.getElementById('caveEntrance');
-              if (ce) { ce.classList.remove('cave-blocked'); ce.classList.add('cave-unlocked'); }
-              toast('🕳️ ¡Cueva desbloqueada! Ve a la entrada.');
-              CHARS.miner.done = true;
-            }
-          }, 600);
-        }, delay + i * 1400);
-      });
     }
 
     function updatePermitChip() {
@@ -1365,8 +1275,6 @@
       const id = G._c, ch = CHARS[id], ts = now();
       bub(text, 'u', ts, true); G.cv[id].push({ t: text, s: 'u', ts });
       inp.value = ''; inp.style.height = 'auto';
-      // Miner has custom chat logic
-      if (id === 'miner') { handleMinerChatMessage(text); return; }
       
       // Entrega del anillo a Emma
       if (id === 'emma' && G.inv.ringPending) {
