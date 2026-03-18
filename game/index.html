@@ -204,28 +204,28 @@
              style="left:1220px;top:1290px;" onclick="tryEnterCave()">
           <div class="cave-em">🕳️</div>
           <div class="cave-lbl">Cueva Oscura</div>
-          <div id="prox-cave" class="prox-bubble">🕳️ Entrar [E]</div>
+          <div id="prox-cave" class="prox-bubble">🕳️ Entrar </div>
         </div>
 
         <!-- 👷 MINERO — guardián de la cueva -->
-        <div class="npc" style="left:1148px;top:1268px;" data-npcid="miner">
+        <div class="npc" style="left:1148px;top:1268px;" data-npcid="miner" onclick="showNpc('miner')">
           <div class="npe" style="font-size:34px;animation:nb 2.6s ease-in-out infinite;">👷</div>
           <div class="npn">Minero</div>
-          <div id="prox-miner" class="prox-bubble">👷 Hablar [E]</div>
+          <div id="prox-miner" class="prox-bubble">👷 Hablar </div>
         </div>
 
-        <!-- 🧝🏻 ELFA MÁGICA — en Bosque Ancestral -->
+        <!-- 🧝‍♂️ ELFA MÁGICA — en Bosque Ancestral -->
         <div class="npc" style="left:310px;top:1530px;" data-npcid="elfa">
-          <div class="npe" style="font-size:36px;animation:nb 2s ease-in-out infinite;">🧝🏻</div>
+          <div class="npe" style="font-size:36px;animation:nb 2s ease-in-out infinite;">🧝‍♂️</div>
           <div class="npn">Elfa Mágica</div>
-          <div id="prox-elfa" class="prox-bubble">🧝🏻 Hablar [E]</div>
+          <div id="prox-elfa" class="prox-bubble">🧝‍♂️ Hablar </div>
         </div>
 
         <!-- 🛸 NAVE ALIEN — aparece cuando empieza invasión, oculta al inicio -->
         <div class="alien-ship" id="alienShip" style="left:1310px;top:840px;display:none;"
              onclick="showAlienGate()">
           <div class="ship-em">🛸</div>
-          <div id="prox-alien" class="prox-bubble">🛸 Interactuar [E]</div>
+          <div id="prox-alien" class="prox-bubble">🛸 Combatir </div>
         </div>
 
         <!-- ZONES + BUILDINGS -->
@@ -277,7 +277,7 @@
         <!-- Don Mango - dueño del mercado -->
         <div class="npc" style="left:408px; top:340px;" onclick="showNpc('mango')" data-npcid="mango">
           <span class="npe">👨‍🌾</span><span class="npn">Don Mango</span>
-          <div class="prox-bubble" id="prox-mango">E Hablar</div>
+          <div class="prox-bubble" id="prox-mango">Hablar</div>
         </div>
 
         <!-- ZONA REAL landmarks -->
@@ -289,7 +289,7 @@
           <div style="position:relative;"><span class="npe">🫅</span>
             <div class="ping" id="pi-void">!</div>
           </div><span class="npn">Rey Roland</span>
-          <div class="prox-bubble" id="prox-void">E Hablar</div>
+          <div class="prox-bubble" id="prox-void">Hablar</div>
         </div>
         <!-- Torres alrededor del castillo - posiciones cardinales -->
         <!-- Torre Norte -->
