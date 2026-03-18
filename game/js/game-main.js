@@ -242,18 +242,19 @@
     function updateBadge() {
       let tot = 0;
       Object.values(CHARS).forEach(ch => {
-        const c = G.cv[ch.id] || [];
-        const unr = ch.id === 'mango'
-          ? (G.mangoUnr || 0)
-          : (ch.done ? 0 : (c.length === 0 ? ch.unr : 0));
-        // Add 1 for each message received while chat was not open
+        let unr = 0;
+        if (ch.id === 'mango') {
+          unr = G.mangoUnr || 0;
+        } else if (!ch.done) {
+          unr = ch.unr || 0;
+        }
         const pending = (G._pendingUnr && G._pendingUnr[ch.id]) || 0;
         tot += unr + pending;
       });
       const badge = document.getElementById('fbadge');
       if (badge) {
-        badge.textContent = tot || '';
-        badge.style.display = tot ? 'flex' : 'none';
+        badge.textContent = tot > 0 ? tot : '';
+        badge.style.display = tot > 0 ? 'flex' : 'none';
       }
     }
 
