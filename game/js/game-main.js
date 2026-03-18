@@ -658,40 +658,38 @@
 
     // ── Miner NPC override ─────────────────────────────────
     function handleMinerDialog() {
-      const hasPermit = G.inv.permit > 0;
+      const hasPermit = G.inv.permit > 0 && !G.caveUnlocked;
+      
+      // Show NPC dialog directly
+      const n = NPCS.miner;
+      document.getElementById('ndAv').textContent = n.em;
+      document.getElementById('ndNm').textContent = n.nm;
+      document.getElementById('ndRl').textContent = n.rl;
+      
+      let msgs;
       if (hasPermit) {
-        // Use permit
-        G.inv.permit = 0; sv();
-        // Unlock cave
+        // Use permit and unlock cave
+        G.inv.permit = 0;
+        G.caveUnlocked = true;
+        sv();
         const ce = document.getElementById('caveEntrance');
         if (ce) { ce.classList.remove('cave-blocked'); ce.classList.add('cave-unlocked'); }
-        G.caveUnlocked = true; sv();
-        const msgs = [
+        
+        msgs = [
           '¡Permiso válido! ✅ Puedes pasar.',
           'La araña está en las profundidades. 🕷️ ¡Cuidado!',
           '...y si encuentras un anillo brillante... probablemente es el de la chica. 💍',
         ];
-        let delay = 0;
-        msgs.forEach((m, i) => {
-          setTimeout(() => {
-            const ts = now(); if (!G.cv.miner) G.cv.miner = [];
-            G.cv.miner.push({ t: m, s: 'c', ts }); showMsgNotif('miner', m);
-          }, delay += 900 + i * 300);
-        });
       } else {
-        const msgs = [
-          '¡Alto! 👷 Esta cueva es zona restringida.',
-          'Necesitas un permiso oficial de Emma. 📃',
-          'Sin permiso no puedes entrar. 🚫',
+        msgs = [
+          '¡Alto ahí! 👷 Esta cueva es zona restringida.',
+          'Nadie entra sin el permiso oficial de Emma. 📃',
+          'Si tienes el permiso, te dejo pasar.',
         ];
-        let delay = 0;
-        msgs.forEach((m, i) => {
-          setTimeout(() => {
-            const ts = now(); if (!G.cv.miner) G.cv.miner = [];
-            G.cv.miner.push({ t: m, s: 'c', ts }); showMsgNotif('miner', m);
-          }, delay += 800 + i * 300);
-        });
       }
+      
+      document.getElementById('ndMs').innerHTML = msgs.map(m => `<div class="ndm">${m}</div>`).join('');
+      document.getElementById('npcOv').classList.add('show');
     }
 
     // ── Phase 2: Alien Invasion ────────────────────────────
@@ -1004,6 +1002,15 @@
         if (bubble) {
           if (dist < PROX_DIST) bubble.classList.add('visible');
           else bubble.classList.remove('visible');
+          
+          // Dynamic bubble text for miner
+          if (npcId === 'miner' && bubble) {
+            if (G.inv.permit > 0 && !G.caveUnlocked) {
+              bubble.textContent = '📃 Entregar ';
+            } else {
+              bubble.textContent = '👷 Hablar ';
+            }
+          }
         }
       });
     }
