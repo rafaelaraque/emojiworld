@@ -658,7 +658,8 @@
 
     // ── Miner NPC override ─────────────────────────────────
     function handleMinerDialog() {
-      const hasPermit = G.inv.permit > 0 && !G.caveUnlocked;
+      const hasPermit = G.inv.permit > 0;
+      const alreadyUnlocked = G.caveUnlocked === true;
       
       // Show NPC dialog directly
       document.getElementById('ndAv').textContent = '👷';
@@ -666,7 +667,7 @@
       document.getElementById('ndRl').textContent = 'Guardián de la Cueva';
       
       let msgs;
-      if (hasPermit) {
+      if (hasPermit && !alreadyUnlocked) {
         // Use permit and unlock cave
         G.inv.permit = 0;
         G.caveUnlocked = true;
@@ -679,11 +680,16 @@
           'La araña está en las profundidades. 🕷️ ¡Cuidado!',
           '...y si encuentras un anillo brillante... probablemente es el de la chica. 💍',
         ];
+      } else if (alreadyUnlocked) {
+        msgs = [
+          '¡Ya puedes entrar! 🕳️ La cueva está abierta.',
+          'Ten cuidado con la araña gigante. 🕷️',
+        ];
       } else {
         msgs = [
           '¡Alto ahí! 👷 Esta cueva es zona restringida.',
-          'Nadie entra sin el permiso oficial de Emma. 📃',
-          'Si tienes el permiso, te dejo pasar.',
+          'Necesitas un permiso oficial de Emma. 📃',
+          'Sin permiso no puedes entrar. 🚫',
         ];
       }
       
@@ -1004,8 +1010,10 @@
           
           // Dynamic bubble text for miner
           if (npcId === 'miner' && bubble) {
-            if (G.inv.permit > 0 && !G.caveUnlocked) {
+            if (G.inv.permit > 0 && G.caveUnlocked !== true) {
               bubble.textContent = '📃 Entregar ';
+            } else if (G.caveUnlocked === true) {
+              bubble.textContent = '🕳️ Entrar ';
             } else {
               bubble.textContent = '👷 Hablar ';
             }
