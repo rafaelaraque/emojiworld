@@ -16,7 +16,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>🎮 Juegos - EMOJI WORLD GAME</title>
+  <title>📖 Historias - EMOJI WORLD GAME</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
     rel="stylesheet">
   <style>
@@ -139,12 +139,12 @@
       background: #0d1a0d;
     }
 
-    .games-container {
+    .story-container {
       max-width: 800px;
       margin: 0 auto;
     }
 
-    .game-card {
+    .story-card {
       background: var(--panel);
       border-radius: 16px;
       overflow: hidden;
@@ -153,12 +153,12 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .game-card:hover {
+    .story-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
     }
 
-    .game-header {
+    .story-header {
       background: var(--dark);
       padding: 16px;
       display: flex;
@@ -167,7 +167,7 @@
       border-bottom: 1px solid var(--bdr);
     }
 
-    .game-title {
+    .story-title {
       font-family: 'Fredoka One', cursive;
       font-size: 20px;
       color: var(--g);
@@ -176,31 +176,31 @@
       gap: 8px;
     }
 
-    .game-content {
-      padding: 16px;
+    .story-content {
+      padding: 20px;
     }
 
-    .game-description {
+    .story-text {
       color: var(--tx);
-      line-height: 1.6;
-      margin-bottom: 16px;
+      line-height: 1.8;
+      margin-bottom: 20px;
       font-size: 16px;
     }
 
-    .game-description em {
+    .story-text em {
       color: var(--yl);
       font-style: normal;
       font-weight: 800;
     }
 
-    .game-footer {
+    .story-footer {
       display: flex;
       justify-content: flex-end;
       gap: 12px;
       padding: 0 20px 20px;
     }
 
-    .game-btn {
+    .story-btn {
       display: inline-block;
       background: var(--g);
       color: #fff;
@@ -214,179 +214,7 @@
       cursor: pointer;
     }
 
-    .game-btn:hover {
-      background: var(--g2);
-      transform: scale(1.05);
-    }
-
-    .game-cover {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      object-position: center;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      border: 2px solid var(--bdr);
-      display: block;
-    }
-
-    .game-cover-link {
-      display: block;
-      text-decoration: none;
-    }
-
-    .game-cover-link:hover .game-cover {
-      border-color: var(--g);
-      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
-    }
-
-    .game-grid-item {
-      background: var(--dark);
-      border-radius: 12px;
-      padding: 10px;
-      text-align: center;
-      border: 1px solid var(--bdr);
-      transition: all 0.2s ease;
-      overflow: hidden;
-    }
-
-    .game-grid-cover {
-      width: 100%;
-      height: 70px;
-      object-fit: cover;
-      object-position: center;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      border: 1px solid var(--bdr);
-    }
-
-    .game-grid-section {
-      background: var(--panel);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--bdr);
-      margin-bottom: 20px;
-    }
-
-    .game-grid-header {
-      background: var(--dark);
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--bdr);
-    }
-
-    .game-grid-title {
-      font-family: 'Fredoka One', cursive;
-      font-size: 20px;
-      color: var(--g);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .game-grid-content {
-      padding: 20px;
-    }
-
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .game-grid-item {
-      background: var(--dark);
-      border-radius: 12px;
-      padding: 8px;
-      text-align: center;
-      border: 1px solid var(--bdr);
-      transition: all 0.2s ease;
-      overflow: hidden;
-    }
-
-    .game-grid-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
-      border-color: var(--g);
-    }
-
-    .game-grid-icon {
-      font-size: 32px;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .game-grid-item h4 {
-      font-family: 'Fredoka One', cursive;
-      color: var(--tx);
-      margin-bottom: 4px;
-      font-size: 14px;
-    }
-
-    .game-grid-item p {
-      color: var(--tx2);
-      font-size: 11px;
-      line-height: 1.3;
-    }
-
-    .game-grid-item {
-      background: var(--dark);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      border: 1px solid var(--bdr);
-      transition: all 0.2s ease;
-    }
-
-    .game-grid-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
-      border-color: var(--g);
-    }
-
-    .game-grid-icon {
-      font-size: 40px;
-      margin-bottom: 12px;
-      display: block;
-    }
-
-    .game-grid-item h4 {
-      font-family: 'Fredoka One', cursive;
-      color: var(--tx);
-      margin-bottom: 8px;
-      font-size: 16px;
-    }
-
-    .game-grid-item p {
-      color: var(--tx2);
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .game-grid-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      padding: 0 20px 20px;
-    }
-
-    .game-grid-btn {
-      display: inline-block;
-      background: var(--g);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 24px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-      transition: all 0.2s ease;
-      border: none;
-      cursor: pointer;
-    }
-
-    .game-grid-btn:hover {
+    .story-btn:hover {
       background: var(--g2);
       transform: scale(1.05);
     }
@@ -462,57 +290,28 @@
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
 
-      .games-container {
+      .story-container {
         padding: 0 10px;
       }
 
-      .game-card {
+      .story-card {
         margin-bottom: 15px;
       }
 
-      .game-header {
+      .story-header {
         padding: 12px;
       }
 
-      .game-content {
-        padding: 12px;
+      .story-content {
+        padding: 16px;
       }
 
-      .game-title {
+      .story-title {
         font-size: 18px;
       }
 
-      .game-description {
+      .story-text {
         font-size: 14px;
-      }
-
-      .game-cover {
-        height: 160px;
-      }
-
-      .game-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      .game-grid-item {
-        padding: 6px;
-      }
-
-      .game-grid-cover {
-        height: 60px;
-      }
-
-      .game-grid-icon {
-        font-size: 28px;
-      }
-
-      .game-grid-item h4 {
-        font-size: 12px;
-      }
-
-      .game-grid-item p {
-        font-size: 10px;
       }
     }
 
@@ -529,55 +328,16 @@
         display: none;
       }
 
-      .games-container {
-        padding: 0 8px;
+      .story-content {
+        padding: 12px;
       }
 
-      .game-header {
-        padding: 10px;
+      .story-text {
+        font-size: 13px;
       }
 
-      .game-content {
-        padding: 10px;
-      }
-
-      .game-title {
-        font-size: 16px;
-      }
-
-      .game-description {
-        font-size: 12px;
-      }
-
-      .game-cover {
-        height: 140px;
-      }
-
-      .game-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-      }
-
-      .game-grid-item {
-        padding: 6px;
-      }
-
-      .game-grid-cover {
-        height: 50px;
-      }
-
-      .game-grid-icon {
-        font-size: 24px;
-        margin-bottom: 4px;
-      }
-
-      .game-grid-item h4 {
-        font-size: 11px;
-        margin-bottom: 2px;
-      }
-
-      .game-grid-item p {
-        font-size: 9px;
+      .story-footer {
+        padding: 0 12px 16px;
       }
     }
   </style>
@@ -603,83 +363,142 @@
   </div>
 
   <div id="mainContent">
-    <div class="games-container">
-      <div class="game-card">
-        <div class="game-header">
-          <div class="game-title">
-            🎮 Juego Principal
+    <div class="story-container">
+      <div class="story-card">
+        <div class="story-header">
+          <div class="story-title">
+            📖 El Origen de los Emojis
           </div>
         </div>
-        <div class="game-content">
-          <a href="game/index.html" class="game-cover-link" target="_blank">
-            <img src="emojiworldimage.png" alt="Emoji World V7 Storymax" class="game-cover">
-          </a>
-          <p class="game-description">
-            Sumérgete en la aventura definitiva de EMOJI WORLD GAME. Explora 
-            mundos diversos, resuelve puzzles desafiantes, derrota enemigos 
-            y descubre la historia detrás de cada emoji en este épico viaje.
+        <div class="story-content">
+          <p class="story-text">
+            Hace mucho tiempo, en una galaxia muy lejana, existía un reino digital conocido como <em>Codexia</em>. 
+            Allí, los símbolos más básicos luchaban por encontrar su propósito en el vasto universo de los teclados.
           </p>
-          <p class="game-description">
-            Características:<br>
-            • <em>Mundos diversos</em> para explorar<br>
-            • <em>Sistema de combate</em> estratégico<br>
-            • <em>Colección de emojis</em> únicos<br>
-            • <em>Historia profunda</em> y envolvente
+          <p class="story-text">
+            Fue entonces cuando apareció el primer emoji: una simple carita sonriente 😊 que nació de la combinación 
+            de dos puntos y un paréntesis. Este pequeño símbolo revolucionó la forma en que nos comunicábamos, 
+            permitiéndonos expresar emociones complejas con un solo carácter.
+          </p>
+          <p class="story-text">
+            Con el tiempo, más emojis comenzaron a aparecer: corazones ❤️, estrellas ✨, animales 🐾 y objetos cotidianos 📱. 
+            Cada uno llevaba consigo una historia única, una emoción específica o un concepto que antes era difícil 
+            de transmitir mediante texto plano.
+          </p>
+          <p class="story-text">
+            Hoy, en EMOJI WORLD GAME, puedes explorar este fascinante universo donde cada emoji tiene su propia 
+            personalidad, sus aventuras y sus desafíos. Desde los emojis clásicos que conocemos y amamos, hasta 
+            los nuevos símbolos que constantemente están siendo añadidos a nuestro léxico digital.
           </p>
         </div>
-        <div class="game-footer">
-          <a href="game/index.html" class="game-btn" target="_blank">Jugar Ahora</a>
-          <a href="#" class="game-btn">Más Info</a>
+        <div class="story-footer">
+          <a href="#" class="story-btn">Leer Completo</a>
+          <a href="#" class="story-btn">Compartir</a>
         </div>
       </div>
 
-      <div class="game-grid-section">
-        <div class="game-grid-header">
-          <div class="game-grid-title">
-            🎯 Otros Juegos
+      <div class="story-card">
+        <div class="story-header">
+          <div class="story-title">
+            🏰 La Leyenda de Emoji City
           </div>
         </div>
-        <div class="game-grid-content">
-          <div class="game-grid">
-            <a href="game/levels/emoji-city/emoji-city.html" class="game-grid-item" target="_blank" style="text-decoration: none; display: block;">
-              <img src="emojigameimage.png" alt="Emoji Game" class="game-cover">
-              <h4>Emoji Game</h4>
-              <p>Explora el mundo emoji.</p>
-            </a>
+        <div class="story-content">
+          <p class="story-text">
+            En el corazón del reino digital se encuentra Emoji City, una metrópolis vibrante donde los edificios 
+            están formados por símbolos y las calles están pavimentadas con caracteres. Esta ciudad no es solo un 
+            lugar; es un organismo vivo que crece y evoluciona con cada nuevo emoji que se crea.
+          </p>
+          <p class="story-text">
+            Según la leyenda, Emoji City fue fundada por el primer emoji jamás creado, quien buscaba un hogar para 
+            todos los símbolos que, como él, deseaban expresar más allá de las palabras. Con el tiempo, la ciudad 
+            se expandió para incluir barrios temáticos: el Distrito de las Caritas, el Barrio de los Animales, 
+            la Zona de los Objetos y el enigmático Sector de los Símbolos Raros.
+          </p>
+          <p class="story-text">
+            Cada distrito tiene su propia arquitectura única, reflejando la naturaleza de sus habitantes. 
+            Por ejemplo, en el Distrito de las Caritas, los edificios cambian de expresión según la hora del día, 
+            mientras que en el Barrio de los Animales, las estructuras tienen formas que recuerdan a diferentes 
+            criaturas del reino zoológico digital.
+          </p>
+          <p class="story-text">
+            Pero Emoji City no está libre de desafíos. Los antiguos temen que los nuevos llegados cambien demasiado 
+            su esencia, mientras que los recién llegados luchan por encontrar su lugar en esta sociedad ya establecida. 
+            Es este delicado equilibrio entre tradición e innovación lo que mantiene a Emoji City en constante 
+            evolución.
+          </p>
+        </div>
+        <div class="story-footer">
+          <a href="#" class="story-btn">Leer Completo</a>
+          <a href="#" class="story-btn">Compartir</a>
+        </div>
+      </div>
 
-            <div class="game-grid-item">
-              <div class="game-grid-icon">🧩</div>
-              <h4>Emoji Puzzle Quest</h4>
-              <p>Resuelve rompecabezas desafiantes.</p>
-            </div>
+      <div class="story-card">
+        <div class="story-header">
+          <div class="story-title">
+            ⚔️ La Gran Batalla de los Símbolos
           </div>
+        </div>
+        <div class="story-content">
+          <p class="story-text">
+            En los primeros días de Codexia, antes de que existiera Emoji City, hubo un tiempo de gran conflicto 
+            conocido como La Gran Batalla de los Símbolos. Fue un enfrentamiento épico entre los símbolos tradicionales 
+            (como letras, números y signos de puntuación) y los recién llegados emojis, quienes buscaban reconocimiento 
+            y espacio en el mundo digital.
+          </p>
+          <p class="story-text">
+            Los símbolos tradicionales, liderados por el serio punto y coma (;) y el oficial dos puntos (:), argumentaban 
+            que los emojis eran frivolamente emocionales y carecían de la precisión necesaria para una comunicación 
+            efectiva. Por otro lado, los emojis, bajo el liderazgo carismático de la carita sonriente 😊 y el determinado 
+            pulgar arriba 👍, defendían que las emociones eran tan importantes como la información y que prohibirlos 
+            sería negar una parte fundamental de la experiencia humana.
+          </p>
+          <p class="story-text">
+            La batalla se libró en los campos de ASCII, donde cada lado intentaba superar al otro en términos de uso 
+            y aceptación. Los símbolos tradicionales intentaban bloquear los emojis en cada oportunidad, mientras 
+            que los emojis encontraban formas creativas de expresarse incluso en los entornos más restrictivos.
+          </p>
+          <p class="story-text">
+            Finalmente, después de años de conflicto, llegó el Gran Compromiso: se estableció que tanto los símbolos 
+            tradicionales como los emojis tendrían su lugar en el mundo digital. Los primeros se encargarían de la 
+            precisión y la estructura, mientras que los segundos aportarían el matiz emocional y la expresión creativa.
+          </p>
+          <p class="story-text">
+            Este acuerdo sentó las bases para lo que hoy conocemos como EMOJI WORLD GAME, donde símbolos de todos 
+            tipos coexisten en armonía, cada uno aportando su valor único al rico tapiz de la comunicación digital.
+          </p>
+        </div>
+        <div class="story-footer">
+          <a href="#" class="story-btn">Leer Completo</a>
+          <a href="#" class="story-btn">Compartir</a>
         </div>
       </div>
     </div>
   </div>
 
   <div id="bNav">
-    <div class="bnb" onclick="location.href='index.html'">
+    <div class="bnb" onclick="location.href='../index.html'">
       <div class="bni">🏠</div>
       <div>Inicio</div>
     </div>
     
-    <div class="bnb" onclick="location.href='stories.html'">
+    <div class="bnb on" onclick="location.href='../pages/stories.html'">
       <div class="bni">📖</div>
       <div>Historias</div>
     </div>
     
-    <div class="bnb" onclick="location.href='videos.html'">
+    <div class="bnb" onclick="location.href='../pages/videos.html'">
       <div class="bni">📺</div>
       <div>Videos</div>
     </div>
     
-    <div class="bnb on" onclick="location.href='games.html'">
+    <div class="bnb" onclick="location.href='../pages/games.html'">
       <div class="bni">🎮</div>
       <div>Juegos</div>
     </div>
     
-    <div class="bnb" onclick="location.href='mini-games.html'">
+    <div class="bnb" onclick="location.href='../pages/mini-games.html'">
       <div class="bni">🎯</div>
       <div>Mini Juegos</div>
     </div>
