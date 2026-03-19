@@ -2,14 +2,13 @@
   'use strict';
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  if (!ctx.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-      r = +r || 4; this.moveTo(x + r, y); this.lineTo(x + w - r, y); this.arcTo(x + w, y, x + w, y + r, r);
-      this.lineTo(x + w, y + h - r); this.arcTo(x + w, y + h, x + w - r, y + h, r);
-      this.lineTo(x + r, y + h); this.arcTo(x, y + h, x, y + h - r, r);
-      this.lineTo(x, y + r); this.arcTo(x, y, x + r, y, r); this.closePath(); return this;
-    };
-  }
+
+  const ZOOM = 1.0;
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  function VW() { return canvas.width / ZOOM; }
+  function VH() { return canvas.height / ZOOM; }
+  window.addEventListener('resize', resize);
+  resize();
 
   // ── ESTADO ─────────────────────────────────
   let gameActive = false, frameCount = 0;
@@ -27,17 +26,19 @@
   let enemies = [], obstacles = [], projectiles = [];
   let particles = [], rainDrops = [], bubbles = [], puddles = [], stalactites = [];
   let brickWalls = [];
-  let drops = []; // { x, y, emoji, collected }
+  let drops = [], boss = null;
+  let shaftEnemies = [];
+  let flameHazards = [];
 
   // Jefe
-  let boss = null; // objeto especial
+  let bossRageTriggered = false;
 
   let playerHasRing = false;  // Track if player collected the ring
   let abyssX = 1750, abyssW = 380;
   let roadY, CEIL_Y, HORIZ_END, SHAFT_L, SHAFT_R, SHAFT_MID, SHAFT_TOP_Y;
-  const CEIL_H = 195;
+  const CEIL_H = 340;
   const SHAFT_W = 240;
-  const SHAFT_HT = 2700;
+  const SHAFT_HT = 2600;
 
   let recentItems = [];
 
@@ -73,6 +74,8 @@
   function SFX_bub() { osc('sine', 300, 900, .22, .1); }
   function SFX_splash() { nz(.22, .18); }
   function SFX_wind() { nz(.6, .1); }
+  function SFX_acid() { osc('sine', 800, 200, .08, .3); }
+  function SFX_rage() { osc('sawtooth', 100, 400, .3, .8); nz(.3, .8); }
 
   let musicOn = false, mTimers = [];
   const MNOTES = [220, 196, 164.81, 174.61, 196, 220, 246.94, 220];
@@ -109,12 +112,30 @@
     }
   }
 
+  function generateWebLines() {
+    if (!boss) return; boss.webLines = [];
+    const R = 110, cx = boss.hangX, cy = boss.hangY - 10, spokes = 8;
+    for (let i = 0; i < spokes; i++) {
+      const a = (i / spokes) * Math.PI * 2;
+      boss.webLines.push({ x1: cx, y1: cy, x2: cx + Math.cos(a) * R, y2: cy + Math.sin(a) * R });
+    }
+    const rings = 4;
+    for (let r = 1; r <= rings; r++) {
+      const rad = R * (r / rings);
+      for (let i = 0; i < spokes; i++) {
+        const a1 = (i / spokes) * Math.PI * 2, a2 = ((i + 1) / spokes) * Math.PI * 2;
+        boss.webLines.push({ x1: cx + Math.cos(a1) * rad, y1: cy + Math.sin(a1) * rad, x2: cx + Math.cos(a2) * rad, y2: cy + Math.sin(a2) * rad });
+      }
+    }
+  }
+
   function generateWorld() {
     platforms = []; enemies = []; obstacles = []; brickWalls = [];
     projectiles = []; particles = []; rainDrops = []; bubbles = []; puddles = [];
-    drops = []; boss = null;
+    drops = []; boss = null; shaftEnemies = []; flameHazards = [];
+    bossRageTriggered = false;
 
-    roadY = canvas.height - 55;
+    roadY = VH() - 55;
     CEIL_Y = roadY - CEIL_H;
     HORIZ_END = 2850;
     SHAFT_L = HORIZ_END - SHAFT_W;   // 2610
@@ -163,17 +184,25 @@
       emoji: i % 2 === 0 ? '🕷️' : '🦇', phase: Math.random() * Math.PI * 2, baseY: i % 2 === 0 ? roadY - 20 : roadY - CEIL_H * .55
     }));
 
-    // Jefe: araña gigante al final, antes del pozo
-    boss = {
-      x: 2700, y: roadY - 70, w: 60, h: 60,
-      hp: 10, maxHp: 10,
-      vx: 0.8, minX: 2600, maxX: 2800,
-      dead: false,
-      emoji: '🕷️',
-      phase: 0,
-      agro: false
-    };
+    // Enemigos zona ascenso
+    spy.forEach((py, i) => {
+      const px = i % 2 === 0 ? SHAFT_L + 8 : SHAFT_L + SHAFT_W - 108;
+      if (i % 2 === 0 || i === 5) {
+        shaftEnemies.push({ x: px + 50, y: py - 20, w: 24, h: 24, type: 'shaft_spider', hp: 1, vx: 0.6, minX: px + 8, maxX: px + 92, dead: false, deathT: 0, emoji: '🕷️', phase: Math.random() * Math.PI * 2 });
+      }
+    });
+    [CEIL_Y - 180, CEIL_Y - 510, CEIL_Y - 850, CEIL_Y - 1190, CEIL_Y - 1530, CEIL_Y - 1870].forEach((by, i) => {
+      shaftEnemies.push({ x: SHAFT_L + (i % 2 === 0 ? 60 : 120), y: by, baseY: by, w: 24, h: 24, type: 'shaft_bat', hp: 1, vx: i % 2 === 0 ? 1.1 : -1.1, minX: SHAFT_L + 10, maxX: SHAFT_R - 10, dead: false, deathT: 0, emoji: '🦇', phase: Math.random() * Math.PI * 2 });
+    });
 
+    // Boss araña gigante
+    boss = {
+      x: 2700, hangX: 2700, hangY: CEIL_Y + 40, y: CEIL_Y + 110, groundY: roadY - 70, w: 60, h: 60,
+      hp: 10, maxHp: 10, vx: 1.0, minX: 2540, maxX: 2820, dead: false, emoji: '🕷️', phase: 0,
+      state: 'hanging', rageModeOn: false, acidTimer: 0, acidInterval: 160,
+      swingAmp: 60, swingSpeed: 0.018, ropeLen: 80, webLines: [], agro: false
+    };
+    generateWebLines();
     makeStalactites();
   }
 
@@ -550,28 +579,11 @@
       }
     }
 
-    // Jefe (araña) con movimiento agresivo
+    // Jefe (araña) con estados hanging/ground
     if (boss && !boss.dead) {
-      // Detectar si el jugador está cerca para activar agro
-      const distToPlayer = Math.abs(boss.x - player.x);
-      if (distToPlayer < 200) {
-        boss.agro = true;
-      } else {
-        boss.agro = false;
-      }
-      if (boss.agro) {
-        // Moverse hacia el jugador
-        if (boss.x < player.x) boss.x += 2.5;
-        else boss.x -= 2.5;
-      } else {
-        // Patrullaje normal
-        boss.x += boss.vx;
-        if (boss.x > boss.maxX || boss.x < boss.minX) boss.vx *= -1;
-      }
-      boss.phase += 0.03;
-      // Colisión con el jugador
-      if (!player.invincible && Math.abs(boss.x - player.x) < 40 && Math.abs(boss.y - player.y) < 40) {
-        takeDamage(); player.vx = player.x < boss.x ? -8 : 8; player.vy = -6;
+      const bHB = boss.state === 'hanging' ? 42 : 38;
+      if (!player.invincible && Math.abs(boss.x - player.x) < bHB && Math.abs(boss.y - player.y) < bHB) {
+        takeDamage(); player.vx = player.x < boss.x ? -9 : 9; player.vy = -7;
       }
     }
 
@@ -662,82 +674,96 @@
       else e.x += e.vx + wp * 0.6;
       if (e.x > e.maxX || e.x < e.minX) e.vx *= -1;
     }
+    for (const e of shaftEnemies) {
+      if (e.dead) { e.deathT = (e.deathT || 0) + 1; continue; }
+      if (e.type === 'shaft_bat') { e.phase += 0.03; e.y = e.baseY + Math.sin(e.phase) * 30; e.x += e.vx; if (e.x > e.maxX || e.x < e.minX) e.vx *= -1; }
+      else { e.x += e.vx; if (e.x > e.maxX || e.x < e.minX) e.vx *= -1; }
+    }
+    for (let i = flameHazards.length - 1; i >= 0; i--) {
+      const f = flameHazards[i]; if (f.dead) { flameHazards.splice(i, 1); continue; }
+      f.life--; if (f.life <= 0) { f.dead = true; continue; }
+      if (!f.grounded) { f.vy += 0.3; f.x += f.vx; f.y += f.vy; if (f.y >= roadY - 20) { f.y = roadY - 20; f.vy = 0; f.vx *= 0.3; f.grounded = true; } }
+      else f.vx *= 0.95;
+    }
+    updateBoss();
+    if (boss && !boss.dead) {
+      document.getElementById('boss-health-bar').style.display = 'block';
+      const pct = boss.hp / boss.maxHp;
+      const fill = document.getElementById('boss-health-fill');
+      fill.style.width = (pct * 100) + '%';
+      fill.style.background = pct > 0.5 ? 'linear-gradient(90deg,#facc15,#eab308)' : 'linear-gradient(90deg,#dc2626,#ef4444)';
+    } else document.getElementById('boss-health-bar').style.display = 'none';
+  }
 
-    if (boss && !boss.dead && player) {
-      const distToBoss = Math.hypot(boss.x - player.x, boss.y - player.y);
-      if (distToBoss < 380) {
-        document.getElementById('boss-health-bar').style.display = 'block';
-        document.getElementById('boss-health-fill').style.width = (boss.hp / boss.maxHp * 100) + '%';
-      } else {
-        document.getElementById('boss-health-bar').style.display = 'none';
-      }
-    } else {
-      document.getElementById('boss-health-bar').style.display = 'none';
+  function updateBoss() {
+    if (!boss || boss.dead) return;
+    boss.phase += 0.02; boss.acidTimer++;
+    const hpPct = boss.hp / boss.maxHp;
+    if (hpPct <= 0.5 && !bossRageTriggered) {
+      bossRageTriggered = true; boss.rageModeOn = true; boss.state = 'ground';
+      boss.acidInterval = 90; boss.swingSpeed = 0.035;
+      toast('🔥 ¡La araña ENOJA! ¡Modo FURIA!'); SFX_rage();
+      spawnFlameExplosion(boss.x, boss.hangY + 30);
+    }
+    if (boss.state === 'hanging') {
+      boss.x = boss.hangX + Math.sin(boss.phase * boss.swingSpeed * 50) * boss.swingAmp;
+      boss.y = boss.hangY + boss.ropeLen + Math.sin(boss.phase * 1.3) * 12;
+      if (boss.acidTimer >= boss.acidInterval) { boss.acidTimer = 0; fireAcidDrops(); }
+      if (!boss.rageModeOn && Math.abs(boss.x - player.x) < 300 && frameCount % 480 === 0) { boss.state = 'ground'; setTimeout(() => { if (boss && !boss.dead) boss.state = 'hanging'; }, 4000); }
+    }
+    if (boss.state === 'ground') {
+      boss.y += (boss.groundY - boss.y) * 0.08;
+      if (Math.abs(boss.x - player.x) < 350) { boss.agro = true; const sp = boss.rageModeOn ? 3.2 : 2.0; if (boss.x < player.x) boss.x += sp; else boss.x -= sp; }
+      else { boss.agro = false; boss.x += boss.vx * (boss.rageModeOn ? 1.5 : 1.0); if (boss.x > boss.maxX || boss.x < boss.minX) boss.vx *= -1; }
+      boss.x = Math.max(boss.minX, Math.min(boss.maxX, boss.x));
+      if (boss.acidTimer >= boss.acidInterval) { boss.acidTimer = 0; fireAcidDrops(); }
+      if (boss.rageModeOn && frameCount % 200 === 0) spawnParts(boss.x, boss.y, '#ff4400', 6, '🔥');
     }
   }
 
+  function fireAcidDrops() {
+    if (!boss) return; SFX_acid();
+    const count = boss.rageModeOn ? 4 : 2;
+    for (let i = 0; i < count; i++) {
+      const spread = (i - (count - 1) / 2) * 0.8;
+      const aimDir = player.x > boss.x ? 1 : -1;
+      projectiles.push({ type: 'acid', x: boss.x + (Math.random() - .5) * 20, y: boss.y - 10, vx: aimDir * (3.5 + spread * 1.2 + Math.random() * 1.5), vy: -5 - Math.random() * 2, life: 120 });
+    }
+  }
+
+  function spawnFlameExplosion(cx, cy) {
+    SFX_boom(); spawnParts(cx, cy, '#ff4400', 25, '🔥'); spawnParts(cx, cy, '#ff8800', 15, '💥');
+    for (let i = 0; i < 12; i++) { const angle = (i / 12) * Math.PI * 2, speed = 4 + Math.random() * 5; flameHazards.push({ x: cx, y: cy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 3, life: 180 + Math.random() * 120, dead: false, grounded: false }); }
+    const extraDir = player.x > cx ? 1 : -1;
+    for (let i = 0; i < 4; i++) { flameHazards.push({ x: cx + (Math.random() - .5) * 40, y: cy, vx: extraDir * (6 + Math.random() * 4), vy: -2 - Math.random() * 3, life: 200 + Math.random() * 100, dead: false, grounded: false }); }
+  }
+
+  function checkBossDeath() { if (!boss || boss.hp > 0) return; boss.dead = true; spawnParts(boss.x, boss.y, '#ffaa00', 25, '🕷️'); spawnParts(boss.x, boss.y, '#ff4400', 15, '💥'); toast('💀 ¡Derrotaste a la araña gigante! 🔥'); drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false }); }
+
   function updateProjectiles() {
     for (let i = projectiles.length - 1; i >= 0; i--) {
-      const p = projectiles[i]; p.vy += 0.22; p.x += p.vx; p.y += p.vy; p.life--;
+      const p = projectiles[i];
+      p.vy += p.type === 'acid' ? 0.28 : 0.22;
+      p.x += p.vx; p.y += p.vy; p.life--;
       if (p.life <= 0) { if (p.type === 'bomb') explode(p.x, p.y); projectiles.splice(i, 1); continue; }
       let hit = false;
-
-      // Enemigos comunes
-      for (const e of enemies) {
-        if (!e.dead && Math.abs(e.x - p.x) < 28 && Math.abs(e.y - p.y) < 28) {
-          if (p.type === 'bomb') explode(p.x, p.y);
-          else { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); }
-          projectiles.splice(i, 1); hit = true; break;
-        }
+      if (p.type !== 'acid') {
+        for (const e of enemies) { if (!e.dead && Math.abs(e.x - p.x) < 28 && Math.abs(e.y - p.y) < 28) { if (p.type === 'bomb') explode(p.x, p.y); else { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); } projectiles.splice(i, 1); hit = true; break; } }
+        if (hit) continue;
+        for (const e of shaftEnemies) { if (!e.dead && Math.abs(e.x - p.x) < 26 && Math.abs(e.y - p.y) < 26) { if (p.type === 'bomb') explode(p.x, p.y); else { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 6, e.emoji); } projectiles.splice(i, 1); hit = true; break; } }
+        if (hit) continue;
+        if (boss && !boss.dead && Math.abs(boss.x - p.x) < 38 && Math.abs(boss.y - p.y) < 38) { if (p.type === 'bomb') { explode(p.x, p.y); boss.hp -= 2; } else if (p.type === 'water') { boss.hp -= 1; } checkBossDeath(); projectiles.splice(i, 1); continue; }
+        let bwHit = false;
+        for (const bw of brickWalls) { if (bw.dead) continue; if (p.x > bw.x - 10 && p.x < bw.x + bw.w + 10 && p.y > bw.y - 10 && p.y < bw.y + bw.h + 10) { if (p.type === 'bomb') { explode(p.x, p.y); bw.hp--; bw.hit = 8; if (bw.hp <= 0) { bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 14, '🧱'); toast('💥 ¡Pared destruida!'); } } else bw.hit = 6; projectiles.splice(i, 1); bwHit = true; break; } }
+        if (bwHit) continue;
+        for (const o of obstacles) { if (o.dead) continue; if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 2 - p.y) < 28) { if (o.type === 'rock' && p.type === 'bomb') { explode(p.x, p.y); o.dead = true; toast('💥 ¡Roca destruida!'); } else if (o.type === 'fire' && p.type === 'water') { o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado'); } else if (o.type === 'fire' && p.type === 'bomb') { explode(p.x, p.y); spreadFireFrom(o.x, o.y); } else if (p.type === 'bomb') explode(p.x, p.y); else if (!o.hint) { o.hint = true; toast(o.type === 'rock' ? '🧱 Usa 💣' : '🔥 Usa 🔫 o 🌧️'); } projectiles.splice(i, 1); break; } }
       }
-      if (hit) continue;
-
-      // Jefe
-      if (boss && !boss.dead && Math.abs(boss.x - p.x) < 35 && Math.abs(boss.y - p.y) < 35) {
-        if (p.type === 'bomb') {
-          explode(p.x, p.y);
-          boss.hp -= 2;
-        } else if (p.type === 'water') {
-          boss.hp -= 1;
-        }
-        if (boss.hp <= 0) {
-          boss.dead = true;
-          spawnParts(boss.x, boss.y, '#ffaa00', 20, '🕷️');
-          toast('💀 ¡Derrotaste a la araña gigante!');
-          drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
-        }
-        projectiles.splice(i, 1); hit = true; continue;
-      }
-
-      // Paredes ladrillo
-      let bwHit = false;
-      for (const bw of brickWalls) {
-        if (bw.dead) continue;
-        if (p.x > bw.x - 10 && p.x < bw.x + bw.w + 10 && p.y > bw.y - 10 && p.y < bw.y + bw.h + 10) {
-          if (p.type === 'bomb') {
-            explode(p.x, p.y); bw.hp--; bw.hit = 8;
-            if (bw.hp <= 0) { bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 14, '🧱'); toast('💥 ¡Pared destruida!'); }
-          }
-          projectiles.splice(i, 1); bwHit = true; break;
-        }
-      }
-      if (bwHit) continue;
-
-      // Obstáculos
-      for (const o of obstacles) {
-        if (o.dead) continue;
-        if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 2 - p.y) < 28) {
-          if (o.type === 'rock' && p.type === 'bomb') { explode(p.x, p.y); o.dead = true; toast('💥 ¡Roca destruida!'); }
-          else if (o.type === 'fire' && p.type === 'water') {
-            o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado');
-          } else if (o.type === 'fire' && p.type === 'bomb') {
-            explode(p.x, p.y);
-            spreadFireFrom(o.x, o.y);
-          } else if (p.type === 'bomb') {
-            explode(p.x, p.y);
-          } else if (!o.hint) { o.hint = true; toast(o.type === 'rock' ? '🧱 Usa 💣' : '🔥 Usa 🌧️ o 🔫 de agua'); }
-          projectiles.splice(i, 1); break;
-        }
+      if (p.type === 'acid') {
+        if (!player.invincible && Math.abs(p.x - player.x) < 20 && Math.abs(p.y - player.y) < 20) { takeDamage(); player.vy = -3; spawnParts(p.x, p.y, '#86efac', 6); projectiles.splice(i, 1); continue; }
+        if (p.y >= roadY - 10) { spawnParts(p.x, roadY - 10, '#4ade80', 5); projectiles.splice(i, 1); continue; }
+        let acidG = false;
+        for (const pl of platforms) { if (pl.type === 'ground') continue; if (p.x > pl.x && p.x < pl.x + pl.w && p.y + 6 > pl.y && p.y < pl.y + pl.h) { spawnParts(p.x, pl.y, '#4ade80', 4); projectiles.splice(i, 1); acidG = true; break; } }
+        if (acidG) continue;
       }
     }
   }
@@ -745,6 +771,7 @@
   function explode(x, y) {
     SFX_boom(); spawnParts(x, y, '#f97316', 18, '💥'); spawnParts(x, y, '#fbbf24', 8);
     enemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 85) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); } });
+    shaftEnemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 70) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 6, e.emoji); } });
     obstacles.forEach(o => {
       if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) {
         spreadFireFrom(o.x, o.y);
@@ -755,14 +782,7 @@
         bw.hp = 0; bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 10, '🧱');
       }
     });
-    if (boss && !boss.dead && Math.hypot(boss.x - x, boss.y - y) < 100) {
-      boss.hp -= 3;
-      if (boss.hp <= 0) {
-        boss.dead = true;
-        spawnParts(boss.x, boss.y, '#ffaa00', 20, '🕷️');
-        drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
-      }
-    }
+    if (boss && !boss.dead && Math.hypot(boss.x - x, boss.y - y) < 100) { boss.hp -= 3; checkBossDeath(); }
   }
 
   function spreadFireFrom(originX, originY) {
@@ -789,15 +809,15 @@
 
   function updateRain() {
     if (!rainOn) { rainDrops = []; return; }
-    if (frameCount % 2 === 0) {
-      const wx = cameraX + Math.random() * canvas.width;
+    if (frameCount % 2 === 0 && rainDrops.length < 60) {
+      const wx = cameraX + Math.random() * VW();
       const wy = cameraY - 12;
       rainDrops.push({ wx, wy, vy: 9 + Math.random() * 4 });
     }
     for (let i = rainDrops.length - 1; i >= 0; i--) {
       const r = rainDrops[i];
       r.wy += r.vy;
-      if (r.wy > cameraY + canvas.height + 30) { rainDrops.splice(i, 1); continue; }
+      if (r.wy > cameraY + VH() + 30) { rainDrops.splice(i, 1); continue; }
       for (const o of obstacles) {
         if (!o.dead && o.type === 'fire' && Math.abs(o.x - r.wx) < 32 && Math.abs(o.y - r.wy) < 14) {
           o.dead = true; spawnParts(o.x + 18, o.y, '#60a5fa', 8, '💦');
@@ -813,9 +833,9 @@
   function updateBubbles() {
     if (!bubblesOn && bubbles.length === 0) return;
     if (bubblesOn && frameCount % 70 === 0) {
-      const bx = inShaft ? SHAFT_L + 20 + Math.random() * (SHAFT_W - 40) : cameraX + 50 + Math.random() * (canvas.width - 100);
-      const by = inShaft ? player.y + 110 + Math.random() * 40 : canvas.height + cameraY + 20;
-      bubbles.push({ x: bx, y: by, vy: -2.2 - Math.random() * .8, r: 18 + Math.random() * 8, life: 400, dead: false });
+      const bx = inShaft ? SHAFT_L + 20 + Math.random() * (SHAFT_W - 40) : cameraX + 50 + Math.random() * (VW() - 100);
+      const by = inShaft ? player.y + 60 : roadY + 10;
+      bubbles.push({ x: bx, y: by, vy: -1.1 - Math.random() * 0.7, r: 22 + Math.random() * 14, dead: false });
       SFX_bub();
     }
     for (let i = bubbles.length - 1; i >= 0; i--) {
@@ -842,7 +862,7 @@
         }
       }
 
-      if (b.life <= 0 || b.y < SHAFT_TOP_Y - 80) {
+      if (b.life <= 0 || b.y < SHAFT_TOP_Y - 50) {
         if (player.rideBubble === b) { player.rideBubble = null; player.vy = -5; }
         b.dead = true; bubbles.splice(i, 1); continue;
       }
@@ -856,13 +876,14 @@
 
   function updateParticles() {
     for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life--;
+      const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life--;
       if (p.life <= 0) particles.splice(i, 1);
     }
   }
 
-  function spawnParts(x, y, col, n, em = null) {
-    for (let i = 0; i < n; i++) particles.push({ x, y, vx: (Math.random() - .5) * 7, vy: (Math.random() - .5) * 7 - 2, col, em, size: em ? 13 : 3, life: 25 + Math.random() * 20, maxLife: 45 });
+  function spawnParts(x, y, col, n, em) {
+    if (particles.length > 80) return;
+    for (let i = 0; i < n; i++) particles.push({ x, y, vx: (Math.random() - .5) * 6, vy: -2 - Math.random() * 5, col, em, size: em ? 13 : 3, life: 25 + Math.random() * 20, maxLife: 45 });
   }
 
   // ── DIBUJO (todo con opacidad 1 para elementos vivos) ──
@@ -1112,35 +1133,38 @@
   }
 
   function drawEnemies() {
-    for (const e of enemies) {
-      if (e.deathT > 0) continue;
-      drawEmoji(e.x, e.y, e.emoji, e.type === 'bat' ? 24 : 26, Math.sin(frameCount * .06 + e.phase) * .06);
+    for (const e of enemies) { if (e.deathT > 0) continue; drawEmoji(e.x, e.y, e.emoji, e.type === 'bat' ? 24 : 26, Math.sin(frameCount * .06 + e.phase) * .06); }
+    for (const e of shaftEnemies) { if ((e.deathT || 0) > 0) continue; const sy = DY(e.y); if (sy < -40 || sy > VH() + 40) continue; drawEmoji(e.x, e.y, e.emoji, 22, e.type === 'shaft_bat' ? Math.sin(frameCount * .08 + e.phase) * .12 : Math.sin(frameCount * .05 + e.phase) * .08); }
+    if (boss && !boss.dead) drawBoss();
+  }
+
+  function drawBoss() {
+    const bx = DX(boss.x), by = DY(boss.y), hx = DX(boss.hangX), hy = DY(boss.hangY);
+    if (boss.state === 'hanging' || boss.y < boss.groundY - 40) {
+      ctx.save(); ctx.strokeStyle = 'rgba(200,180,150,0.35)'; ctx.lineWidth = 1; ctx.shadowColor = 'rgba(200,180,150,0.2)'; ctx.shadowBlur = 4;
+      for (const line of boss.webLines) { ctx.beginPath(); ctx.moveTo(DX(line.x1), DY(line.y1)); ctx.lineTo(DX(line.x2), DY(line.y2)); ctx.stroke(); }
+      ctx.restore();
+      ctx.save(); ctx.strokeStyle = 'rgba(220,200,160,0.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo((hx + bx) / 2 + Math.sin(frameCount * 0.04) * 8, (hy + by) / 2, bx, by - 20); ctx.stroke(); ctx.restore();
     }
-    if (boss && !boss.dead) {
-      drawEmoji(boss.x, boss.y, '🕷️', 50, Math.sin(frameCount * .05) * .1, '#ff0000');
-      // Barra de vida encima del jefe
-      const bx = DX(boss.x), by = DY(boss.y) - 40;
-      ctx.fillStyle = '#330000';
-      ctx.fillRect(bx - 40, by, 80, 8);
-      ctx.fillStyle = '#ff4d4d';
-      ctx.fillRect(bx - 40, by, 80 * (boss.hp / boss.maxHp), 8);
-    }
+    const rageGlow = boss.rageModeOn ? '#ff2200' : '#ff6600';
+    const swingAngle = boss.state === 'hanging' ? Math.sin(boss.phase * boss.swingSpeed * 50) * 0.15 : 0;
+    drawEmoji(boss.x, boss.y, '🕷️', boss.rageModeOn ? 58 : 52, swingAngle, rageGlow);
+    if (boss.rageModeOn) { ctx.save(); const flicker = 0.3 + Math.sin(frameCount * 0.2) * 0.15; ctx.strokeStyle = `rgba(255,80,0,${flicker})`; ctx.lineWidth = 3; ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 20; ctx.beginPath(); ctx.arc(bx, by, 38, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+    const barW = 80, barX = bx - barW / 2, barY = by - 55;
+    ctx.fillStyle = '#1a0000'; ctx.fillRect(barX, barY, barW, 8);
+    const pct = boss.hp / boss.maxHp; ctx.fillStyle = pct > 0.5 ? '#facc15' : '#dc2626'; ctx.fillRect(barX, barY, barW * pct, 8);
+    ctx.strokeStyle = 'rgba(255,200,80,.5)'; ctx.lineWidth = 1; ctx.strokeRect(barX, barY, barW, 8);
+  }
+
+  function drawFlameHazards() {
+    for (const f of flameHazards) { if (f.dead) continue; const sx = DX(f.x), sy = DY(f.y); if (sx < -40 || sx > VW() + 40 || sy < -40 || sy > VH() + 40) continue; const lifePct = Math.min(1, f.life / 300); ctx.save(); ctx.globalAlpha = Math.min(1, lifePct * 2); ctx.font = `${16 + Math.sin(frameCount * 0.3 + f.x) * 3}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 12; ctx.fillText('🔥', sx, sy); ctx.restore(); }
   }
 
   function drawProjectiles() {
     for (const p of projectiles) {
-      if (p.type === 'water') {
-        const sx = DX(p.x), sy = DY(p.y);
-        ctx.save();
-        ctx.shadowColor = '#60a5fa'; ctx.shadowBlur = 8;
-        ctx.fillStyle = '#93c5fd';
-        ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#dbeafe';
-        ctx.beginPath(); ctx.arc(sx - 1.5, sy - 1.5, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-      } else {
-        drawEmoji(p.x, p.y, '💣', 24);
-      }
+      if (p.type === 'acid') { const sx = DX(p.x), sy = DY(p.y); ctx.save(); ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 10; ctx.fillStyle = '#86efac'; ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#bbf7d0'; ctx.beginPath(); ctx.arc(sx - 1.5, sy - 1.5, 2, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+      else if (p.type === 'water') { const sx = DX(p.x), sy = DY(p.y); ctx.save(); ctx.shadowColor = '#60a5fa'; ctx.shadowBlur = 8; ctx.fillStyle = '#93c5fd'; ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#dbeafe'; ctx.beginPath(); ctx.arc(sx - 1.5, sy - 1.5, 2, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+      else drawEmoji(p.x, p.y, '💣', 24);
     }
   }
 
@@ -1298,23 +1322,12 @@
     updatePlayer(); updateEnemies(); updateProjectiles();
     updateRain(); updateBubbles(); updateParticles();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBackground();
-    drawCaveStructure();
-    drawPlatforms();
-    drawCaveFloor();
-    drawAbyss();
-    drawBrickWalls();
-    drawObstacles();
-    drawExit();
-    drawRain();
-    drawDarkness();
-    drawBubbles();
-    drawEnemies();
-    drawProjectiles();
-    drawDrops();
-    drawParticles();
+    drawBackground(); drawCaveStructure(); drawPlatforms(); drawCaveFloor(); drawAbyss();
+    drawBrickWalls(); drawObstacles(); drawExit(); drawRain(); drawDarkness(); drawBubbles();
+    drawEnemies(); drawFlameHazards(); drawProjectiles(); drawDrops(); drawParticles();
     drawPlayer();
     drawHUDCanvas();
+    prevKeys = { jump: keys.jump, attack: keys.attack };
     requestAnimationFrame(gameLoop);
   }
 
