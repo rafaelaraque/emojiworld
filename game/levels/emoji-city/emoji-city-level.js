@@ -701,6 +701,7 @@ function initLevel1() {
     ghostMode: false, invincible: false, invincibleTimer: 0,
     fireBounce: false, angryAura: false, facingRight: true,
   };
+  window.player = player; // Debug: access via console
 
   attackBtnWrapper.classList.add('inactive'); attackBtnWrapper.classList.remove('active-avatar');
   document.querySelector('#attack-btn-wrapper .base-emoji').textContent = '🟣';
@@ -716,9 +717,8 @@ function initLevel1() {
   currentPower = null; powerActive = false; roadOffset = 0;
   coolFreezeActive = false; coolFreezeTimer = 0;
   lastPlatformX = 300; timeOfDay = 'day';
-  avatarAttackActive = false; avatarAttackTimer = 0;
-  if (!ngPlusMode) { purchasedAvatar = null; avatarPowerTimer = 0; reinforcedHearts = 0; }
-  else { avatarPowerTimer = 1200; reinforcedHearts = ngPlusMode ? 3 : 0; }
+  avatarAttackActive = false; avatarPowerTimer = 0; avatarAttackTimer = 0;
+  purchasedAvatar = null; reinforcedHearts = 0;
   sunDefeated = false; lastSunSpawn = 0;
   selectingPower = false; currentSelectingPower = null;
   gameTimer = 300; levelCompleted = false;
@@ -761,6 +761,7 @@ function initLevel2() {
     ghostMode: false, invincible: false, invincibleTimer: 0,
     fireBounce: false, angryAura: false, facingRight: true,
   };
+  window.player = player; // Debug: access via console
 
   attackBtnWrapper.classList.add('inactive'); attackBtnWrapper.classList.remove('active-avatar');
   document.querySelector('#attack-btn-wrapper .base-emoji').textContent = '🟣';
@@ -775,9 +776,8 @@ function initLevel2() {
   currentPower = null; powerActive = false; trailOffset = 0;
   coolFreezeActive = false; coolFreezeTimer = 0;
   lastPlatformX = 300; timeOfDay = 'night';
-  avatarAttackActive = false; avatarAttackTimer = 0;
-  if (!ngPlusMode) { purchasedAvatar = null; avatarPowerTimer = 0; reinforcedHearts = 0; }
-  else { avatarPowerTimer = 1200; reinforcedHearts = ngPlusMode ? 3 : 0; }
+  avatarAttackActive = false; avatarPowerTimer = 0; avatarAttackTimer = 0;
+  purchasedAvatar = null; reinforcedHearts = 0;
   bossActive = false; lastBossSpawn = 0;
   boss2DialogShown = false; boss2DialogActive = false;
   elvenPowersActive = false;
@@ -1873,7 +1873,7 @@ function handlePlayerDamage(source) {
     reinforcedHearts--;
     updateHearts();
     // Only deactivate avatar if elven powers are NOT active
-    if (reinforcedHearts <= 0 && !elvenPowersActive && !ngPlusMode) {
+    if (reinforcedHearts <= 0 && !elvenPowersActive) {
       deactivateAvatar();
     } else if (reinforcedHearts <= 0 && elvenPowersActive) {
       // Refill to 1 so the player stays alive; elven grants toughness
@@ -3279,7 +3279,7 @@ function updatePlayer() {
   }
 
   // ── Avatar power countdown — skip entirely when elven active ──────
-  if (purchasedAvatar && avatarPowerTimer > 0 && !elvenPowersActive && !ngPlusMode) {
+  if (purchasedAvatar && avatarPowerTimer > 0 && !elvenPowersActive) {
     avatarPowerTimer--;
     if (avatarPowerTimer % 3 === 0) updateHearts();
     if (avatarPowerTimer <= 0) {
@@ -3440,7 +3440,7 @@ function updatePlayer() {
   }
   
   const attackPressed = keys.attack && !prevKeys.attack;
-  if (attackPressed && (purchasedAvatar || elvenPowersActive || ngPlusMode) && !avatarAttackActive) {
+  if (attackPressed && (purchasedAvatar || elvenPowersActive) && !avatarAttackActive) {
     if (elvenPowersActive && !purchasedAvatar) {
       // Ensure fist is re-granted if lost
       purchasedAvatar = 'fist';
@@ -3503,7 +3503,7 @@ function updatePlayer() {
 
 // Activate special avatar attack
 function useAvatarAttack() {
-  if (!purchasedAvatar && !ngPlusMode) return;
+  if (!purchasedAvatar) return;
   
   avatarAttackActive = true;
   avatarAttackTimer = 30;
@@ -3581,8 +3581,8 @@ function activateElvenPowers() {
 }
 
 function activatePower(power) {
-  // NG+ or elven: no cooldown, switch freely
-  if (elvenPowersActive || ngPlusMode) {
+  // Elven powers: no cooldown, switch freely
+  if (elvenPowersActive) {
     if (powerActive && currentPower === power) return; // already active
     if (powerActive) { deactivatePower(); }
     currentPower = power;
@@ -3603,7 +3603,7 @@ function activatePower(power) {
     });
     return;
   }
-  if (powerCooldowns[power] > 0 || powerActive || (purchasedAvatar && !ngPlusMode)) return;
+  if (powerCooldowns[power] > 0 || powerActive || purchasedAvatar) return;
   
   currentPower = power;
   powerActive = true;
@@ -3663,9 +3663,9 @@ function deactivatePower() {
 
 // Desactivar avatar comprado → volver a poderes base
 function deactivateAvatar() {
-  if (!ngPlusMode) purchasedAvatar = null;
-  avatarPowerTimer = ngPlusMode ? 1200 : 0;  // NG+: auto-refill timer
-  reinforcedHearts = ngPlusMode ? 3 : 0;
+  purchasedAvatar = null;
+  avatarPowerTimer = 0;
+  reinforcedHearts = 0;
   avatarAttackActive = false;
 
   // Restore default emoji
@@ -4576,11 +4576,6 @@ function startGame() {
   paused = false;
   resizeCanvas();
   initGame();
-  // NG+ mode: re-enable attack button if player had weapon
-  if (ngPlusMode && purchasedAvatar) {
-    const atkBtn = document.getElementById('attack-btn-wrapper');
-    if (atkBtn) atkBtn.classList.remove('inactive');
-  }
   
   // Iniciar temporizador
   if (gameTimerInterval) clearInterval(gameTimerInterval);
@@ -4604,10 +4599,8 @@ function resetGame() {
   gameOverScreen.style.display = "none";
   victoryScreen.style.display = "none";
   creditsScreen.classList.remove('show');
-  if (!ngPlusMode) {
-    coinsCollected = 0;
-    prevCoins = 0;
-  }
+  coinsCollected = 0;
+  prevCoins = 0;
   startGame();
 }
 
@@ -5118,9 +5111,9 @@ function setupEventListeners() {
     slot.addEventListener('mouseleave',  cancel,      { passive: false });
   });
 
-  restartBtn.addEventListener('click', () => { ngPlusMode = false; resetGame(); });
+  restartBtn.addEventListener('click', () => { resetGame(); });
   playBtn.addEventListener("click", startGame);
-  playAgainBtn.addEventListener('click', () => { ngPlusMode = false; resetGame(); });
+  playAgainBtn.addEventListener('click', () => { resetGame(); });
   nextLevelBtn.addEventListener("click", nextLevel);
   window.addEventListener('resize', resizeCanvas);
   
@@ -5369,7 +5362,6 @@ function stopPrologueMusic() {
 
 // ===== PRÓLOGO — CHAT MESSENGER STYLE =====
 let currentPage = 0;
-let ngPlusMode  = false; // New Game+ after beating game
 
 const chatArea   = document.getElementById('chat-messages-area');
 const prevPageBtn = document.getElementById('prev-page');
@@ -5517,10 +5509,79 @@ nextPageBtn.addEventListener('click', () => {
 // In NG+, purchasedAvatar persists after being bought (no deactivation)
 
 // ═══════════════════════════════════════════════════════════════
-//  CREDITS SCREEN
+// DEBUG COMMANDS - Acceder desde consola del navegador
 // ═══════════════════════════════════════════════════════════════
-const creditsScreen = document.getElementById('credits-screen');
-const creditsPlayAgainBtn = document.getElementById('credits-play-again-btn');
+// Una vez que el juego esté corriendo, puedes usar:
+// 
+//   DEBUG.jumpToBoss2()     → Saltar a la arena del Boss 2
+//   DEBUG.defeatBoss2()     → Derrotar boss instantáneamente
+//   DEBUG.showEnding()      → Ver diálogos finales
+//   DEBUG.showCredits()     → Ver créditos (fin del juego)
+//   DEBUG.status()          → Ver estado actual
+//
+const DEBUG = {
+  status: () => console.table({
+    nivel: currentLevel,
+    posicion: player ? Math.floor(player.x) : 'N/A',
+    bossActivo: bossActive,
+    poderesElficos: elvenPowersActive,
+    salud: player ? player.health : 'N/A',
+    dialogoActivo: endingDialogActive
+  }),
+  
+  jumpToBoss2: () => {
+    if (!player) { console.error('Inicia el juego primero'); return; }
+    player.x = 30000;
+    player.y = trailY - 50;
+    elvenPowersActive = true;
+    player.health = 5;
+    boss2DialogShown = false;
+    boss2DialogActive = false;
+    boss2ArenaX = 30000;
+    gameActive = true;
+    console.log('Saltado a arena del Boss 2 🗿');
+  },
+  
+  activateBoss2: () => {
+    if (!player) { console.error('Inicia el juego primero'); return; }
+    player.x = 30000;
+    bossActive = true;
+    boss = { health: 100, maxHealth: 100, x: 31500, y: trailY - 200, emoji: '🗿', size: 60 };
+    elvenPowersActive = true;
+    player.health = 5;
+    console.log('Boss 2 🗿 activado');
+  },
+  
+  defeatBoss2: () => {
+    boss.health = 0;
+    boss = null;
+    bossActive = false;
+    gameActive = false;
+    endingDialogActive = false;
+    setTimeout(() => showEndingDialog(), 300);
+    console.log('Boss derrotado - mostrando diálogos...');
+  },
+  
+  showEnding: () => {
+    showEndingDialog();
+    console.log('Diálogos de ending mostrados');
+  },
+  
+  showCredits: () => {
+    showCredits();
+    console.log('Créditos mostrados');
+  },
+  
+  winLevel2: () => {
+    levelCompleted = true;
+    victory();
+    console.log('Victoria nivel 2 → Créditos');
+  }
+};
+window.DEBUG = DEBUG;
+console.log('%c🎮 DEBUG COMMANDS LISTOS', 'color: #4ade80; font-weight: bold; font-size: 14px;');
+console.log('Usa DEBUG.status(), DEBUG.jumpToBoss2(), DEBUG.defeatBoss2(), DEBUG.showCredits()');
+
 
 function showCredits() {
   // Build star field
@@ -5536,12 +5597,6 @@ function showCredits() {
   }
   creditsScreen.classList.add('show');
 }
-
-creditsPlayAgainBtn.addEventListener('click', () => {
-  creditsScreen.classList.remove('show');
-  ngPlusMode = true;
-  resetGame();
-});
 
     // Initialization on window load
 window.onload = function() {

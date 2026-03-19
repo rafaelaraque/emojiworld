@@ -579,14 +579,6 @@ canvas {
 .credits-name { font-size:1.5rem; font-weight:800; color:#e2f0ff; }
 .credits-text { font-size:1.1rem; color:#c7d2fe; line-height:1.5; }
 .credits-thankyou { font-size:1.5rem; font-weight:700; color:#4ade80; margin-top:4px; }
-.credits-play-again {
-  margin-top:28px; background:linear-gradient(135deg,#16a34a,#15803d);
-  border:none; padding:16px 48px; font-size:1.3rem; border-radius:50px;
-  color:white; cursor:pointer; font-weight:800; letter-spacing:1px;
-  box-shadow:0 6px 28px rgba(22,163,74,0.5); transition:all .25s;
-  animation:creditsCardIn .6s .6s ease both;
-}
-.credits-play-again:hover{transform:scale(1.06);box-shadow:0 10px 36px rgba(22,163,74,0.7)}
 
 .comic-panel {
   position: relative;
