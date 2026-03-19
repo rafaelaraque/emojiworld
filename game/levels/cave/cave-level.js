@@ -909,7 +909,7 @@
     const W = canvas.width, H = canvas.height;
     if (lightOn) {
       ctx.fillStyle = '#7a4e22'; ctx.fillRect(0, 0, W, H);
-      const cx0 = (cameraX * .05 | 0), cy0 = (cameraY * .05 | 0);
+      const cx0 = (-cameraX * .05 | 0), cy0 = (cameraY * .05 | 0);
       for (let i = 0; i < 32; i++) {
         const rx = ((i * 173 + cx0 * 11 + 50) % (W + 120) + W + 120) % (W + 120) - 60;
         const ry = ((i * 109 + cy0 * 7 + 30) % (H + 80) + H + 80) % (H + 80) - 40;
@@ -937,7 +937,7 @@
       ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
     } else {
       ctx.fillStyle = '#0e0804'; ctx.fillRect(0, 0, W, H);
-      const cx1 = (cameraX * .03 | 0), cy1 = (cameraY * .03 | 0);
+      const cx1 = (-cameraX * .03 | 0), cy1 = (cameraY * .03 | 0);
       for (let i = 0; i < 18; i++) {
         const rx = ((i * 173 + cx1 * 11 + 50) % (W + 100) + W + 100) % (W + 100) - 50;
         const ry = ((i * 109 + cy1 * 7 + 30) % (H + 60) + H + 60) % (H + 60) - 30;
@@ -954,7 +954,7 @@
       }
     }
     for (let i = 0; i < 12; i++) {
-      const bx = ((i * 199 + (cameraX * .06 | 0)) % (W + 40) + W + 40) % (W + 40) - 20;
+      const bx = ((i * 199 + (-cameraX * .06 | 0)) % (W + 40) + W + 40) % (W + 40) - 20;
       const by = ((i * 113 + (cameraY * .04 | 0)) % (H * 0.85 + 10) + 8);
       const gl = .25 + .15 * Math.sin(frameCount * .035 + i);
       ctx.save(); ctx.shadowColor = '#c68642'; ctx.shadowBlur = 7 + 3 * Math.sin(frameCount * .04 + i);
