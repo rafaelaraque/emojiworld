@@ -49,117 +49,20 @@
     </div>
   </div>
 
-  <!-- MINIJUEGO MERCADO FELIZ -->
-  <div id="marketOv">
-    <button class="market-close" onclick="Market.close()">✕</button>
-    <div class="market-game">
-      <!-- INTRO SCREEN -->
-      <div class="screen" id="sIntro">
-        <div class="intro-sky">
-          <div class="store-building">
-            <div class="store-roof">
-              <div class="store-sign">
-                <span class="sign-em">🏪</span>
-                <div class="sign-nm">Mercado Feliz</div>
-                <div class="sign-sub">Frutas · Verduras · Emojis</div>
-              </div>
-              <div class="store-windows">
-                <div class="win"><span style="position:relative;z-index:1">🍎🍊</span></div>
-                <div class="win"><span style="position:relative;z-index:1">🍉🍇</span></div>
-                <div class="win"><span style="position:relative;z-index:1">🍍🥭</span></div>
-              </div>
-              <div class="store-door">
-                <div class="shopkeeper-row">
-                  <div class="sk" id="skFace">👨‍🌾</div>
-                  <div class="bubble">
-                    <div class="bubble-name">🌾 Don Mango – Dueño</div>
-                    <div id="dlgTxt" class="bubble-txt"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="intro-actions">
-          <button class="btn-main" id="btnDlg" onclick="Market.nextDlg()">Siguiente ›</button>
-          <button class="btn-skip" onclick="Market.startGame()">Saltar intro →</button>
-        </div>
+  <!-- MERCADO GAME OVERLAY -->
+  <div class="game-frame-ov" id="marketOv">
+    <div class="frame-hdr">
+      <span style="font-family:'Fredoka One',cursive;color:#FFD700;font-size:16px;flex:1;">🏪 Mercado Feliz</span>
+      <span style="font-size:12px;color:#A5D6A7;">Organiza la estantería</span>
+      <button class="frame-close-btn" onclick="closeMercado()">✕</button>
+    </div>
+    <div class="frame-body">
+      <div id="mercadoLoader">
+        <div class="cave-load-em">🏪</div>
+        <div class="cave-load-txt">Entrando al mercado...</div>
+        <div class="cave-load-bar"><div class="cave-load-fill"></div></div>
       </div>
-
-      <!-- GAME SCREEN -->
-      <div class="screen off" id="sGame">
-        <div id="hud">
-          <div class="hud-t">🏪 Organiza la Estantería</div>
-          <div class="hud-chip">📦 <span id="placedC">0</span>/<span id="totalC">24</span></div>
-          <button class="hud-hint-btn" onclick="Market.showHint()">💡 Don Mango</button>
-        </div>
-        <div id="progWrap">
-          <div id="progBar" style="width:0%"></div>
-        </div>
-        <div id="gameMain">
-          <div id="shelfZone">
-            <div class="mango-bar">
-              <div class="mango-em">👨‍🌾</div>
-              <div class="mango-bbl" id="mangoMsg">
-                ¡Arrastra las frutas a la estantería! Cada una tiene su <em>planimetría</em> — el diagrama ■ te muestra cuánto espacio ocupa. La <strong>Sandía ⭐</strong> va siempre arriba.
-              </div>
-            </div>
-            <div class="shelf-wrap">
-              <div class="shelf-row" id="row0"></div>
-              <div class="shelf-board"></div>
-              <div class="shelf-row" id="row1"></div>
-              <div class="shelf-board"></div>
-              <div class="shelf-row" id="row2"></div>
-              <div class="shelf-board" style="margin-top:2px;height:clamp(10px,2vw,14px);"></div>
-            </div>
-          </div>
-          <div id="sidePanel">
-            <div class="tray-lbl">📋 Productos a ubicar</div>
-            <div class="tray" id="tray"></div>
-            <div class="emoji-row">
-              <input class="emoji-inp" id="eField" type="text" placeholder="📱 Escribe un emoji..." inputmode="text"
-                autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8" />
-              <button class="add-btn" onclick="Market.addFromField()">Añadir ➕</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ghost -->
-      <div id="ghost"></div>
-
-      <!-- Win overlay interno (se muestra dentro del minijuego) -->
-      <div class="ov" id="winOv"
-        style="position:absolute; z-index:100; background:rgba(0,0,0,.78); display:none; align-items:center; justify-content:center;">
-        <div class="win-card">
-          <span class="win-em">🍉</span>
-          <div id="win-lv-badge" style="display:none;background:rgba(255,215,0,.18);border:1.5px solid rgba(255,215,0,.55);border-radius:20px;padding:3px 14px;font-size:11px;font-weight:900;color:#FFD700;letter-spacing:.4px;margin-bottom:6px;"></div>
-          <div class="win-t" id="win-title">¡¡Estantería Perfecta!!</div>
-          <div class="win-s" id="win-sub">Don Mango está muy contento y cumple su promesa 🤝</div>
-          <div class="clue-box">
-            <div class="clue-lbl">🔑 Recompensa</div>
-            <div class="clue-body" id="clueBody"></div>
-          </div>
-          <div id="win-xp" style="font-family:'Fredoka One',cursive;font-size:20px;color:#FFD700;margin:6px 0 12px;text-shadow:0 2px 8px rgba(0,0,0,.4);"></div>
-          <button class="win-btn" onclick="Market.closeWin()">¡Continuar la aventura! 🎮</button>
-        </div>
-      </div>
-
-      <!-- Hint overlay interno -->
-      <div class="ov ov-bottom" id="hintOv" onclick="Market.closeHint(event)"
-        style="position:absolute; z-index:100; display:none;">
-        <div class="hint-card">
-          <div class="hint-head">
-            <span class="hint-face">👨‍🌾</span>
-            <div>
-              <div class="hint-nm">Don Mango</div>
-              <div class="hint-role">Dueño del Mercado Feliz</div>
-            </div>
-          </div>
-          <div class="hint-msgs" id="hintMsgs"></div>
-          <button class="hint-close" onclick="Market.closeHint()">¡Entendido! 👍</button>
-        </div>
-      </div>
+      <iframe id="mercadoFrame" srcdoc="" sandbox="allow-scripts allow-same-origin allow-forms allow-modals" allow="autoplay" style="opacity:0;transition:opacity .4s;"></iframe>
     </div>
   </div>
 
@@ -255,7 +158,7 @@
         </div>
 
         <!-- MERCADO FELIZ - en zona NW (z2) -->
-        <div class="lm" style="left:330px; top:280px;" onclick="Market.open()">
+        <div class="lm" style="left:330px; top:280px;" onclick="openMercado()">
           <span class="lmi" style="font-size:44px;">🏪</span>
           <span class="lml">Mercado Feliz</span>
         </div>

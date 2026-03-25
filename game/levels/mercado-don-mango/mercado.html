@@ -574,6 +574,10 @@ function showWin(){
 function closeWin(){
   document.getElementById('winOv').classList.remove('show');
   toast('🗝️ ¡Habla con Emma en el mapa y dile: SANDÍA 🍉!');
+  // Notificar al juego principal que se completó el mercado
+  if (window.parent) {
+    window.parent.postMessage({ type: 'MERCADOVICTORY' }, '*');
+  }
 }
 
 // ════════════════════════════════════════

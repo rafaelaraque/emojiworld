@@ -531,6 +531,78 @@
       window.removeEventListener('message', onCaveMessage);
     }
 
+    // ── MERCADO SYSTEM ────────────────────────────────────────
+    function openMercado() {
+      console.log('🎯 openMercado called');
+      const ov = document.getElementById('marketOv');
+      const frame = document.getElementById('mercadoFrame');
+      const loader = document.getElementById('mercadoLoader');
+      console.log('  ov:', ov, 'frame:', frame, 'loader:', loader);
+      if (!ov || !frame) {
+        console.error('Mercado: Missing overlay elements');
+        return;
+      }
+
+      ov.classList.add('show');
+      if (loader) {
+        loader.style.display = 'flex';
+        const fill = loader.querySelector('.cave-load-fill');
+        if (fill) { fill.style.animation = 'none'; void fill.offsetWidth; fill.style.animation = ''; }
+      }
+      frame.style.opacity = '0';
+
+      // Clear previous state
+      frame.removeAttribute('srcdoc');
+
+      window.removeEventListener('message', onMercadoMessage);
+      window.addEventListener('message', onMercadoMessage);
+
+      // Handle load errors
+      frame.onerror = function() {
+        console.error('Failed to load mercado level');
+        if (loader) {
+          loader.querySelector('.cave-load-txt').textContent = '⚠️ Error al cargar el mercado';
+        }
+      };
+
+      // Handle successful load
+      frame.onload = () => {
+        console.log('Mercado loaded successfully');
+        if (loader) loader.style.display = 'none';
+        frame.style.opacity = '1';
+      };
+
+      // Fallback: hide loader after 3s regardless
+      setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+        frame.style.opacity = '1';
+      }, 3000);
+
+      // Load external level
+      const cacheBuster = Date.now();
+      console.log('Loading mercado from: levels/mercado-don-mango/mercado.html?t=' + cacheBuster);
+      frame.src = 'levels/mercado-don-mango/mercado.html?t=' + cacheBuster;
+    }
+
+    function onMercadoMessage(e) {
+      // Recibir mensajes del mercado
+      if (e.data === 'MERCADOVICTORY' || (e.data && e.data.type === 'MERCADOVICTORY')) {
+        closeMercado();
+        // Completar misión del mercado
+        G.mktLv = Math.max(G.mktLv || 0, 1);
+        sv();
+        toast('🏪 ¡Completaste el mercado!');
+      }
+    }
+
+    function closeMercado() {
+      const ov = document.getElementById('marketOv');
+      const fr = document.getElementById('mercadoFrame');
+      if (ov) ov.classList.remove('show');
+      if (fr) { fr.srcdoc = ''; fr.src = 'about:blank'; }
+      window.removeEventListener('message', onMercadoMessage);
+    }
+
     function onRingFound() {
       // El anillo ya fue entregado, no agregar al inventario
       G.inv.permit = 0; sv();
@@ -835,8 +907,7 @@
     
     function startAlienCombat() {
       closeAlienGate();
-      // Open emoji-city level in a new tab
-      window.open('levels/emoji-city/emoji-city.html', '_blank');
+      openAlienGate();
     }
 
     let emojiGameReadyFallback = null;
