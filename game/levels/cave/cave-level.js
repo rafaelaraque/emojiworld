@@ -141,6 +141,15 @@
     spy.forEach((py, i) => {
       const px = i % 2 === 0 ? SHAFT_L + 8 : SHAFT_L + SHAFT_W - 108;
       platforms.push({ x: px, y: py, w: 100, h: 20, type: 'platform' });
+      // Añadir enemigos en las plataformas
+      const eType = i % 2 === 0 ? 'bat' : 'spider';
+      enemies.push({
+        x: px + 50, y: eType === 'spider' ? py - 20 : py - 50,
+        w: 28, h: 28, type: eType, hp: eType === 'spider' ? 2 : 1, vx: eType === 'spider' ? 1.0 : 1.3,
+        minX: px, maxX: px + 100, dead: false, deathT: 0,
+        emoji: eType === 'spider' ? '🕷️' : '🦇', phase: Math.random() * Math.PI * 2,
+        baseY: eType === 'spider' ? py - 20 : py - 50
+      });
     });
 
     // Paredes de ladrillo
@@ -165,13 +174,12 @@
 
     // Jefe: araña gigante al final, antes del pozo
     boss = {
-      x: 2700, y: roadY - 70, w: 60, h: 60,
-      hp: 10, maxHp: 10,
-      vx: 0.8, minX: 2600, maxX: 2800,
-      dead: false,
-      emoji: '🕷️',
-      phase: 0,
-      agro: false
+      x: 2700, y: CEIL_Y + 50, w: 60, h: 60,
+      hp: 20, maxHp: 20,
+      vx: 1.0, minX: 2500, maxX: 2800,
+      dead: false, emoji: '🕷️', phase: 0, agro: false,
+      fury: false, poisonCd: 0, baseY: roadY - 50, state: 'hanging',
+      webY: CEIL_Y
     };
 
     makeStalactites();
@@ -395,33 +403,44 @@
   // ── ACCIÓN (con lógica de lluvia) ──────────
   function doAction() {
     if (atkCd > 0) return;
-    let usedAny = false;
 
-    if (rainOn) {
-      let hasBomb = false;
+    // Prioridad 1: Comida
+    let foodEm = null, foodIndex = -1;
+    if (actionSlot && actionSlot.type === 'food') { foodEm = actionSlot.emoji; foodIndex = 'action'; }
+    else {
       for (let i = 0; i < 5; i++) {
-        if (slots[i]?.emoji === '💣') hasBomb = true;
-      }
-      if (actionSlot?.emoji === '💣') hasBomb = true;
-      if (hasBomb) {
-        toast('🌧️ La lluvia apaga las bombas, no puedes usarlas');
-        return;
+        if (slots[i] && FOOD_EM.has(slots[i].emoji)) { foodEm = slots[i].emoji; foodIndex = i; break; }
       }
     }
-
-    for (let i = 0; i < 5; i++) {
-      const em = slots[i]?.emoji;
-      if (!em) continue;
-      if (em === '💣') { launchBomb(); atkCd = 42; usedAny = true; }
-      else if (em === '🔫') { fireGun(); if (atkCd < 18) atkCd = 18; usedAny = true; }
-      else if (FOOD_EM.has(em)) { eatFood(em); clearSlot(i); if (atkCd < 20) atkCd = 20; usedAny = true; }
+    if (foodEm) {
+      eatFood(foodEm);
+      if (foodIndex === 'action') clearActionSlot(); else clearSlot(foodIndex);
+      atkCd = 20; return; 
     }
 
-    if (!usedAny && actionSlot) {
-      const { type, emoji } = actionSlot;
-      if (type === 'bomb') { launchBomb(); atkCd = 42; }
-      else if (type === 'gun') { fireGun(); atkCd = 18; }
-      else if (type === 'food') { eatFood(emoji); clearActionSlot(); atkCd = 20; }
+    // Uso simultáneo de armas
+    let hasGun = (actionSlot && actionSlot.type === 'gun') || slots.some(s => s && s.emoji === '🔫');
+    let hasBomb = (actionSlot && actionSlot.type === 'bomb') || slots.some(s => s && s.emoji === '💣');
+
+    let firedGun = false;
+    let firedBomb = false;
+
+    if (hasGun) {
+      if (gunAmmo > 0) { fireGun(); firedGun = true; } 
+      else { fireGun(); /* dispara seco con aviso */ }
+    }
+
+    if (hasBomb) {
+      if (rainOn) { toast('🌧️ La lluvia apaga las bombas'); } 
+      else { launchBomb(); firedBomb = true; }
+    }
+
+    if (firedGun && firedBomb) {
+      atkCd = 42; // Cooldown más largo por la bomba
+    } else if (firedBomb) {
+      atkCd = 42;
+    } else if (firedGun || hasGun) {
+      atkCd = 18;
     }
   }
 
@@ -516,6 +535,7 @@
     if (jumpPressed && player.jumpCount < player.maxJumps) {
       player.vy = player.jumpCount === 0 ? -12 : -10;
       player.jumpCount++; player.onGround = false; SFX_jump();
+      player.rideBubble = null;
     }
     const atkPressed = keys.attack && !prevKeys.attack;
     if (atkPressed) doAction();
@@ -583,26 +603,61 @@
 
     // Jefe (araña) con movimiento agresivo
     if (boss && !boss.dead) {
-      // Detectar si el jugador está cerca para activar agro
       const distToPlayer = Math.abs(boss.x - player.x);
-      if (distToPlayer < 200) {
+      // Trigger dropping if close
+      if (distToPlayer < 350 && boss.state === 'hanging') {
+        boss.state = 'dropping';
+        SFX_wind();
+      }
+      if (boss.state === 'dropping') {
+        boss.y += 4;
         boss.agro = true;
-      } else {
-        boss.agro = false;
+        if (boss.y >= boss.baseY) {
+          boss.y = boss.baseY; boss.state = 'ground'; SFX_land();
+        }
+      } else if (boss.state === 'ground') {
+        boss.agro = distToPlayer < 450;
+        if (boss.agro) {
+          const speed = boss.fury ? 3.5 : 1.5;
+          let newVx = (boss.x < player.x) ? speed : -speed;
+          
+          for (const bw of brickWalls) {
+            if (!bw.dead && boss.x + newVx + boss.w/2 > bw.x && boss.x + newVx - boss.w/2 < bw.x + bw.w &&
+                boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
+              newVx = 0; break;
+            }
+          }
+          boss.x += newVx;
+          
+          if (boss.fury) {
+            boss.phase += 0.12; boss.y = boss.baseY + Math.sin(boss.phase) * 12;
+          } else {
+            boss.phase += 0.05; boss.y = boss.baseY + Math.sin(boss.phase) * 5;
+          }
+          
+          boss.poisonCd--;
+          if (boss.poisonCd <= 0) {
+            boss.poisonCd = boss.fury ? 50 : 85;
+            const dx = player.x - boss.x, dy = player.y - Math.abs(player.vx)*2 - boss.y;
+            const dist = Math.hypot(dx, dy);
+            projectiles.push({ type: 'poison', emoji: '🟢', x: boss.x, y: boss.y, vx: (dx/dist)*8, vy: -6, life: 120 });
+            SFX_shoot();
+          }
+        } else {
+          let bvx = boss.vx;
+          for (const bw of brickWalls) {
+            if (!bw.dead && boss.x + bvx + boss.w/2 > bw.x && boss.x + bvx - boss.w/2 < bw.x + bw.w &&
+                boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
+              bvx *= -1; boss.vx *= -1; break;
+            }
+          }
+          boss.x += bvx;
+          if (boss.x > boss.maxX || boss.x < boss.minX) boss.vx *= -1;
+        }
       }
-      if (boss.agro) {
-        // Moverse hacia el jugador
-        if (boss.x < player.x) boss.x += 2.5;
-        else boss.x -= 2.5;
-      } else {
-        // Patrullaje normal
-        boss.x += boss.vx;
-        if (boss.x > boss.maxX || boss.x < boss.minX) boss.vx *= -1;
-      }
-      boss.phase += 0.03;
-      // Colisión con el jugador
-      if (!player.invincible && Math.abs(boss.x - player.x) < 40 && Math.abs(boss.y - player.y) < 40) {
-        takeDamage(); player.vx = player.x < boss.x ? -8 : 8; player.vy = -6;
+      
+      if (!player.invincible && Math.abs(boss.x - player.x) < 45 && Math.abs(boss.y - player.y) < 45) {
+        takeDamage(); player.vx = player.x < boss.x ? -10 : 10; player.vy = -6;
       }
     }
 
@@ -616,8 +671,14 @@
     }
     if (player.rideBubble) {
       const b = player.rideBubble;
-      if (b.dead) { player.rideBubble = null; }
-      else { player.x = b.x; player.y = b.y - 38; player.vy = 0; player.onGround = false; }
+      if (b.dead || Math.abs(player.x - b.x) > 28) { 
+        player.rideBubble = null; 
+      } else { 
+        player.y = b.y - 38; 
+        player.vy = 0; 
+        player.onGround = true; 
+        player.jumpCount = 0; 
+      }
     }
 
     // Drops (anillo) - NO termina el juego
@@ -639,18 +700,36 @@
     if (player.y > roadY + 400) { player.alive = false; setTimeout(showDead, 350); return; }
 
     inShaft = player.y - player.h / 2 < CEIL_Y;
-    let targetCamX, targetCamY;
-    if (inShaft) {
-      targetCamX = SHAFT_L - (canvas.width - SHAFT_W) / 2;
-      targetCamY = player.y - canvas.height * 0.5;
+    
+    let targetCamX;
+    if (player.x > SHAFT_L - canvas.width / 2) {
+      targetCamX = SHAFT_L + SHAFT_W / 2 - canvas.width / 2;
     } else {
-      targetCamX = Math.max(0, player.x - canvas.width / 3);
-      targetCamY = 0;
+      targetCamX = Math.max(0, Math.min(player.x - canvas.width / 3, HORIZ_END - canvas.width));
     }
-    cameraX += (targetCamX - cameraX) * 0.2;
-    cameraY += (targetCamY - cameraY) * 0.2;
+    
+    let targetCamY = Math.min(0, player.y - canvas.height * 0.65);
+    
+    cameraX += (targetCamX - cameraX) * 0.15;
+    cameraY += (targetCamY - cameraY) * 0.15;
 
     document.getElementById('zone-hud').textContent = inShaft ? '↑ Pozo — usa 🫧' : (player.x > HORIZ_END - 320 ? '🧱 Pared — busca el pozo' : '🕳️ Cueva');
+  }
+
+  function hitBoss(dmg) {
+    if (boss.dead) return;
+    boss.hp -= dmg;
+    if (boss.hp <= 0) {
+      boss.dead = true; spawnParts(boss.x, boss.y, '#ffaa00', 30, '🕷️');
+      toast('💀 ¡Derrotaste a la araña gigante!');
+      drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
+      return;
+    }
+    if (!boss.fury && boss.hp <= boss.maxHp * 0.33) {
+      boss.fury = true; toast('🔥 ¡La araña entra en FURIA!'); SFX_boom();
+      spawnParts(boss.x, boss.y, '#ef4444', 40, '🔥');
+      spreadFireFrom(boss.x, boss.y); spreadFireFrom(boss.x - 120, boss.y); spreadFireFrom(boss.x + 120, boss.y);
+    }
   }
 
   function takeDamage() {
@@ -666,17 +745,36 @@
     for (const e of enemies) {
       if (e.dead) { e.deathT++; continue; }
       const wp = windOn ? 2.2 : 0;
-      if (e.type === 'bat') { e.phase += 0.025; e.y = e.baseY + Math.sin(e.phase) * 45; e.x += e.vx + wp; }
-      else e.x += e.vx + wp * 0.6;
+      if (e.type === 'bat') { 
+        e.phase += 0.025; e.y = e.baseY + Math.sin(e.phase) * 45; e.x += e.vx + wp; 
+      } else {
+        let newVx = e.vx + wp * 0.6;
+        for (const bw of brickWalls) {
+          if (!bw.dead && e.x + newVx + e.w/2 > bw.x && e.x + newVx - e.w/2 < bw.x + bw.w &&
+              e.y + e.h/2 > bw.y && e.y - e.h/2 < bw.y + bw.h) {
+            newVx *= -1; e.vx *= -1; break;
+          }
+        }
+        e.x += newVx;
+      }
       if (e.x > e.maxX || e.x < e.minX) e.vx *= -1;
     }
 
-    // Mostrar/ocultar barra de vida del jefe (solo cuando está vivo)
-    if (boss && !boss.dead) {
-      document.getElementById('boss-health-bar').style.display = 'block';
-      document.getElementById('boss-health-fill').style.width = (boss.hp / boss.maxHp * 100) + '%';
-    } else {
-      document.getElementById('boss-health-bar').style.display = 'none';
+    // Mostrar/ocultar barra de vida del jefe (solo cuando está vivo y agro)
+    const bossBar = document.getElementById('boss-health-bar');
+    const bossFill = document.getElementById('boss-health-fill');
+    if (boss && !boss.dead && boss.agro) {
+      const pct = boss.hp / boss.maxHp;
+      let hpColor = '#22c55e'; // verde
+      if (pct <= 0.66) hpColor = '#eab308'; // amarillo
+      if (pct <= 0.33) hpColor = '#ef4444'; // rojo
+      if (bossBar && bossFill) {
+        bossBar.style.display = 'block';
+        bossFill.style.width = (pct * 100) + '%';
+        bossFill.style.backgroundColor = hpColor;
+      }
+    } else if (bossBar) {
+      bossBar.style.display = 'none';
     }
   }
 
@@ -685,6 +783,22 @@
       const p = projectiles[i]; p.vy += 0.22; p.x += p.vx; p.y += p.vy; p.life--;
       if (p.life <= 0) { if (p.type === 'bomb') explode(p.x, p.y); projectiles.splice(i, 1); continue; }
       let hit = false;
+
+      if (p.type === 'poison') {
+        if (!player.invincible && Math.abs(p.x - player.x) < 20 && Math.abs(p.y - player.y) < 20) {
+          takeDamage(); spawnParts(p.x, p.y, '#4ade80', 8, '🟢'); projectiles.splice(i, 1); continue;
+        }
+        let hitWall = false;
+        for (const bw of brickWalls) {
+          if (!bw.dead && p.x > bw.x && p.x < bw.x + bw.w && p.y > bw.y && p.y < bw.y + bw.h) {
+            hitWall = true; break;
+          }
+        }
+        if (p.y > roadY || hitWall) {
+          spawnParts(p.x, p.y, '#4ade80', 5, '🟢'); projectiles.splice(i, 1); continue;
+        }
+        continue;
+      }
 
       // Enemigos comunes
       for (const e of enemies) {
@@ -698,18 +812,8 @@
 
       // Jefe
       if (boss && !boss.dead && Math.abs(boss.x - p.x) < 35 && Math.abs(boss.y - p.y) < 35) {
-        if (p.type === 'bomb') {
-          explode(p.x, p.y);
-          boss.hp -= 2;
-        } else if (p.type === 'water') {
-          boss.hp -= 1;
-        }
-        if (boss.hp <= 0) {
-          boss.dead = true;
-          spawnParts(boss.x, boss.y, '#ffaa00', 20, '🕷️');
-          toast('💀 ¡Derrotaste a la araña gigante!');
-          drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
-        }
+        if (p.type === 'bomb') { explode(p.x, p.y); hitBoss(2); } 
+        else if (p.type === 'water') { hitBoss(1); }
         projectiles.splice(i, 1); hit = true; continue;
       }
 
@@ -778,12 +882,7 @@
       }
     });
     if (boss && !boss.dead && Math.hypot(boss.x - x, boss.y - y) < 100) {
-      boss.hp -= 3;
-      if (boss.hp <= 0) {
-        boss.dead = true;
-        spawnParts(boss.x, boss.y, '#ffaa00', 20, '🕷️');
-        drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
-      }
+      hitBoss(3);
     }
   }
 
@@ -1117,13 +1216,26 @@
       drawEmoji(e.x, e.y, e.emoji, e.type === 'bat' ? 24 : 26, Math.sin(frameCount * .06 + e.phase) * .06);
     }
     if (boss && !boss.dead) {
-      drawEmoji(boss.x, boss.y, '🕷️', 50, Math.sin(frameCount * .05) * .1, '#ff0000');
-      // Barra de vida encima del jefe
-      const bx = DX(boss.x), by = DY(boss.y) - 40;
-      ctx.fillStyle = '#330000';
-      ctx.fillRect(bx - 40, by, 80, 8);
-      ctx.fillStyle = '#ff4d4d';
-      ctx.fillRect(bx - 40, by, 80 * (boss.hp / boss.maxHp), 8);
+      if (boss.state === 'hanging' || boss.state === 'dropping') {
+         ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
+         ctx.beginPath(); ctx.moveTo(DX(boss.x), DY(boss.webY)); ctx.lineTo(DX(boss.x), DY(boss.y) - 15); ctx.stroke();
+         ctx.restore();
+      }
+      
+      const bounce = boss.fury ? Math.sin(frameCount * .15) * .2 : Math.sin(frameCount * .05) * .1;
+      const glow = boss.fury ? '#ef4444' : 'rgba(0,0,0,0)';
+      drawEmoji(boss.x, boss.y, '🕷️', boss.fury ? 60 : 50, bounce, glow);
+      
+      if (boss.agro && boss.hp > 0) {
+        const bx = DX(boss.x), by = DY(boss.y) - (boss.fury ? 50 : 40);
+        const pct = boss.hp / boss.maxHp;
+        let hpColor = '#22c55e';
+        if (pct <= 0.66) hpColor = '#eab308';
+        if (pct <= 0.33) hpColor = '#ef4444';
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(bx - 40, by, 80, 8);
+        ctx.fillStyle = hpColor; ctx.fillRect(bx - 40, by, 80 * pct, 8);
+      }
     }
   }
 
@@ -1138,6 +1250,8 @@
         ctx.fillStyle = '#dbeafe';
         ctx.beginPath(); ctx.arc(sx - 1.5, sy - 1.5, 2, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
+      } else if (p.type === 'poison') {
+        drawEmoji(p.x, p.y, '🟢', 14, frameCount * 0.1);
       } else {
         drawEmoji(p.x, p.y, '💣', 24);
       }

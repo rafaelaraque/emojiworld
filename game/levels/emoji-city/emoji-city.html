@@ -210,18 +210,14 @@
 
   <script src="emoji-city-level.js"></script>
   <script>
-    // Auto-start when embedded in iframe
+    // Send ready message to parent when loaded
     document.addEventListener('DOMContentLoaded', function() {
       try {
         if (window.parent && window.parent !== window) {
-          var _ss = document.getElementById('start-screen');
-          if (_ss) _ss.style.cssText += ';display:none!important';
           requestAnimationFrame(function() {
             requestAnimationFrame(function() {
               if (typeof resizeCanvas === 'function') resizeCanvas();
-              if (typeof startGame === 'function') startGame();
-              // Send ready message to parent
-              if (window.parent) window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
+              window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
             });
           });
         }
