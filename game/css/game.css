@@ -987,6 +987,13 @@ body {
 .frame-body #caveLoader {
   position: absolute; inset: 0; z-index: 10;
 }
+.frame-body #mercadoLoader {
+  position: absolute; inset: 0; z-index: 10;
+  background: #0a1005;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+}
 
 /* ALIEN SHIP */
 .alien-ship {

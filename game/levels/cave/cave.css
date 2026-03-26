@@ -437,27 +437,31 @@ canvas {
   justify-content: center;
   margin: 8px 0 12px;
   padding: 6px 0;
-  border-top: 1px dashed rgba(212, 165, 116, .3);
-  border-bottom: 1px dashed rgba(212, 165, 116, .3);
 }
 
-.quick-pick-item {
+.qe {
   width: 42px;
   height: 42px;
-  font-size: 28px;
+  font-size: 26px;
   border-radius: 8px;
   background: rgba(139, 94, 60, 0.25);
-  border: 1px solid #c68642;
+  border: 1px solid rgba(212, 165, 116, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.1s;
+  transition: all 0.15s;
 }
 
-.quick-pick-item:active {
+.qe:hover {
+  background: rgba(212, 165, 116, 0.3);
+  border-color: #c68642;
+  transform: scale(1.05);
+}
+
+.qe:active {
   background: rgba(198, 134, 66, 0.5);
-  transform: scale(1.1);
+  transform: scale(0.95);
 }
 
 #picker-row {

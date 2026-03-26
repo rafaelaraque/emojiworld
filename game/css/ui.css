@@ -888,46 +888,7 @@
   justify-content: center;
 }
 
-/* MARKET GAME */
-#marketOv {
-  position: fixed;
-  pointer-events: none;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 500;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(6px);
-}
-
-#marketOv.show {
-  display: flex;
-  pointer-events: all;
-}
-
-#marketOv .market-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  font-size: 28px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 600;
-  backdrop-filter: blur(4px);
-}
-
-#marketOv .market-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
+/* MARKET GAME - uses .game-frame-ov class for overlay styling */
 
 .market-game {
   --cs: clamp(28px, calc((100vw - 40px) / 8), 54px);

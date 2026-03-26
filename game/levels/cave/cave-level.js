@@ -225,69 +225,100 @@
   }
 
   function openPicker(t) {
-    picTarget = t; picEmoji = '';
-    document.getElementById('picker-label').textContent = t === 'action' ? '→ Botón Acción ⚡' : `→ Slot ${t + 1}`;
-    document.getElementById('picker-display').textContent = '↑ elige o escribe';
-    document.getElementById('picker-display').classList.remove('has');
-    document.getElementById('picker-ok').classList.remove('show');
-    const g = document.getElementById('qgrid'); g.innerHTML = '';
-    if (recentItems.length === 0) {
-      const h = document.createElement('div'); h.className = 'qe-hint';
-      h.textContent = 'Aún no has usado ningún ítem.\nUsa los botones rápidos.';
-      g.appendChild(h);
-    } else {
-      recentItems.forEach(em => {
-        const el = document.createElement('div'); el.className = 'qe'; el.textContent = em;
-        el.onclick = () => selectPicker(em); g.appendChild(el);
-      });
-    }
+    picTarget = t;
+    const container = document.getElementById('quick-pick');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    // Solo mostrar objetos disponibles para agregar
+    const quickEmojis = ['🔦', '🌧️', '🔫', '🫧', '💣', '🌬️', '🍎'];
+    quickEmojis.forEach(em => {
+      const btn = document.createElement('div');
+      btn.className = 'qe';
+      btn.style.cssText = 'cursor:pointer;';
+      btn.textContent = em;
+      btn.title = 'Agregar a un slot';
+      btn.onclick = () => {
+        // Buscar slot vacío
+        for (let i = 0; i < 5; i++) {
+          if (slots[i] === null) {
+            assignEmoji(em, i);
+            renderSlots();
+            closePicker();
+            toast(`${em} agregado al slot ${i + 1}`);
+            break;
+          }
+        }
+      };
+      container.appendChild(btn);
+    });
+    
     document.getElementById('picker-overlay').classList.add('show');
   }
-  function selectPicker(em) {
-    picEmoji = em;
-    const d = document.getElementById('picker-display');
-    d.textContent = em; d.classList.add('has');
-    document.getElementById('picker-ok').classList.add('show');
+  
+  function closePicker() { 
+    const overlay = document.getElementById('picker-overlay');
+    if (overlay) overlay.classList.remove('show'); 
+    picTarget = null; 
   }
-  function closePicker() { document.getElementById('picker-overlay').classList.remove('show'); picTarget = null; }
-  function confirmPicker() { if (!picEmoji) return; const t = picTarget; closePicker(); assignEmoji(picEmoji, t); }
 
   function initQuickPick() {
     const quickEmojis = ['🔦', '🌧️', '🔫', '🫧', '💣', '🌬️', '🍎'];
     const container = document.getElementById('quick-pick');
+    if (!container) return;
     container.innerHTML = '';
     quickEmojis.forEach(em => {
       const btn = document.createElement('div');
-      btn.className = 'quick-pick-item';
+      btn.className = 'qe';
       btn.textContent = em;
       btn.onclick = () => {
-        if (picTarget !== null) {
-          selectPicker(em);
-          confirmPicker();
-        } else {
-          toast('Primero selecciona un slot vacío');
+        // Agregar al primer slot vacío
+        for (let i = 0; i < 5; i++) {
+          if (slots[i] === null) {
+            assignEmoji(em, i);
+            updateAttackButton();
+            break;
+          }
         }
       };
       container.appendChild(btn);
     });
   }
 
-  document.getElementById('picker-kbd').onclick = () => { document.getElementById('picker-real').value = ''; document.getElementById('picker-real').focus(); };
-  document.getElementById('picker-display').onclick = () => { document.getElementById('picker-real').value = ''; document.getElementById('picker-real').focus(); };
-  document.getElementById('picker-real').oninput = e => {
-    const v = e.target.value.trim(); e.target.value = ''; if (!v) return;
-    const em = [...v].find(c => c.codePointAt(0) > 127) || v[0]; if (em) selectPicker(em);
-  };
-  document.getElementById('picker-ok').onclick = confirmPicker;
-  document.getElementById('picker-cancel').onclick = closePicker;
+  // Botón cancelar del picker
+  const pickerCancel = document.getElementById('picker-cancel');
+  if (pickerCancel) pickerCancel.onclick = closePicker;
+  
+  // Slots - al hacer clic en un slot se abre el picker
   for (let i = 0; i < 5; i++) {
-    document.getElementById(`ps${i}`).onclick = () => { if (gameActive) openPicker(i); };
+    const slotEl = document.getElementById(`ps${i}`);
+    if (slotEl) {
+      slotEl.onclick = () => { if (gameActive) openPicker(i); };
+    }
   }
+  
   document.getElementById('attack-btn-wrapper').addEventListener('click', function () {
     if (!gameActive) return;
+    // Solo ejecutar acción si hay un objeto en el slot de acción
     if (this.classList.contains('ready')) doAction();
-    else openPicker('action');
+    // No abrir picker - el botón ahora es solo para usar el item seleccionado
   });
+  
+  // Función para actualizar estado del botón de acción
+  function updateAttackButton() {
+    const atkBtn = document.getElementById('attack-btn-wrapper');
+    if (!atkBtn) return;
+    
+    // Verificar si hay algún slot con objetos
+    const hasItems = slots.some(s => s !== null);
+    const hasAction = actionSlot !== null;
+    
+    if (hasAction) {
+      atkBtn.classList.add('ready');
+    } else {
+      atkBtn.classList.remove('ready');
+    }
+  }
 
   // ── ASIGNAR EMOJI ──────────────────────────
   const BLOCKED = new Set(['🥶', '🔥', '😡', '😎', '🤠', '😁', '🫥']);
@@ -758,13 +789,81 @@
         if (bwHit) continue;
         for (const o of obstacles) { if (o.dead) continue; if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 2 - p.y) < 28) { if (o.type === 'rock' && p.type === 'bomb') { explode(p.x, p.y); o.dead = true; toast('💥 ¡Roca destruida!'); } else if (o.type === 'fire' && p.type === 'water') { o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado'); } else if (o.type === 'fire' && p.type === 'bomb') { explode(p.x, p.y); spreadFireFrom(o.x, o.y); } else if (p.type === 'bomb') explode(p.x, p.y); else if (!o.hint) { o.hint = true; toast(o.type === 'rock' ? '🧱 Usa 💣' : '🔥 Usa 🔫 o 🌧️'); } projectiles.splice(i, 1); break; } }
       }
+<<<<<<< HEAD
       if (p.type === 'acid') {
         if (!player.invincible && Math.abs(p.x - player.x) < 20 && Math.abs(p.y - player.y) < 20) { takeDamage(); player.vy = -3; spawnParts(p.x, p.y, '#86efac', 6); projectiles.splice(i, 1); continue; }
         if (p.y >= roadY - 10) { spawnParts(p.x, roadY - 10, '#4ade80', 5); projectiles.splice(i, 1); continue; }
         let acidG = false;
         for (const pl of platforms) { if (pl.type === 'ground') continue; if (p.x > pl.x && p.x < pl.x + pl.w && p.y + 6 > pl.y && p.y < pl.y + pl.h) { spawnParts(p.x, pl.y, '#4ade80', 4); projectiles.splice(i, 1); acidG = true; break; } }
         if (acidG) continue;
+=======
+      if (hit) continue;
+
+      // Jefe
+      if (boss && !boss.dead && Math.abs(boss.x - p.x) < 35 && Math.abs(boss.y - p.y) < 35) {
+        if (p.type === 'bomb') {
+          explode(p.x, p.y);
+          boss.hp -= 2;
+        } else if (p.type === 'water') {
+          boss.hp -= 1;
+        }
+        if (boss.hp <= 0) {
+          boss.dead = true;
+          spawnParts(boss.x, boss.y, '#ffaa00', 20, '🕷️');
+          toast('💀 ¡Derrotaste a la araña gigante!');
+          drops.push({ x: boss.x, y: boss.y - 20, emoji: '💍', collected: false });
+        }
+        projectiles.splice(i, 1); hit = true; continue;
       }
+
+      // Paredes ladrillo
+      let bwHit = false;
+      for (const bw of brickWalls) {
+        if (bw.dead) continue;
+        if (p.x > bw.x - 10 && p.x < bw.x + bw.w + 10 && p.y > bw.y - 10 && p.y < bw.y + bw.h + 10) {
+          if (p.type === 'bomb') {
+            explode(p.x, p.y); bw.hp--; bw.hit = 8;
+            if (bw.hp <= 0) { bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 14, '🧱'); toast('💥 ¡Pared destruida!'); }
+          }
+          projectiles.splice(i, 1); bwHit = true; break;
+        }
+      }
+      if (bwHit) continue;
+
+      // Obstáculos
+      for (const o of obstacles) {
+        if (o.dead) continue;
+        if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 2 - p.y) < 28) {
+          if (o.type === 'rock' && p.type === 'bomb') { explode(p.x, p.y); o.dead = true; toast('💥 ¡Roca destruida!'); }
+          else if (o.type === 'fire' && p.type === 'water') { o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado'); }
+          else if (o.type === 'fire' && p.type === 'bomb') { spreadFireFrom(o.x, o.y); explode(p.x, p.y); toast('🔥 ¡El fuego se expandió!'); }
+          else if (p.type === 'bomb') explode(p.x, p.y);
+          else if (!o.hint) { o.hint = true; toast(o.type === 'rock' ? '🧱 Usa 💣' : '🔥 Usa 🔫 o 🌧️'); }
+          projectiles.splice(i, 1); break;
+        }
+>>>>>>> develop
+      }
+    }
+  }
+
+  function spreadFireFrom(originX, originY) {
+    const offsets = [
+      { dx: -110, dy: 0 },
+      { dx: 110, dy: 0 },
+      { dx: -220, dy: 0 },
+    ];
+    let added = 0;
+    for (const off of offsets) {
+      const nx = originX + off.dx;
+      const ny = roadY - 20;
+      if (nx < 40 || nx > HORIZ_END - 40) continue;
+      if (nx + 18 > abyssX && nx < abyssX + abyssW) continue;
+      const tooClose = obstacles.some(o => !o.dead && o.type === 'fire' && Math.abs(o.x - nx) < 60);
+      if (tooClose) continue;
+      obstacles.push({ x: nx, y: ny, w: 36, h: 36, type: 'fire', dead: false, hint: false, ff: 0 });
+      spawnParts(nx + 18, ny, '#f97316', 6, '🔥');
+      added++;
+      if (added >= 2) break;
     }
   }
 
@@ -772,10 +871,11 @@
     SFX_boom(); spawnParts(x, y, '#f97316', 18, '💥'); spawnParts(x, y, '#fbbf24', 8);
     enemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 85) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); } });
     shaftEnemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 70) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 6, e.emoji); } });
-    obstacles.forEach(o => {
-      if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) {
-        spreadFireFrom(o.x, o.y);
-      }
+    // Al explotar cerca del fuego, este se expande
+    obstacles.forEach(o => { 
+      if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) { 
+        spreadFireFrom(o.x, o.y); 
+      } 
     });
     brickWalls.forEach(bw => {
       if (!bw.dead && Math.hypot(bw.x + bw.w / 2 - x, bw.y + bw.h / 2 - y) < 80) {
@@ -1053,13 +1153,13 @@
     ctx.fillStyle = tg; ctx.fillRect(0, rdy - 12, rW, 16);
     ctx.strokeStyle = 'rgba(120,80,40,.38)'; ctx.lineWidth = 1;
     for (let bx = 0; bx < rW; bx += 9) {
-      const off = bx - ((cameraX * .001 | 0) % 9);
+      const off = bx - ((-cameraX * .001 | 0) % 9);
       ctx.globalAlpha = 0.28; ctx.beginPath(); ctx.moveTo(off, rdy - 12); ctx.lineTo(off + 2, rdy - 19 - (bx % 5)); ctx.stroke();
     }
     ctx.globalAlpha = 1;
     for (let cx = 0; cx < rW; cx += 22) {
-      const off = cx - ((cameraX * .5) | 0) % 22;
-      ctx.fillStyle = (Math.floor((cx + cameraX * .5) / 22) % 2 === 0) ? '#8b5e3c' : '#c68642';
+      const off = cx - ((-cameraX * .5 | 0) % 22);
+      ctx.fillStyle = (Math.floor((cx - cameraX * .5) / 22) % 2 === 0) ? '#8b5e3c' : '#c68642';
       ctx.fillRect(off, rdy + 2, 11, 4);
     }
     const fg = ctx.createLinearGradient(0, rdy + 6, 0, rdy + 65);
@@ -1067,12 +1167,12 @@
     ctx.fillStyle = fg; ctx.fillRect(0, rdy + 6, rW, 65);
     ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1;
     for (let bx = 0; bx < rW; bx += 28) {
-      const off = bx - ((cameraX * .5) | 0) % 28;
+      const off = bx - ((-cameraX * .5 | 0) % 28);
       ctx.beginPath(); ctx.moveTo(off, rdy + 6); ctx.lineTo(off, rdy + 66); ctx.stroke();
     }
     ctx.beginPath(); ctx.moveTo(0, rdy + 36); ctx.lineTo(rW, rdy + 36); ctx.stroke();
     ctx.fillStyle = 'rgba(198,134,66,.28)';
-    const ro = ((cameraX * .06 | 0)) % 100;
+    const ro = ((-cameraX * .06 | 0)) % 100;
     for (let i = -100; i < rW + 100; i += 100) { const lx = (i - ro + rW) % rW; ctx.fillRect(lx, rdy + 34, 50, 2); }
 
     for (const pu of puddles) {
