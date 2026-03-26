@@ -585,6 +585,10 @@
     }
 
     function onMercadoMessage(e) {
+      // Validar origen del mensaje
+      const frame = document.getElementById('mercadoFrame');
+      if (frame && frame.contentWindow && e.source && e.source !== frame.contentWindow) return;
+
       // Recibir mensajes del mercado
       if (e.data === 'MERCADOVICTORY' || (e.data && e.data.type === 'MERCADOVICTORY')) {
         closeMercado();
@@ -592,6 +596,13 @@
         G.mktLv = Math.max(G.mktLv || 0, 1);
         sv();
         toast('🏪 ¡Completaste el mercado!');
+      }
+
+      // Mercado listo para mostrar
+      if (e.data && e.data.type === 'MERCADO_READY') {
+        const loader = document.getElementById('mercadoLoader');
+        if (loader) loader.style.display = 'none';
+        if (frame) frame.style.opacity = '1';
       }
     }
 
