@@ -23,6 +23,7 @@
   const slots = [null, null, null, null, null];
   let actionSlot = null;
   let rainOn = false, windOn = false, bubblesOn = false, lightOn = false;
+  let cinematicActive = false, cinematicTimer = 0, bossIntroDone = false;
   // Mundo
   let enemies = [], obstacles = [], projectiles = [];
   let particles = [], rainDrops = [], bubbles = [], puddles = [], stalactites = [];
@@ -141,7 +142,7 @@
     spy.forEach((py, i) => {
       const px = i % 2 === 0 ? SHAFT_L + 8 : SHAFT_L + SHAFT_W - 108;
       platforms.push({ x: px, y: py, w: 100, h: 20, type: 'platform' });
-      // Añadir enemigos en las plataformas
+      // Enemigos en plataformas
       const eType = i % 2 === 0 ? 'bat' : 'spider';
       enemies.push({
         x: px + 50, y: eType === 'spider' ? py - 20 : py - 50,
@@ -149,6 +150,27 @@
         minX: px, maxX: px + 100, dead: false, deathT: 0,
         emoji: eType === 'spider' ? '🕷️' : '🦇', phase: Math.random() * Math.PI * 2,
         baseY: eType === 'spider' ? py - 20 : py - 50
+      });
+
+      // Enemigos adicionales "voladores" o que patrullan el aire del pozo
+      if (i < spy.length - 1) {
+        const midY = (spy[i] + spy[i+1]) / 2;
+        enemies.push({
+          x: SHAFT_L + 50 + Math.random() * (SHAFT_W - 100), y: midY,
+          w: 24, h: 24, type: 'bat', hp: 1, vx: 1.5,
+          minX: SHAFT_L + 20, maxX: SHAFT_R - 20, dead: false, deathT: 0,
+          emoji: '🦇', phase: Math.random() * Math.PI * 2, baseY: midY
+        });
+      }
+    });
+
+    // Arañas colgando en el pozo
+    [CEIL_Y - 500, CEIL_Y - 1200, CEIL_Y - 1900].forEach(cy => {
+      enemies.push({
+        x: SHAFT_L + 30 + Math.random() * (SHAFT_W - 60), y: cy,
+        w: 26, h: 26, type: 'spider', hp: 2, vx: 0.8,
+        minX: SHAFT_L + 20, maxX: SHAFT_R - 20, dead: false, deathT: 0,
+        emoji: '🕷️', phase: Math.random() * Math.PI * 2, baseY: cy
       });
     });
 
@@ -189,7 +211,7 @@
     player = {
       x: 100, y: roadY - 40, vx: 0, vy: 0, w: 40, h: 40,
       onGround: true, jumpCount: 0, maxJumps: 2, rotation: 0,
-      alive: true, invincible: false, invincibleTimer: 70, facingRight: true, rideBubble: null
+      alive: true, invincible: false, invincibleTimer: 0, facingRight: true, rideBubble: null
     };
   }
 
@@ -309,6 +331,18 @@
 
   function assignEmoji(em, target) {
     if (BLOCKED.has(em)) { toast(`🔒 ${em} — Poder bloqueado`); return; }
+
+    // Evitar repetidos en slots (normalizando emojis con VS16)
+    const normalize = e => (e || '').replace(/\ufe0f/g, '');
+    const normEm = normalize(em);
+    const inPower = slots.some(s => s && normalize(s.emoji) === normEm);
+    const inAction = actionSlot && normalize(actionSlot.emoji) === normEm;
+    
+    if (inPower || inAction) {
+      toast(`⚠️ ${em} ya está en tu inventario`);
+      return;
+    }
+
     addRecent(em);
     const isCave = CAVE_EM.has(em), isFood = FOOD_EM.has(em), isAct = ACT_EM.has(em);
     if (target === 'action') {
@@ -469,14 +503,20 @@
     if (!player.alive || !gameActive) return;
     if (player.invincible) { player.invincibleTimer--; if (player.invincibleTimer <= 0) player.invincible = false; }
     if (atkCd > 0) atkCd--;
+    if (cinematicActive) {
+      cinematicTimer--;
+      if (cinematicTimer <= 0) cinematicActive = false;
+      // Mientras hay cinemática, el jugador se detiene
+      player.vx = 0; player.vy = 0;
+    } else {
+      player.vx = 0;
+      if (keys.left) { player.vx = -PSPEED; player.facingRight = false; }
+      if (keys.right) { player.vx = PSPEED; player.facingRight = true; }
+      if (windOn) player.vx += 1.8;
+      if (!player.onGround) player.vy += gravity;
+    }
+
     if (frameCount % 200 === 0) { energy = Math.max(0, energy - 2); updateHUD(); }
-
-    player.vx = 0;
-    if (keys.left) { player.vx = -PSPEED; player.facingRight = false; }
-    if (keys.right) { player.vx = PSPEED; player.facingRight = true; }
-    if (windOn) player.vx += 1.8;
-
-    if (!player.onGround) player.vy += gravity;
     player.x += player.vx;
     player.y += player.vy;
     player.rotation += player.vx * 0.02;
@@ -604,6 +644,15 @@
     // Jefe (araña) con movimiento agresivo
     if (boss && !boss.dead) {
       const distToPlayer = Math.abs(boss.x - player.x);
+
+      // Gatillar cinemática de introducción si se acerca por primera vez
+      if (!bossIntroDone && distToPlayer < 550 && !inShaft) {
+        bossIntroDone = true;
+        cinematicActive = true;
+        cinematicTimer = 130;
+        toast('⚠️ ¡ALERTA! Presencia enemiga gigante detectada');
+      }
+
       // Trigger dropping if close
       if (distToPlayer < 350 && boss.state === 'hanging') {
         boss.state = 'dropping';
@@ -701,17 +750,23 @@
 
     inShaft = player.y - player.h / 2 < CEIL_Y;
     
-    let targetCamX;
-    if (player.x > SHAFT_L - canvas.width / 2) {
-      targetCamX = SHAFT_L + SHAFT_W / 2 - canvas.width / 2;
+    let targetCamX, targetCamY;
+    
+    if (cinematicActive) {
+      // Zoom/Enfoque en la araña
+      targetCamX = boss.x - canvas.width / 2;
+      targetCamY = boss.y - canvas.height / 2;
     } else {
-      targetCamX = Math.max(0, Math.min(player.x - canvas.width / 3, HORIZ_END - canvas.width));
+      if (player.x > SHAFT_L - canvas.width / 2) {
+        targetCamX = SHAFT_L + SHAFT_W / 2 - canvas.width / 2;
+      } else {
+        targetCamX = Math.max(0, Math.min(player.x - canvas.width / 3, HORIZ_END - canvas.width));
+      }
+      targetCamY = Math.min(0, player.y - canvas.height * 0.65);
     }
     
-    let targetCamY = Math.min(0, player.y - canvas.height * 0.65);
-    
-    cameraX += (targetCamX - cameraX) * 0.15;
-    cameraY += (targetCamY - cameraY) * 0.15;
+    cameraX += (targetCamX - cameraX) * 0.08; // Más suave para la cinemática
+    cameraY += (targetCamY - cameraY) * 0.08;
 
     document.getElementById('zone-hud').textContent = inShaft ? '↑ Pozo — usa 🫧' : (player.x > HORIZ_END - 320 ? '🧱 Pared — busca el pozo' : '🕳️ Cueva');
   }
@@ -921,6 +976,19 @@
       const b = bubbles[i]; b.y += b.vy; b.life--;
       if (windOn && !inShaft) b.x += 0.8; // viento mueve burbujas a la derecha
 
+      // La lluvia revienta las burbujas
+      if (rainOn && rainDrops.length > 0) {
+        for (let j = rainDrops.length - 1; j >= 0; j--) {
+          const r = rainDrops[j];
+          // Simple collision: check if raindrop is inside bubble radius
+          if (Math.abs(r.wx - b.x) < b.r && Math.abs(r.wy - b.y) < b.r) {
+            b.life = 0; // Pop
+            rainDrops.splice(j, 1); // Consume raindrop
+            break; 
+          }
+        }
+      }
+
       // Colisión con el techo
       const strictInShaft = b.x > SHAFT_L + 8 && b.x < SHAFT_R - 8;
       if (!strictInShaft && b.y - b.r < CEIL_Y) {
@@ -985,115 +1053,38 @@
 
   function drawBackground() {
     const W = canvas.width, H = canvas.height;
-    if (lightOn) {
-      ctx.fillStyle = '#7a4e22'; ctx.fillRect(0, 0, W, H);
-      const cx0 = (-cameraX * .05 | 0), cy0 = (cameraY * .05 | 0);
-      for (let i = 0; i < 32; i++) {
-        const rx = ((i * 173 + cx0 * 11 + 50) % (W + 120) + W + 120) % (W + 120) - 60;
-        const ry = ((i * 109 + cy0 * 7 + 30) % (H + 80) + H + 80) % (H + 80) - 40;
-        const sz = 24 + i % 22, pts = 5 + i % 3;
-        const L = 38 + i % 22, S = 35 + i % 20;
-        ctx.save();
-        ctx.fillStyle = `hsl(${25 + i % 18},${S}%,${L}%)`;
-        ctx.strokeStyle = `rgba(30,15,5,${.25 + i % 3 * .07})`; ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        for (let j = 0; j < pts; j++) {
-          const anim = frameCount * .005;
-          const a = (j / pts) * Math.PI * 2, r2 = sz * (0.68 + Math.sin(a * 3 + i + anim) * .32);
-          j === 0 ? ctx.moveTo(rx + Math.cos(a) * r2, ry + Math.sin(a) * r2) : ctx.lineTo(rx + Math.cos(a) * r2, ry + Math.sin(a) * r2);
-        }
-        ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.restore();
-      }
-      const lx = DX(player.x), ly = DY(player.y);
-      const lg = ctx.createRadialGradient(lx, ly, 0, lx, ly, Math.max(W, H) * 1.1);
-      lg.addColorStop(0, 'rgba(255,235,170,.80)');
-      lg.addColorStop(.25, 'rgba(255,200,110,.55)');
-      lg.addColorStop(.55, 'rgba(220,155, 70,.30)');
-      lg.addColorStop(.85, 'rgba(160,100, 35,.12)');
-      lg.addColorStop(1, 'rgba(80,  45, 12,.04)');
-      ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
-    } else {
-      ctx.fillStyle = '#0e0804'; ctx.fillRect(0, 0, W, H);
-      const cx1 = (-cameraX * .03 | 0), cy1 = (cameraY * .03 | 0);
-      for (let i = 0; i < 18; i++) {
-        const rx = ((i * 173 + cx1 * 11 + 50) % (W + 100) + W + 100) % (W + 100) - 50;
-        const ry = ((i * 109 + cy1 * 7 + 30) % (H + 60) + H + 60) % (H + 60) - 30;
-        const sz = 18 + i % 18, pts = 5 + i % 3;
-        ctx.save(); ctx.globalAlpha = 0.08;
-        ctx.fillStyle = `hsl(25,25%,${14 + i % 8}%)`;
-        ctx.beginPath();
-        for (let j = 0; j < pts; j++) {
-          const anim = frameCount * .005;
-          const a = (j / pts) * Math.PI * 2, r2 = sz * (0.7 + Math.sin(a * 3 + i + anim) * .3);
-          j === 0 ? ctx.moveTo(rx + Math.cos(a) * r2, ry + Math.sin(a) * r2) : ctx.lineTo(rx + Math.cos(a) * r2, ry + Math.sin(a) * r2);
-        }
-        ctx.closePath(); ctx.fill(); ctx.restore();
-      }
-    }
-    for (let i = 0; i < 12; i++) {
-      const bx = ((i * 199 + (-cameraX * .06 | 0)) % (W + 40) + W + 40) % (W + 40) - 20;
-      const by = ((i * 113 + (cameraY * .04 | 0)) % (H * 0.85 + 10) + 8);
-      const gl = .25 + .15 * Math.sin(frameCount * .035 + i);
-      ctx.save(); ctx.shadowColor = '#c68642'; ctx.shadowBlur = 7 + 3 * Math.sin(frameCount * .04 + i);
-      ctx.fillStyle = `rgba(198,134,66,${gl})`; ctx.beginPath(); ctx.arc(bx, by, 1.6, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    }
+    // Fondo de cueva estático y sólido para máximo rendimiento
+    ctx.fillStyle = '#060402';
+    ctx.fillRect(0, 0, W, H);
+    
+    // Gradiente sutil para profundidad sin parpadeos
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0a0705');
+    g.addColorStop(1, '#000000');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   function drawCaveStructure() {
-    const W = canvas.width, H = canvas.height;
-    const cdy = DY(CEIL_Y);
-    if (!inShaft) {
-      if (cdy > 0 && cdy < H + 20) {
-        const slx = DX(SHAFT_L);
-        if (slx > 0) {
-          const g = ctx.createLinearGradient(0, 0, 0, cdy + 8);
-          g.addColorStop(0, '#1a0d04'); g.addColorStop(1, '#2e1a0a');
-          ctx.fillStyle = g; ctx.fillRect(0, 0, Math.min(slx, W), cdy + 8);
-          const bg = ctx.createLinearGradient(0, cdy - 4, 0, cdy + 9);
-          bg.addColorStop(0, '#6b4c2a'); bg.addColorStop(1, '#3d2810');
-          ctx.fillStyle = bg; ctx.fillRect(0, cdy - 4, Math.min(slx, W), 14);
-        }
-      }
-      const wx = DX(SHAFT_R);
-      if (wx < W && wx > -50) {
-        const wg = ctx.createLinearGradient(wx, 0, wx + 60, 0);
-        wg.addColorStop(0, '#4a3218'); wg.addColorStop(1, '#1a0d04');
-        ctx.fillStyle = wg; ctx.fillRect(Math.max(0, wx), 0, W - Math.max(0, wx), H);
-        const sg = ctx.createLinearGradient(Math.max(0, wx), 0, Math.max(0, wx) + 55, 0);
-        sg.addColorStop(0, '#7a5838'); sg.addColorStop(1, 'rgba(90,60,28,0)');
-        ctx.fillStyle = sg; ctx.fillRect(Math.max(0, wx), cdy, 55, DY(roadY) - cdy + 10);
-      }
+    const rdy = DY(roadY), cly = DY(CEIL_Y), W = canvas.width, H = canvas.height;
+    
+    // Paredes del fondo sólidas
+    ctx.fillStyle = '#0a0705';
+    ctx.fillRect(0, 0, W, cly + 5);
+    ctx.fillRect(0, rdy - 5, W, H - rdy + 30);
+
+    // Bordes de rocas simplificados
+    ctx.fillStyle = '#1a110a';
+    for (let x = -cameraX % 150; x < W; x += 150) {
+      ctx.beginPath(); ctx.moveTo(x, cly); ctx.lineTo(x + 50, cly + 18); ctx.lineTo(x + 100, cly); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x + 20, rdy); ctx.lineTo(x + 70, rdy - 12); ctx.lineTo(x + 120, rdy); ctx.fill();
     }
-    if (inShaft) {
-      const pl = DX(SHAFT_L), pr = DX(SHAFT_R);
-      if (pl > -10) {
-        const g = ctx.createLinearGradient(Math.max(0, pl), 0, Math.max(0, pl) + 50, 0);
-        g.addColorStop(0, '#3d2810'); g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = '#1a0d04'; if (pl > 0) ctx.fillRect(0, 0, pl, H);
-        ctx.fillStyle = g; ctx.fillRect(Math.max(0, pl), 0, 50, H);
-      }
-      if (pr < W + 10) {
-        const g = ctx.createLinearGradient(Math.min(W, pr) - 50, 0, Math.min(W, pr), 0);
-        g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, '#3d2810');
-        ctx.fillStyle = '#1a0d04'; if (pr < W) ctx.fillRect(pr, 0, W - pr, H);
-        ctx.fillStyle = g; ctx.fillRect(Math.min(W, pr) - 50, 0, 50, H);
-      }
-    }
-    for (const s of stalactites) {
-      if (s.s === 'h' && inShaft) continue;
-      if (s.s === 'v' && !inShaft) continue;
-      const sx = DX(s.x), sy = DY(s.y);
-      if (sx < -40 || sx > W + 40 || sy < -10 || sy > H + 10) continue;
-      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath();
-      ctx.moveTo(sx - s.w / 2 + 3, sy); ctx.lineTo(sx + 3, sy + s.h + 4); ctx.lineTo(sx + s.w / 2 + 3, sy); ctx.closePath(); ctx.fill();
-      const sg = ctx.createLinearGradient(sx - s.w / 2, sy, sx + s.w / 2, sy + s.h);
-      sg.addColorStop(0, `rgba(${93 + s.sh * 64 | 0},${58 + s.sh * 38 | 0},${27 + s.sh * 22 | 0},.92)`);
-      sg.addColorStop(1, `rgba(${48 + s.sh * 40 | 0},${30 + s.sh * 24 | 0},${13 + s.sh * 12 | 0},.95)`);
-      ctx.fillStyle = sg; ctx.beginPath();
-      ctx.moveTo(sx - s.w / 2, sy); ctx.lineTo(sx, sy + s.h); ctx.lineTo(sx + s.w / 2, sy); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = 'rgba(255,200,140,.07)'; ctx.beginPath();
-      ctx.moveTo(sx - s.w / 4, sy); ctx.lineTo(sx, sy + s.h * .4); ctx.lineTo(sx + 1, sy); ctx.closePath(); ctx.fill();
+
+    // Estalactitas estáticas y simples (pocas) para ambientación
+    ctx.fillStyle = '#2d1e10';
+    for (let i = 0; i < 15; i++) {
+      const sx = ((i * 137 - cameraX * 0.2) % (W + 100) + W + 100) % (W + 100) - 50;
+      ctx.beginPath(); ctx.moveTo(sx - 5, cly); ctx.lineTo(sx, cly + 25); ctx.lineTo(sx + 5, cly); ctx.fill();
     }
   }
 
@@ -1122,47 +1113,24 @@
   }
 
   function drawCaveFloor() {
-    const W = canvas.width;
-    const rdy = DY(roadY);
-    if (rdy > canvas.height + 10 || rdy < -30) return;
-    const rW = W * 1.5;
-    const tg = ctx.createLinearGradient(0, rdy - 12, 0, rdy + 5);
-    tg.addColorStop(0, '#6b4c2a'); tg.addColorStop(.5, '#56391f'); tg.addColorStop(1, '#3d2810');
-    ctx.fillStyle = tg; ctx.fillRect(0, rdy - 12, rW, 16);
-    ctx.strokeStyle = 'rgba(120,80,40,.38)'; ctx.lineWidth = 1;
-    for (let bx = 0; bx < rW; bx += 9) {
-      const off = bx - ((-cameraX * .001 | 0) % 9);
-      ctx.globalAlpha = 0.28; ctx.beginPath(); ctx.moveTo(off, rdy - 12); ctx.lineTo(off + 2, rdy - 19 - (bx % 5)); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    for (let cx = 0; cx < rW; cx += 22) {
-      const off = cx - ((-cameraX * .5 | 0) % 22);
-      ctx.fillStyle = (Math.floor((cx - cameraX * .5) / 22) % 2 === 0) ? '#8b5e3c' : '#c68642';
-      ctx.fillRect(off, rdy + 2, 11, 4);
-    }
-    const fg = ctx.createLinearGradient(0, rdy + 6, 0, rdy + 65);
-    fg.addColorStop(0, '#4a3218'); fg.addColorStop(.35, '#3d2810'); fg.addColorStop(1, '#251808');
-    ctx.fillStyle = fg; ctx.fillRect(0, rdy + 6, rW, 65);
-    ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1;
-    for (let bx = 0; bx < rW; bx += 28) {
-      const off = bx - ((-cameraX * .5 | 0) % 28);
-      ctx.beginPath(); ctx.moveTo(off, rdy + 6); ctx.lineTo(off, rdy + 66); ctx.stroke();
-    }
-    ctx.beginPath(); ctx.moveTo(0, rdy + 36); ctx.lineTo(rW, rdy + 36); ctx.stroke();
-    ctx.fillStyle = 'rgba(198,134,66,.28)';
-    const ro = ((-cameraX * .06 | 0)) % 100;
-    for (let i = -100; i < rW + 100; i += 100) { const lx = (i - ro + rW) % rW; ctx.fillRect(lx, rdy + 34, 50, 2); }
+    const W = canvas.width, rdy = DY(roadY), H = canvas.height;
+    if (rdy > H + 5) return;
+    
+    // Suelo sólido y simple para máximo rendimiento
+    ctx.fillStyle = '#0a0805';
+    ctx.fillRect(0, rdy, W, H - rdy + 30);
+    
+    // Línea de horizonte de suelo nítida
+    ctx.strokeStyle = '#2d1e10';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, rdy); ctx.lineTo(W, rdy); ctx.stroke();
 
     for (const pu of puddles) {
       if (!pu.active) continue;
       const dx = DX(pu.x); if (dx > W + 60 || dx + pu.w < -60) continue;
-      const near = Math.abs(pu.x + 40 - player.x) < 75 && actionSlot?.type === 'gun';
       ctx.save();
-      const wg = ctx.createLinearGradient(0, rdy + 2, 0, rdy + pu.h + 2);
-      wg.addColorStop(0, 'rgba(56,189,248,.58)'); wg.addColorStop(1, 'rgba(14,165,233,.32)');
-      ctx.fillStyle = wg; ctx.beginPath();
-      ctx.ellipse(dx + pu.w / 2, rdy + pu.h / 2 + 2, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
-      if (near) { ctx.strokeStyle = 'rgba(147,197,253,.8)'; ctx.lineWidth = 2; ctx.shadowColor = '#60a5fa'; ctx.shadowBlur = 8; ctx.stroke(); }
+      ctx.fillStyle = 'rgba(56,189,248,0.45)';
+      ctx.beginPath(); ctx.ellipse(dx + pu.w / 2, rdy + pu.h / 2 + 2, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
       ctx.font = '11px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('💧', dx + pu.w / 2, rdy + pu.h / 2 + 2); ctx.restore();
     }
@@ -1251,7 +1219,32 @@
         ctx.beginPath(); ctx.arc(sx - 1.5, sy - 1.5, 2, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       } else if (p.type === 'poison') {
-        drawEmoji(p.x, p.y, '🟢', 14, frameCount * 0.1);
+        const sx = DX(p.x), sy = DY(p.y);
+        ctx.save();
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = '#4ade80';
+        ctx.shadowBlur = 6;
+        
+        // Orientar la "gota" según su trayectoria parabólica
+        const angle = Math.atan2(p.vy, p.vx);
+        const len = 15; // Longitud de la gota
+        
+        ctx.beginPath();
+        ctx.moveTo(sx - Math.cos(angle) * (len/2), sy - Math.sin(angle) * (len/2));
+        ctx.lineTo(sx + Math.cos(angle) * (len/2), sy + Math.sin(angle) * (len/2));
+        ctx.stroke();
+        
+        // Pequeño núcleo brillante
+        ctx.strokeStyle = '#f0fff4';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx - Math.cos(angle) * 3, sy - Math.sin(angle) * 3);
+        ctx.lineTo(sx + Math.cos(angle) * 3, sy + Math.sin(angle) * 3);
+        ctx.stroke();
+        
+        ctx.restore();
       } else {
         drawEmoji(p.x, p.y, '💣', 24);
       }
@@ -1295,25 +1288,41 @@
   function drawPlayer() {
     if (!player) return;
     if (player.invincible && Math.floor(Date.now() / 80) % 2) return;
-    ctx.save(); ctx.translate(DX(player.x), DY(player.y)); ctx.rotate(player.rotation);
-    ctx.font = "30px 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
+    
+    ctx.save();
+    ctx.translate(DX(player.x), DY(player.y));
+    ctx.rotate(player.rotation);
+    
+    // Opacidad total y corrección de nitidez
+    ctx.globalAlpha = 1.0;
+    ctx.globalCompositeOperation = 'source-over';
+    
+    // Añadir un círculo de fondo muy sutil pero sólido para que el emoji sea 100% nítido
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+    
+    // Resplandor exterior sólido para separar del fondo oscuro
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 4;
+
+    ctx.font = "bold 30px 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
     const em = (hearts === 1 || energy < 15) ? '😰' : player.rideBubble ? '🥹' : '😊';
     ctx.fillText(em, 0, 0);
     ctx.restore();
   }
 
+  let _dkCv = null;
   function drawDarkness() {
     if (lightOn) return;
-    let _dkCv = document.getElementById('darkness-canvas');
     if (!_dkCv) {
       _dkCv = document.createElement('canvas');
-      _dkCv.id = 'darkness-canvas';
     }
     _dkCv.width = canvas.width; _dkCv.height = canvas.height;
     const _dkCtx = _dkCv.getContext('2d');
+    _dkCtx.clearRect(0, 0, _dkCv.width, _dkCv.height);
     _dkCtx.globalCompositeOperation = 'source-over';
     _dkCtx.fillStyle = 'rgba(0,0,0,.92)'; _dkCtx.fillRect(0, 0, _dkCv.width, _dkCv.height);
     _dkCtx.globalCompositeOperation = 'destination-out';
@@ -1411,6 +1420,11 @@
     frameCount++;
     updatePlayer(); updateEnemies(); updateProjectiles();
     updateRain(); updateBubbles(); updateParticles();
+    
+    // Resetear estado del contexto para evitar acumulaciones de transparencia o modos extraños
+    ctx.globalAlpha = 1.0;
+    ctx.globalCompositeOperation = 'source-over';
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground();
     drawCaveStructure();
@@ -1467,6 +1481,8 @@
     rainOn = false; windOn = false; bubblesOn = false; lightOn = false;
     hearts = 3; energy = 100; gunAmmo = 0; frameCount = 0;
     victoryDone = false; cameraX = 0; cameraY = 0; inShaft = false; atkCd = 0; lastLandTime = 0;
+    cinematicActive = false; cinematicTimer = 0; 
+    // No reseteamos bossIntroDone aquí para que solo ocurra una vez por sesión
     brickWalls = [];
     keys = { left: false, right: false, jump: false, attack: false };
     prevKeys = { jump: false, attack: false };
