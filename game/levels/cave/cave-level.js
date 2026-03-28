@@ -641,71 +641,76 @@
       }
     }
 
-    // Jefe (araña) con movimiento agresivo
+    // Jefe (araña) - se congela cuando la linterna está apagada
     if (boss && !boss.dead) {
       const distToPlayer = Math.abs(boss.x - player.x);
+      const spiderAwake = lightOn; // La araña solo actúa con luz
 
       // Gatillar cinemática de introducción si se acerca por primera vez
-      if (!bossIntroDone && distToPlayer < 550 && !inShaft) {
+      if (!bossIntroDone && distToPlayer < 550 && !inShaft && spiderAwake) {
         bossIntroDone = true;
         cinematicActive = true;
         cinematicTimer = 130;
         toast('⚠️ ¡ALERTA! Presencia enemiga gigante detectada');
       }
 
-      // Trigger dropping if close
-      if (distToPlayer < 350 && boss.state === 'hanging') {
-        boss.state = 'dropping';
-        SFX_wind();
-      }
-      if (boss.state === 'dropping') {
-        boss.y += 4;
-        boss.agro = true;
-        if (boss.y >= boss.baseY) {
-          boss.y = boss.baseY; boss.state = 'ground'; SFX_land();
+      // Solo se mueve y ataca si hay luz
+      if (spiderAwake) {
+        // Trigger dropping if close
+        if (distToPlayer < 350 && boss.state === 'hanging') {
+          boss.state = 'dropping';
+          SFX_wind();
         }
-      } else if (boss.state === 'ground') {
-        boss.agro = distToPlayer < 450;
-        if (boss.agro) {
-          const speed = boss.fury ? 3.5 : 1.5;
-          let newVx = (boss.x < player.x) ? speed : -speed;
-          
-          for (const bw of brickWalls) {
-            if (!bw.dead && boss.x + newVx + boss.w/2 > bw.x && boss.x + newVx - boss.w/2 < bw.x + bw.w &&
-                boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
-              newVx = 0; break;
-            }
+        if (boss.state === 'dropping') {
+          boss.y += 4;
+          boss.agro = true;
+          if (boss.y >= boss.baseY) {
+            boss.y = boss.baseY; boss.state = 'ground'; SFX_land();
           }
-          boss.x += newVx;
-          
-          if (boss.fury) {
-            boss.phase += 0.12; boss.y = boss.baseY + Math.sin(boss.phase) * 12;
+        } else if (boss.state === 'ground') {
+          boss.agro = distToPlayer < 450;
+          if (boss.agro) {
+            const speed = boss.fury ? 3.5 : 1.5;
+            let newVx = (boss.x < player.x) ? speed : -speed;
+            
+            for (const bw of brickWalls) {
+              if (!bw.dead && boss.x + newVx + boss.w/2 > bw.x && boss.x + newVx - boss.w/2 < bw.x + bw.w &&
+                  boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
+                newVx = 0; break;
+              }
+            }
+            boss.x += newVx;
+            
+            if (boss.fury) {
+              boss.phase += 0.12; boss.y = boss.baseY + Math.sin(boss.phase) * 12;
+            } else {
+              boss.phase += 0.05; boss.y = boss.baseY + Math.sin(boss.phase) * 5;
+            }
+            
+            boss.poisonCd--;
+            if (boss.poisonCd <= 0) {
+              boss.poisonCd = boss.fury ? 50 : 85;
+              const dx = player.x - boss.x, dy = player.y - Math.abs(player.vx)*2 - boss.y;
+              const dist = Math.hypot(dx, dy);
+              projectiles.push({ type: 'poison', emoji: '🟢', x: boss.x, y: boss.y, vx: (dx/dist)*8, vy: -6, life: 120 });
+              SFX_shoot();
+            }
           } else {
-            boss.phase += 0.05; boss.y = boss.baseY + Math.sin(boss.phase) * 5;
-          }
-          
-          boss.poisonCd--;
-          if (boss.poisonCd <= 0) {
-            boss.poisonCd = boss.fury ? 50 : 85;
-            const dx = player.x - boss.x, dy = player.y - Math.abs(player.vx)*2 - boss.y;
-            const dist = Math.hypot(dx, dy);
-            projectiles.push({ type: 'poison', emoji: '🟢', x: boss.x, y: boss.y, vx: (dx/dist)*8, vy: -6, life: 120 });
-            SFX_shoot();
-          }
-        } else {
-          let bvx = boss.vx;
-          for (const bw of brickWalls) {
-            if (!bw.dead && boss.x + bvx + boss.w/2 > bw.x && boss.x + bvx - boss.w/2 < bw.x + bw.w &&
-                boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
-              bvx *= -1; boss.vx *= -1; break;
+            let bvx = boss.vx;
+            for (const bw of brickWalls) {
+              if (!bw.dead && boss.x + bvx + boss.w/2 > bw.x && boss.x + bvx - boss.w/2 < bw.x + bw.w &&
+                  boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
+                bvx *= -1; boss.vx *= -1; break;
+              }
             }
+            boss.x += bvx;
+            if (boss.x > boss.maxX || boss.x < boss.minX) boss.vx *= -1;
           }
-          boss.x += bvx;
-          if (boss.x > boss.maxX || boss.x < boss.minX) boss.vx *= -1;
         }
       }
       
-      if (!player.invincible && Math.abs(boss.x - player.x) < 45 && Math.abs(boss.y - player.y) < 45) {
+      // Daño al jugador solo si la araña está activa (luz encendida)
+      if (spiderAwake && !player.invincible && Math.abs(boss.x - player.x) < 45 && Math.abs(boss.y - player.y) < 45) {
         takeDamage(); player.vx = player.x < boss.x ? -10 : 10; player.vy = -6;
       }
     }
@@ -1190,9 +1195,20 @@
          ctx.restore();
       }
       
-      const bounce = boss.fury ? Math.sin(frameCount * .15) * .2 : Math.sin(frameCount * .05) * .1;
-      const glow = boss.fury ? '#ef4444' : 'rgba(0,0,0,0)';
+      const spiderAwake = lightOn;
+      const bounce = spiderAwake ? (boss.fury ? Math.sin(frameCount * .15) * .2 : Math.sin(frameCount * .05) * .1) : 0;
+      const glow = boss.fury ? '#ef4444' : (spiderAwake ? 'rgba(0,0,0,0)' : 'rgba(100,100,150,0.3)');
       drawEmoji(boss.x, boss.y, '🕷️', boss.fury ? 60 : 50, bounce, glow);
+      
+      // Mostrar indicador de araña dormida
+      if (!spiderAwake && boss.hp > 0) {
+        const zx = DX(boss.x + 35), zy = DY(boss.y - 30);
+        ctx.save();
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = 'rgba(150,200,255,0.8)';
+        ctx.fillText('💤', zx, zy);
+        ctx.restore();
+      }
       
       if (boss.agro && boss.hp > 0) {
         const bx = DX(boss.x), by = DY(boss.y) - (boss.fury ? 50 : 40);
