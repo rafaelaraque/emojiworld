@@ -1091,6 +1091,27 @@
       const sx = ((i * 137 - cameraX * 0.2) % (W + 100) + W + 100) % (W + 100) - 50;
       ctx.beginPath(); ctx.moveTo(sx - 5, cly); ctx.lineTo(sx, cly + 25); ctx.lineTo(sx + 5, cly); ctx.fill();
     }
+
+    // Pared visible al final del área de la araña (solo en área horizontal, no en pozo)
+    if (!inShaft) {
+      const wallX = DX(HORIZ_END);
+      const wallH = rdy - cly;
+      if (wallX > -50 && wallX < W + 50) {
+        // Pared principal
+        ctx.fillStyle = '#1a110a';
+        ctx.fillRect(wallX - 8, cly, 16, wallH);
+        // Textura de roca
+        ctx.fillStyle = '#2d1e10';
+        ctx.fillRect(wallX - 6, cly, 4, wallH);
+        ctx.fillRect(wallX + 2, cly + 20, 3, wallH - 40);
+        // Borde inferior con relieve
+        ctx.fillStyle = '#3d2e1a';
+        ctx.beginPath(); ctx.moveTo(wallX - 12, rdy); ctx.lineTo(wallX, rdy - 15); ctx.lineTo(wallX + 12, rdy); ctx.fill();
+        // Borde superior (techo del área)
+        ctx.fillStyle = '#0a0705';
+        ctx.fillRect(wallX - 10, cly, 20, 8);
+      }
+    }
   }
 
   function drawPlatforms() {
@@ -1497,8 +1518,8 @@
     rainOn = false; windOn = false; bubblesOn = false; lightOn = false;
     hearts = 3; energy = 100; gunAmmo = 0; frameCount = 0;
     victoryDone = false; cameraX = 0; cameraY = 0; inShaft = false; atkCd = 0; lastLandTime = 0;
-    cinematicActive = false; cinematicTimer = 0; 
-    // No reseteamos bossIntroDone aquí para que solo ocurra una vez por sesión
+    cinematicActive = false; cinematicTimer = 0;
+    bossIntroDone = false;
     brickWalls = [];
     keys = { left: false, right: false, jump: false, attack: false };
     prevKeys = { jump: false, attack: false };
