@@ -117,7 +117,7 @@
 
     roadY = canvas.height - 55;
     CEIL_Y = roadY - CEIL_H;
-    HORIZ_END = 2850;
+    HORIZ_END = 3400;
     SHAFT_L = HORIZ_END - SHAFT_W;   // 2610
     SHAFT_R = HORIZ_END;           // 2850
     SHAFT_MID = (SHAFT_L + SHAFT_R) / 2;
@@ -198,7 +198,7 @@
     boss = {
       x: 2700, y: CEIL_Y + 50, w: 60, h: 60,
       hp: 20, maxHp: 20,
-      vx: 1.0, minX: 2500, maxX: 2800,
+      vx: 1.0, minX: 2500, maxX: 3350,
       dead: false, emoji: '🕷️', phase: 0, agro: false,
       fury: false, poisonCd: 0, baseY: roadY - 50, state: 'hanging',
       webY: CEIL_Y
@@ -1092,25 +1092,52 @@
       ctx.beginPath(); ctx.moveTo(sx - 5, cly); ctx.lineTo(sx, cly + 25); ctx.lineTo(sx + 5, cly); ctx.fill();
     }
 
-    // Pared visible al final del área de la araña (solo en área horizontal, no en pozo)
+    // Pared gruesa al final del área de la araña (100px de ancho, siempre visible)
     if (!inShaft) {
       const wallX = DX(HORIZ_END);
       const wallH = rdy - cly;
-      if (wallX > -50 && wallX < W + 50) {
-        // Pared principal
-        ctx.fillStyle = '#1a110a';
-        ctx.fillRect(wallX - 8, cly, 16, wallH);
-        // Textura de roca
-        ctx.fillStyle = '#2d1e10';
-        ctx.fillRect(wallX - 6, cly, 4, wallH);
-        ctx.fillRect(wallX + 2, cly + 20, 3, wallH - 40);
-        // Borde inferior con relieve
-        ctx.fillStyle = '#3d2e1a';
-        ctx.beginPath(); ctx.moveTo(wallX - 12, rdy); ctx.lineTo(wallX, rdy - 15); ctx.lineTo(wallX + 12, rdy); ctx.fill();
-        // Borde superior (techo del área)
-        ctx.fillStyle = '#0a0705';
-        ctx.fillRect(wallX - 10, cly, 20, 8);
+      
+      // Capa base oscura (100px)
+      ctx.fillStyle = '#0a0705';
+      ctx.fillRect(wallX - 50, cly, 100, wallH);
+      
+      // Capa media más clara
+      ctx.fillStyle = '#1a110a';
+      ctx.fillRect(wallX - 45, cly, 90, wallH);
+      
+      // Textura de rocas - patrón continuo sin saltos
+      ctx.fillStyle = '#2d1e10';
+      // Rayas verticales irregulares
+      for (let i = 0; i < 8; i++) {
+        const offsetX = Math.sin(i * 1.7) * 12;
+        const width = 4 + Math.sin(i * 2.3) * 3;
+        ctx.fillRect(wallX - 40 + i * 12 + offsetX, cly, width, wallH);
       }
+      
+      // Detalles horizontales para continuidad
+      ctx.fillStyle = '#3d2e1a';
+      for (let j = 0; j < 12; j++) {
+        const jy = cly + j * (wallH / 12) + 10;
+        const jw = 60 + Math.sin(j * 0.8) * 20;
+        const jx = wallX - 30 + Math.sin(j * 1.5) * 8;
+        ctx.fillRect(jx, jy, jw, 3);
+      }
+      
+      // Borde inferior relieve
+      ctx.fillStyle = '#4a3825';
+      ctx.beginPath(); 
+      ctx.moveTo(wallX - 55, rdy); 
+      ctx.lineTo(wallX, rdy - 20); 
+      ctx.lineTo(wallX + 55, rdy); 
+      ctx.fill();
+      
+      // Borde superior (techo del área horizontal)
+      ctx.fillStyle = '#050302';
+      ctx.fillRect(wallX - 55, cly - 5, 110, 12);
+      
+      // Borde derecho (final del mundo)
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(wallX + 45, cly - 5, 10, wallH + 25);
     }
   }
 
