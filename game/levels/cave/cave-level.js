@@ -646,8 +646,8 @@
       const distToPlayer = Math.abs(boss.x - player.x);
       const spiderAwake = lightOn; // La araña solo actúa con luz
 
-      // Gatillar cinemática de introducción si se acerca por primera vez
-      if (!bossIntroDone && distToPlayer < 550 && !inShaft && spiderAwake) {
+      // Gatillar cinemática de introducción solo cuando el jugador se acerca desde la izquierda
+      if (!bossIntroDone && player.x < boss.x && distToPlayer < 550 && !inShaft && spiderAwake) {
         bossIntroDone = true;
         cinematicActive = true;
         cinematicTimer = 130;
@@ -1138,6 +1138,28 @@
       // Borde derecho (final del mundo)
       ctx.fillStyle = '#000000';
       ctx.fillRect(wallX + 45, cly - 5, 10, wallH + 25);
+      
+      // Pared de fondo con degradado (callejón sin salida hacia arriba)
+      // Se dibuja cuando el jugador está cerca del final del área horizontal
+      if (player.x > HORIZ_END - 600) {
+        const gradStart = Math.max(0, W - 350);
+        const gradient = ctx.createLinearGradient(0, 0, 0, H);
+        gradient.addColorStop(0, '#8B4513');      // Marrón claro arriba
+        gradient.addColorStop(0.3, '#5C3317');    // Marrón medio
+        gradient.addColorStop(0.6, '#3d2810');    // Marrón oscuro
+        gradient.addColorStop(1, '#000000');      // Negro abajo
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(gradStart, 0, W - gradStart + 50, H);
+        
+        // Línea de divisoria vertical sutil
+        ctx.strokeStyle = 'rgba(60, 40, 20, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(gradStart, 0);
+        ctx.lineTo(gradStart, H);
+        ctx.stroke();
+      }
     }
   }
 
