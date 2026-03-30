@@ -5544,13 +5544,26 @@ creditsPlayAgainBtn.addEventListener('click', () => {
 });
 
     // Initialization on window load
-window.onload = function() {
+function initOnLoad() {
+  console.log('Emoji City: Initializing level...');
   resizeCanvas();
   setupEventListeners();
   // Show prologue chat screen
   buildChatPage(0);
   // play-btn starts game
-  playBtn.addEventListener('click', () => startGame());
-};
+  const pBtn = document.getElementById('play-btn');
+  if (pBtn) {
+    pBtn.onclick = () => {
+      console.log('Emoji City: Play button clicked');
+      startGame();
+    };
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('load', initOnLoad);
+} else {
+  initOnLoad();
+}
 
 

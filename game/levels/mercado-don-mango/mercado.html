@@ -63,6 +63,14 @@
   <div id="gameMain">
     <!-- Shelf -->
     <div id="shelfZone">
+      <!-- Don Mango Tip (Above Shelf) -->
+      <div class="mango-bar">
+        <div class="mango-em">👨‍🌾</div>
+        <div class="mango-bbl" id="mangoMsg">
+          ¡Arrastra las frutas a la estantería! Cada una tiene su <em>planimetría</em>. <br/>La <strong>Sandía ⭐</strong> va siempre arriba.
+        </div>
+      </div>
+
       <div class="shelf-wrap">
         <div class="shelf-row" id="row0"></div>
         <div class="shelf-board"></div>
@@ -71,22 +79,22 @@
         <div class="shelf-row" id="row2"></div>
         <div class="shelf-board" style="margin-top:2px;height:clamp(10px,2vw,14px);"></div>
       </div>
+
+      <!-- Control Buttons -->
+      <div class="controls-bar">
+        <button class="btn-ctrl" onclick="undoMove()" title="Deshacer último movimiento">
+          <span class="ctrl-icon">↩️</span> Deshacer
+        </button>
+        <button class="btn-ctrl reset" onclick="resetShelf()" title="Reestablecer estantería">
+          <span class="ctrl-icon">♻️</span> Reestablecer
+        </button>
+      </div>
     </div>
 
-    <!-- Side -->
+    <!-- Side (List of fruits) -->
     <div id="sidePanel">
-      <div class="mango-bar">
-        <div class="mango-em">👨‍🌾</div>
-        <div class="mango-bbl" id="mangoMsg">
-          ¡Arrastra las frutas a la estantería! Cada una tiene su <em>planimetría</em> — el diagrama ■ te muestra cuánto espacio ocupa. La <strong>Sandía ⭐</strong> va siempre arriba.
-        </div>
-      </div>
-      <div class="tray-lbl">📋 Productos a ubicar</div>
+      <div class="tray-lbl">📋 PRODUCTOS A UBICAR</div>
       <div class="tray" id="tray"></div>
-      <div class="emoji-row">
-        <input class="emoji-inp" id="eField" type="text" placeholder="📱 Escribe un emoji..." inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8"/>
-        <button class="add-btn" onclick="addFromField()">Añadir ➕</button>
-      </div>
     </div>
   </div>
 </div>

@@ -212,16 +212,23 @@
   <script>
     // Send ready message to parent when loaded
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('Emoji City: DOMContentLoaded');
       try {
         if (window.parent && window.parent !== window) {
-          requestAnimationFrame(function() {
+          // Give it a tiny bit more time to be stable
+          setTimeout(function() {
             requestAnimationFrame(function() {
-              if (typeof resizeCanvas === 'function') resizeCanvas();
-              window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
+              requestAnimationFrame(function() {
+                console.log('Emoji City: Sending EMOJIGAME_READY');
+                if (typeof resizeCanvas === 'function') resizeCanvas();
+                window.parent.postMessage({ type: 'EMOJIGAME_READY' }, '*');
+              });
             });
-          });
+          }, 500);
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error('Emoji City: Error in ready check', e);
+      }
     });
   </script>
 </body>

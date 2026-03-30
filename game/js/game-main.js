@@ -456,12 +456,25 @@
 
     function openCave() {
       const ov = document.getElementById('caveOv');
-      const frame = document.getElementById('caveFrame');
+      let frame = document.getElementById('caveFrame');
       const loader = document.getElementById('caveLoader');
       if (!ov || !frame) {
         console.error('Cave: Missing overlay elements');
         return;
       }
+
+      // Recreate iframe element for a fresh context
+      const container = frame.parentElement;
+      const newFrame = document.createElement('iframe');
+      newFrame.id = 'caveFrame';
+      newFrame.sandbox = frame.sandbox;
+      newFrame.allow = frame.allow;
+      newFrame.style.cssText = frame.style.cssText;
+      newFrame.style.opacity = '0';
+      
+      frame.remove();
+      container.appendChild(newFrame);
+      frame = newFrame;
 
       ov.classList.add('show');
       if (loader) {
@@ -469,25 +482,15 @@
         const fill = loader.querySelector('.cave-load-fill');
         if (fill) { fill.style.animation = 'none'; void fill.offsetHeight; fill.style.animation = ''; }
       }
-      frame.style.opacity = '0';
-      
-      // Clear previous state
-      frame.removeAttribute('srcdoc');
       
       window.removeEventListener('message', onCaveMessage);
       window.addEventListener('message', onCaveMessage);
 
-      // Handle load errors
-      frame.onerror = function() {
-        console.error('Failed to load cave level');
-        if (loader) {
-          loader.querySelector('.cave-load-txt').textContent = '⚠️ Error al cargar el nivel';
-        }
-      };
-
       // Handle successful load
+      const t = Date.now();
+      console.log('Loading cave level from: levels/cave/cave.html?t=' + t);
       frame.onload = () => {
-        console.log('Cave level loaded successfully');
+        console.log('Cave level loaded successfully (onload)');
         if (loader) loader.style.display = 'none';
         frame.style.opacity = '1';
       };
@@ -495,12 +498,10 @@
       // Fallback: hide loader after 3s regardless
       setTimeout(() => {
         if (loader) loader.style.display = 'none';
-        frame.style.opacity = '1';
+        if (frame) frame.style.opacity = '1';
       }, 3000);
-
-      // Load external level instead of embedded HTML
-      console.log('Loading cave level from: levels/cave/cave.html');
-      frame.src = 'levels/cave/cave.html';
+      
+      frame.src = 'levels/cave/cave.html?t=' + t;
     }
 
     function onCaveMessage(e) {
@@ -773,9 +774,23 @@
         return;
       }
       const ov = document.getElementById('emojiGameOv');
-      const frame = document.getElementById('emojiGameFrame');
+      let frame = document.getElementById('emojiGameFrame');
       const loader = document.getElementById('emojiGameLoader');
       if (!ov || !frame) return;
+
+      // Nuke and recreate iframe to ensure fresh context
+      const container = frame.parentElement;
+      const newFrame = document.createElement('iframe');
+      newFrame.id = 'emojiGameFrame';
+      newFrame.sandbox = frame.sandbox;
+      newFrame.allow = frame.allow;
+      // Copy style but ensure opacity 0
+      newFrame.style.cssText = frame.style.cssText;
+      newFrame.style.opacity = '0';
+      
+      frame.remove();
+      container.appendChild(newFrame);
+      frame = newFrame; // Update reference
 
       ov.classList.add('show');
       if (loader) {
@@ -783,48 +798,63 @@
         const fill = loader.querySelector('.emoji-load-fill');
         if (fill) { fill.style.animation = 'none'; void fill.offsetHeight; fill.style.animation = ''; }
       }
-      frame.style.opacity = '0';
+      
       if (emojiGameReadyFallback) {
         clearTimeout(emojiGameReadyFallback);
         emojiGameReadyFallback = null;
       }
+      
       window.removeEventListener('message', onEmojiGameMessage);
       window.addEventListener('message', onEmojiGameMessage);
 
       // Load from external file instead of embedded HTML
+      const t = Date.now();
+      console.log('Loading emoji city from: levels/emoji-city/emoji-city.html?t=' + t);
+      
       frame.onload = () => {
-        if (loader) loader.style.display = 'none';
-        frame.style.opacity = '1';
+        console.log('Emoji City iframe onload fired');
+        // We still wait for READY message for best experience, 
+        // but onload is a good secondary signal.
         if (emojiGameReadyFallback) {
+          // If onload fires, give it another 500ms before forcing it
           clearTimeout(emojiGameReadyFallback);
-          emojiGameReadyFallback = null;
+          emojiGameReadyFallback = setTimeout(() => {
+            if (loader) loader.style.display = 'none';
+            if (frame) frame.style.opacity = '1';
+          }, 500);
         }
       };
 
       emojiGameReadyFallback = setTimeout(() => {
+        console.warn('Emoji City load fallback triggered');
         if (loader) loader.style.display = 'none';
-        frame.style.opacity = '1';
-      }, 3000);
+        if (frame) frame.style.opacity = '1';
+        emojiGameReadyFallback = null;
+      }, 4000);
 
       // Load from external emoji-city level file
-      frame.src = 'levels/emoji-city/emoji-city.html';
+      frame.src = 'levels/emoji-city/emoji-city.html?t=' + t;
     }
+    
     function onEmojiGameMessage(e) {
-      const frame = document.getElementById('emojiGameFrame');
-      if (frame && frame.contentWindow && e.source && e.source !== frame.contentWindow) return;
+      // Relax source check slightly but still verify it's from an iframe
+      if (e.data && e.data.type === 'EMOJIGAME_READY') {
+        console.log('Emoji City received EMOJIGAME_READY');
+        const frame = document.getElementById('emojiGameFrame');
+        const loader = document.getElementById('emojiGameLoader');
+        if (emojiGameReadyFallback) {
+          clearTimeout(emojiGameReadyFallback);
+          emojiGameReadyFallback = null;
+        }
+        if (loader) loader.style.display = 'none';
+        if (frame) frame.style.opacity = '1';
+        return;
+      }
 
       if (e.data === 'EMOJIGAME_WIN') {
         closeEmojiGame();
         onAlienDefeated();
         return;
-      }
-
-      if (e.data && e.data.type === 'EMOJIGAME_READY') {
-        if (emojiGameReadyFallback) {
-          clearTimeout(emojiGameReadyFallback);
-          emojiGameReadyFallback = null;
-        }
-        if (frame) frame.style.opacity = '1';
       }
     }
     function onAlienDefeated() {

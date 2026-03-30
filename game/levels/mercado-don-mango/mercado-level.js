@@ -21,6 +21,48 @@ const P={
   '🍑':{f:1,l:1,color:'#BF360C',bg:'#FBE9E7',name:'Durazno'},
 };
 
+// ════════════════════════════════════════
+//  AUDIO ENGINE (Web Audio API)
+// ════════════════════════════════════════
+const Sfx = {
+  ctx: null,
+  init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+  play(type) {
+    this.init();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.connect(g); g.connect(this.ctx.destination);
+    
+    const now = this.ctx.currentTime;
+    if (type === 'pop') {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(400, now);
+      o.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+      g.gain.setValueAtTime(0.1, now);
+      g.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      o.start(now); o.stop(now + 0.2);
+    } else if (type === 'win') {
+      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+        const o2 = this.ctx.createOscillator();
+        const g2 = this.ctx.createGain();
+        o2.type = 'sine'; o2.frequency.setValueAtTime(f, now + i * 0.1);
+        g2.gain.setValueAtTime(0.05, now + i * 0.1);
+        g2.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
+        o2.connect(g2); g2.connect(this.ctx.destination);
+        o2.start(now + i * 0.1); o2.stop(now + i * 0.1 + 0.3);
+      });
+    } else if (type === 'err') {
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(150, now);
+      o.frequency.linearRampToValueAtTime(100, now + 0.2);
+      g.gain.setValueAtTime(0.05, now);
+      g.gain.linearRampToValueAtTime(0.01, now + 0.2);
+      o.start(now); o.stop(now + 0.2);
+    }
+  }
+};
+
 // 3 layouts: 🍉 at left / center / right of row 0
 // grid[row][col] = emoji
 const LAYOUTS=[
@@ -99,6 +141,9 @@ let drag=null;  // {emoji,fromGid|null}
 let touchId=null;
 let highlighted=[];
 let mangoTimer;
+let moveHistory=[];
+
+// ════════════════════════════════════════
 
 // ════════════════════════════════════════
 //  START GAME
@@ -248,6 +293,9 @@ function endDrag(x,y){
       flashArea(drag.em,r,c,'fbad');
       tiState(drag.em,'available');
       mangoSay(badMsg(drag.em));
+      Sfx.play('err');
+    } else {
+      Sfx.play('pop');
     }
   }else{
     tiState(drag.em,'available');
@@ -343,12 +391,43 @@ function tryPlace(em,r0,c0){
     }
   }
   groups[gid]={emoji:em,cells};
+  moveHistory.push(gid);
   renderCells(cells);
   flashCells(cells,'fok');
   tiState(em,'placed');
   updateHUD();
   checkWin();
   return true;
+}
+
+function undoMove() {
+  if (moveHistory.length === 0) {
+    toast('¡No hay nada que deshacer! ↩️');
+    return;
+  }
+  const gid = moveHistory.pop();
+  if (groups[gid]) {
+    const em = groups[gid].emoji;
+    liftGroup(gid);
+    Sfx.play('pop');
+    mangoSay(`¡Deshecho! ${em} volvió a la caja. ↩️`);
+  }
+}
+
+function resetShelf() {
+  const gids = Object.keys(groups);
+  if (gids.length === 0) {
+    toast('La estantería ya está vacía. ♻️');
+    return;
+  }
+  
+  if (confirm('¿Quieres vaciar toda la estantería? ♻️')) {
+    gids.forEach(gid => liftGroup(gid));
+    moveHistory = [];
+    Sfx.play('err');
+    updateHUD();
+    mangoSay('¡Estantería reestablecida! Empecemos de nuevo. 👨‍🌾');
+  }
 }
 
 function liftGroup(gid){
@@ -457,6 +536,7 @@ function updateHUD(){
 // ════════════════════════════════════════
 function checkWin(){
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(!grid[r][c])return;
+  Sfx.play('win');
   setTimeout(showWin,600);
 }
 
@@ -524,46 +604,7 @@ function closeHint(e){
     document.getElementById('hintOv').classList.remove('show');
 }
 
-// ════════════════════════════════════════
-//  EMOJI KEYBOARD INPUT
-// ════════════════════════════════════════
-const eField=document.getElementById('eField');
-
-eField.addEventListener('input',function(){
-  const em=firstEmoji(this.value.trim());
-  if(em){
-    const item=document.getElementById('ti-'+em);
-    if(item&&!item.classList.contains('placed')){
-      document.querySelectorAll('.ti').forEach(i=>i.style.outline='');
-      item.style.outline='3px solid var(--gold)';
-      item.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-  }
-});
-
-function addFromField(){
-  const val=eField.value.trim();
-  eField.value='';
-  document.querySelectorAll('.ti').forEach(i=>i.style.outline='');
-  if(!val){toast('Escribe un emoji del teclado 📱');return;}
-  const em=firstEmoji(val);
-  if(!em){toast('No reconocí un emoji. Prueba: 🍉 🍎 🍊 🍋 🍍');return;}
-  if(P[em]){
-    const item=document.getElementById('ti-'+em);
-    if(item&&item.classList.contains('placed')){mangoSay(`¡Ya colocaste ${em}! Está en la estantería. ✅`);}
-    else if(item){
-      mangoSay(`¡Perfecto! Ahora <em>arrastra ${em}</em> a la estantería. 🎯`);
-      item.style.outline='3px solid var(--gold)';
-      setTimeout(()=>item.style.outline='',2500);
-      item.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-  }else{
-    mangoSay(`${em} no está en el pedido de hoy 😅 Prueba: <strong>🍉 🍍 🥭 🍎 🍊 🍋 🍇 🍐 🍒 🍓 🍑</strong>`);
-  }
-}
-
-eField.addEventListener('keydown',e=>{if(e.key==='Enter')addFromField();});
-
+// Removed emoji input logic as requested
 function firstEmoji(s){
   const m=s.match(/\p{Emoji_Presentation}\uFE0F?(?:\u200D\p{Emoji_Presentation}\uFE0F?)*|\p{Emoji}\uFE0F/gu);
   return m?m[0]:null;
@@ -580,25 +621,23 @@ function toast(msg){
   toastT=setTimeout(()=>el.classList.remove('show'),2800);
 }
 
-// Auto-start when loaded in iframe
-const isIframe = window.parent && window.parent !== window;
-
-if (isIframe) {
-  document.addEventListener('DOMContentLoaded', function() {
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  const isIframe = window.parent && window.parent !== window;
+  
+  // Siempre mostrar la intro primero (renderDlg)
+  renderDlg();
+  
+  if (isIframe) {
     try {
       requestAnimationFrame(function() {
         requestAnimationFrame(function() {
-          if (typeof startGame === 'function') {
-            startGame();
-          }
           if (window.parent) window.parent.postMessage({ type: 'MERCADO_READY' }, '*');
         });
       });
     } catch(e) { console.error('Mercado iframe init error:', e); }
-  });
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    renderDlg();
-  });
-}
+  }
+});
 
