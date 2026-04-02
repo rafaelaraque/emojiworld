@@ -22,9 +22,9 @@ export const caveLevel = {
     
     // World settings
     world: {
-        width: 2850,
-        height: 3500,
-        background: "#1a0a20"
+        width: 5120,
+        height: 3200,
+        background: "#0a0705"
     }
 };
 

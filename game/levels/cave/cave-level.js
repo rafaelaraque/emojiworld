@@ -14,6 +14,7 @@
   // ── ESTADO ─────────────────────────────────
   let gameActive = false, frameCount = 0;
   let player, platforms = [];
+  let tileMap = null; // Complete tilemap loaded from cave-map.js
   let cameraX = 0, cameraY = 0, inShaft = false;
   let keys = { left: false, right: false, jump: false, attack: false };
   let prevKeys = { jump: false, attack: false };
@@ -26,7 +27,7 @@
   let cinematicActive = false, cinematicTimer = 0, bossIntroDone = false;
   // Mundo
   let enemies = [], obstacles = [], projectiles = [];
-  let particles = [], rainDrops = [], bubbles = [], puddles = [], stalactites = [];
+  let particles = [], rainDrops = [], bubbles = [], puddles = [];
   let brickWalls = [];
   let drops = []; // { x, y, emoji, collected }
 
@@ -98,16 +99,48 @@
 
   // ── GENERAR MUNDO ──────────────────────────
   function makeStalactites() {
-    stalactites = [];
-    for (let i = 0; i < 80; i++) {
-      const s = i < 50 ? 'h' : 'v';
-      stalactites.push({
-        s,
-        x: s === 'h' ? Math.random() * (HORIZ_END - 80) + 40 : SHAFT_L + Math.random() * SHAFT_W,
-        y: s === 'h' ? CEIL_Y - Math.random() * 6 : SHAFT_TOP_Y + Math.random() * SHAFT_HT * .9,
-        h: 12 + Math.random() * 30, w: 4 + Math.random() * 13, sh: Math.random()
-      });
+    // Stalactites are now part of the tilemap
+  }
+
+  // ── Tilemap helpers ─────────────────────────
+  function getTile(col, row) {
+    if (row < 0 || row >= MAP_ROWS || col < 0 || col >= MAP_COLS) return TILE.STONE;
+    return tileMap[row][col];
+  }
+  function isSolid(col, row) {
+    const t = getTile(col, row);
+    return t === TILE.STONE || t === TILE.BRICK;
+  }
+  function isOneWay(col, row) {
+    return getTile(col, row) === TILE.PLATFORM;
+  }
+  function isAbyss(col, row) {
+    return getTile(col, row) === TILE.ABYSS;
+  }
+  function isExit(col, row) {
+    return getTile(col, row) === TILE.EXIT;
+  }
+  function breakBrick(col, row) {
+    if (getTile(col, row) === TILE.BRICK) {
+      tileMap[row][col] = TILE.AIR;
+      spawnParts(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2, '#c68642', 14, '🧱');
     }
+  }
+
+  // World dimensions in pixels
+  const WORLD_W = MAP_COLS * TILE_SIZE;
+  const WORLD_H = MAP_ROWS * TILE_SIZE;
+
+  // ── Get current zone name ───────────────────
+  function getZoneName() {
+    if (!player) return '🕳️ Cueva';
+    const pc = Math.floor(player.x / TILE_SIZE);
+    const pr = Math.floor(player.y / TILE_SIZE);
+    for (const z of ENTITY_DEFS.zones) {
+      const b = z.bounds;
+      if (pr >= b.r1 && pr <= b.r2 && pc >= b.c1 && pc <= b.c2) return z.name;
+    }
+    return '🕳️ Cueva';
   }
 
   function generateWorld() {
@@ -115,109 +148,69 @@
     projectiles = []; particles = []; rainDrops = []; bubbles = []; puddles = [];
     drops = []; boss = null;
 
-    roadY = canvas.height - 55;
-    CEIL_Y = roadY - CEIL_H;
-    HORIZ_END = 3400;
-    SHAFT_L = HORIZ_END - SHAFT_W;   // 2610
-    SHAFT_R = HORIZ_END;           // 2850
-    SHAFT_MID = (SHAFT_L + SHAFT_R) / 2;
-    SHAFT_TOP_Y = CEIL_Y - SHAFT_HT;
+    // Build complete tilemap
+    tileMap = buildMap();
 
-    abyssX = 1750;
-    abyssW = 380;
+    roadY = ENTITY_DEFS.spawn.row * TILE_SIZE + TILE_SIZE;
+    CEIL_Y = 0;
+    HORIZ_END = WORLD_W;
+    SHAFT_L = 0; SHAFT_R = WORLD_W;
+    SHAFT_MID = WORLD_W / 2; SHAFT_TOP_Y = 0;
 
-    // Suelo: solo a los lados del abismo (el abismo es vacío)
-    platforms.push({ x: 0, y: roadY, w: abyssX, h: 20, type: 'ground' });
-    platforms.push({ x: abyssX + abyssW, y: roadY, w: HORIZ_END - abyssX - abyssW + 50, h: 20, type: 'ground' });
+    abyssX = -9999; abyssW = 0; // Abyss is now tilemap-based
 
-    // Plataformas horizontales
-    [{ x: 180, y: roadY - 95, w: 110 }, { x: 400, y: roadY - 80, w: 100 }, { x: 610, y: roadY - 125, w: 90 },
-     { x: 810, y: roadY - 80, w: 105 }, { x: 1030, y: roadY - 110, w: 95 }, { x: 1230, y: roadY - 75, w: 110 },
-     { x: 1440, y: roadY - 140, w: 88 }, { x: 1650, y: roadY - 90, w: 100 },
-     { x: 2100, y: roadY - 80, w: 110 }, { x: 2300, y: roadY - 125, w: 90 }, { x: 2500, y: roadY - 90, w: 100 }
-    ].forEach(p => platforms.push({ ...p, h: 20, type: 'platform' }));
-
-    // Plataformas pozo
-    const spy = [CEIL_Y - 340, CEIL_Y - 680, CEIL_Y - 1020, CEIL_Y - 1360, CEIL_Y - 1700, CEIL_Y - 2040, CEIL_Y - 2380];
-    spy.forEach((py, i) => {
-      // Plataformas alternadas izquierda/derecha
-      // Límite: la plataforma derecha NO puede pasar de HORIZ_END - 60 (pared sólida empieza en HORIZ_END - 50)
-      const platformMaxX = HORIZ_END - 60; // dejar 60px de margen para la pared sólida
-      const leftPlatformX = SHAFT_L + 8;
-      const rightPlatformBaseX = SHAFT_L + SHAFT_W - 108; // posición original
-      // Ajustar ancho para que no pase del límite
-      const maxWidth = platformMaxX - rightPlatformBaseX;
-      const platformW = Math.min(100, maxWidth);
-      const px = i % 2 === 0 ? leftPlatformX : rightPlatformBaseX;
-      platforms.push({ x: px, y: py, w: platformW, h: 20, type: 'platform' });
-      // Enemigos en plataformas
-      const eType = i % 2 === 0 ? 'bat' : 'spider';
+    // Spawn enemies from ENTITY_DEFS
+    ENTITY_DEFS.enemies.forEach(def => {
+      const ex = def.col * TILE_SIZE + TILE_SIZE / 2;
+      const ey = def.row * TILE_SIZE + TILE_SIZE / 2;
+      const pr = def.patrolRange * TILE_SIZE;
       enemies.push({
-        x: px + 50, y: eType === 'spider' ? py - 20 : py - 50,
-        w: 28, h: 28, type: eType, hp: eType === 'spider' ? 2 : 1, vx: eType === 'spider' ? 1.0 : 1.3,
-        minX: px, maxX: px + 100, dead: false, deathT: 0,
-        emoji: eType === 'spider' ? '🕷️' : '🦇', phase: Math.random() * Math.PI * 2,
-        baseY: eType === 'spider' ? py - 20 : py - 50
-      });
-
-      // Enemigos adicionales "voladores" o que patrullan el aire del pozo
-      if (i < spy.length - 1) {
-        const midY = (spy[i] + spy[i+1]) / 2;
-        enemies.push({
-          x: SHAFT_L + 50 + Math.random() * (SHAFT_W - 100), y: midY,
-          w: 24, h: 24, type: 'bat', hp: 1, vx: 1.5,
-          minX: SHAFT_L + 20, maxX: SHAFT_R - 20, dead: false, deathT: 0,
-          emoji: '🦇', phase: Math.random() * Math.PI * 2, baseY: midY
-        });
-      }
-    });
-
-    // Arañas colgando en el pozo
-    [CEIL_Y - 500, CEIL_Y - 1200, CEIL_Y - 1900].forEach(cy => {
-      enemies.push({
-        x: SHAFT_L + 30 + Math.random() * (SHAFT_W - 60), y: cy,
-        w: 26, h: 26, type: 'spider', hp: 2, vx: 0.8,
-        minX: SHAFT_L + 20, maxX: SHAFT_R - 20, dead: false, deathT: 0,
-        emoji: '🕷️', phase: Math.random() * Math.PI * 2, baseY: cy
+        x: ex, y: ey, w: 28, h: 28, type: def.type,
+        hp: def.hp, vx: def.type === 'spider' ? 1.0 : 1.3,
+        minX: ex - pr, maxX: ex + pr, dead: false, deathT: 0,
+        emoji: def.type === 'spider' ? '🕷️' : '🦇',
+        phase: Math.random() * Math.PI * 2,
+        baseY: ey
       });
     });
 
-    // Paredes de ladrillo
-    const bw = (x, hp = 2) => brickWalls.push({ x, y: CEIL_Y, w: 28, h: roadY - CEIL_Y, hp, dead: false, hit: 0 });
-    bw(500, 2); bw(920, 2); bw(1340, 3); bw(1960, 2); bw(2250, 3); bw(2450, 2);
+    // Spawn fire obstacles
+    ENTITY_DEFS.fires.forEach(def => {
+      obstacles.push({
+        x: def.col * TILE_SIZE, y: def.row * TILE_SIZE - 4,
+        w: 36, h: 36, type: 'fire', dead: false, hint: false, ff: 0
+      });
+    });
 
-    // Fuegos
-    [660, 1100, 1560, 2020, 2440].forEach(x =>
-      obstacles.push({ x, y: roadY - 20, w: 36, h: 36, type: 'fire', dead: false, hint: false, ff: 0 }));
+    // Spawn puddles
+    ENTITY_DEFS.puddles.forEach(def => {
+      puddles.push({
+        x: def.col * TILE_SIZE, y: def.row * TILE_SIZE + 2,
+        w: def.w * TILE_SIZE, h: 14, active: true
+      });
+    });
 
-    // Charcos iniciales
-    [700, 1320].forEach(x => puddles.push({ x, y: roadY + 2, w: 80, h: 14, active: true }));
-
-    // Enemigos comunes
-    [270, 580, 1000, 1330, 2050, 2380, 2680].forEach((x, i) => enemies.push({
-      x, y: i % 2 === 0 ? roadY - 20 : roadY - CEIL_H * .55,
-      w: 28, h: 28, type: i % 2 === 0 ? 'spider' : 'bat',
-      hp: i % 2 === 0 ? 2 : 1, vx: i % 2 === 0 ? 1.0 : 1.3,
-      minX: x - 80, maxX: x + 80, dead: false, deathT: 0,
-      emoji: i % 2 === 0 ? '🕷️' : '🦇', phase: Math.random() * Math.PI * 2, baseY: i % 2 === 0 ? roadY - 20 : roadY - CEIL_H * .55
-    }));
-
-    // Jefe: araña gigante al final, antes del pozo
+    // Spawn boss
+    const bd = ENTITY_DEFS.boss;
     boss = {
-      x: 2700, y: CEIL_Y + 50, w: 60, h: 60,
-      hp: 20, maxHp: 20,
-      vx: 1.0, minX: 2500, maxX: 3350,
+      x: bd.col * TILE_SIZE, y: bd.hangFromRow * TILE_SIZE + TILE_SIZE,
+      w: 60, h: 60, hp: bd.hp, maxHp: bd.maxHp,
+      vx: 1.0, minX: bd.patrolMin * TILE_SIZE, maxX: bd.patrolMax * TILE_SIZE,
       dead: false, emoji: '🕷️', phase: 0, agro: false,
-      fury: false, poisonCd: 0, baseY: roadY - 50, state: 'hanging',
-      webY: CEIL_Y
+      fury: false, poisonCd: 0,
+      baseY: bd.row * TILE_SIZE - 30,
+      state: 'hanging',
+      webY: bd.hangFromRow * TILE_SIZE
     };
 
     makeStalactites();
   }
 
   function initPlayer() {
+    const sx = ENTITY_DEFS.spawn.col * TILE_SIZE + TILE_SIZE / 2;
+    const sy = ENTITY_DEFS.spawn.row * TILE_SIZE;
     player = {
-      x: 100, y: roadY - 40, vx: 0, vy: 0, w: 40, h: 40,
+      x: sx, y: sy, vx: 0, vy: 0, w: 30, h: 30,
       onGround: true, jumpCount: 0, maxJumps: 2, rotation: 0,
       alive: true, invincible: false, invincibleTimer: 0, facingRight: true, rideBubble: null
     };
@@ -507,18 +500,8 @@
   // ── FÍSICA ─────────────────────────────────
   const gravity = 0.5, PSPEED = 5;
 
-  // Determinar zona del jugador para renderizado correcto (mapa forma L invertida)
+  // Determinar zona del jugador — now uniform since tilemap handles all terrain
   function getZone() {
-    if (!player) return 'cave';
-    const px = player.x, py = player.y;
-    // Dentro del pozo: eje X entre SHAFT_L y SHAFT_R Y cabeza bajo el techo
-    if (px > SHAFT_L && px < SHAFT_R && py - player.h / 2 < CEIL_Y) {
-      return 'shaft';
-    }
-    // Después de la pared sólida (más allá de HORIZ_END - 50)
-    if (px > HORIZ_END - 20) {
-      return 'pastWall';
-    }
     return 'cave';
   }
 
@@ -540,75 +523,122 @@
     }
 
     if (frameCount % 200 === 0) { energy = Math.max(0, energy - 2); updateHUD(); }
+
+    // ── TILEMAP COLLISION ──────────────────────
+    const hw = player.w / 2, hh = player.h / 2;
+
+    // Horizontal movement + tile collision
     player.x += player.vx;
+    {
+      const left  = Math.floor((player.x - hw) / TILE_SIZE);
+      const right = Math.floor((player.x + hw - 1) / TILE_SIZE);
+      const top   = Math.floor((player.y - hh + 2) / TILE_SIZE);
+      const bot   = Math.floor((player.y + hh - 2) / TILE_SIZE);
+      for (let r = top; r <= bot; r++) {
+        for (let c = left; c <= right; c++) {
+          if (isSolid(c, r)) {
+            if (player.vx > 0) { player.x = c * TILE_SIZE - hw; }
+            else if (player.vx < 0) { player.x = (c + 1) * TILE_SIZE + hw; }
+            player.vx = 0;
+          }
+        }
+      }
+    }
+
+    // Vertical movement + tile collision
     player.y += player.vy;
     player.rotation += player.vx * 0.02;
-    if (player.x < 20) { player.x = 20; player.vx = 0; }
-
-    // =====================================================
-    // COLISIÓN CON PARED SÓLIDA (zona derecha del mapa)
-    // La pared sólida se dibuja desde HORIZ_END-50 = 3350
-    // Solo bloquear si el jugador intenta IR hacia la pared (no salir de ella)
-    // =====================================================
-    const WALL_X = HORIZ_END - 50; // 3350
-    const PLAYER_RIGHT_LIMIT = WALL_X - 1;
-    const movingRight = keys.right || player.vx > 0;
-    if (player.x > SHAFT_L && player.x + player.w / 2 > PLAYER_RIGHT_LIMIT && movingRight) {
-      player.x = PLAYER_RIGHT_LIMIT - player.w / 2;
-      player.vx = 0;
-    }
-
-    // Detectar si el jugador está estrictamente DENTRO del pozo (no en la entrada)
-    const strictInShaft = player.x > SHAFT_L + 8 && player.x < SHAFT_R - 8;
-    // Verificar si la cabeza del jugador está bajo el techo Y el jugador está cayendo
-    const inShaftArea = player.y + player.h / 2 < CEIL_Y && player.vy >= 0;
-
-    // COLISIÓN CON TECHO - cuando NO está dentro del pozo, está bajo el techo
-    // EXCEPTO: permitir que el jugador pase la entrada al pozo (SHAFT_L - 50 a SHAFT_L + 8)
-    const atEntrance = player.x > SHAFT_L - 50 && player.x <= SHAFT_L + 8;
-    const playerTop = player.y - player.h / 2;
-    if (!strictInShaft && playerTop < CEIL_Y && !atEntrance) {
-      player.y = CEIL_Y + player.h / 2;
-      player.vy = Math.max(0, player.vy);
-      if (player.rideBubble) {
-        player.rideBubble.dead = true;
-        player.rideBubble = null;
-        spawnParts(player.x, player.y, '#bfdbfe', 8, '🫧');
-      }
-    }
-
-    // COLISIÓN CON PARED IZQUIERDA DEL POZO (cuando está DENTRO del pozo)
-    if (strictInShaft) {
-      if (player.x - player.w / 2 < SHAFT_L) {
-        player.x = SHAFT_L + player.w / 2;
-        player.vx = 0;
-      }
-    }
 
     const _was = player.onGround;
     player.onGround = false;
     let landedThisFrame = false;
 
-    // Suelo (solo en los extremos, el abismo no tiene suelo)
-    if (player.y + player.h / 2 >= roadY && player.vy >= 0) {
-      // Verificar si está sobre el abismo (zona sin suelo)
-      if (player.x + player.w / 2 > abyssX && player.x - player.w / 2 < abyssX + abyssW) {
-        // Está en el abismo, no debe tocar suelo
-      } else {
-        player.y = roadY - player.h / 2; player.vy = 0;
-        if (!_was && !landedThisFrame) { SFX_land(); landedThisFrame = true; }
-        player.onGround = true; player.jumpCount = 0;
+    {
+      const left  = Math.floor((player.x - hw + 2) / TILE_SIZE);
+      const right = Math.floor((player.x + hw - 2) / TILE_SIZE);
+      const top   = Math.floor((player.y - hh) / TILE_SIZE);
+      const bot   = Math.floor((player.y + hh - 1) / TILE_SIZE);
+      for (let r = top; r <= bot; r++) {
+        for (let c = left; c <= right; c++) {
+          if (isSolid(c, r)) {
+            if (player.vy > 0) {
+              player.y = r * TILE_SIZE - hh;
+              player.vy = 0;
+              if (!_was && !landedThisFrame) { SFX_land(); landedThisFrame = true; }
+              player.onGround = true; player.jumpCount = 0;
+            } else if (player.vy < 0) {
+              player.y = (r + 1) * TILE_SIZE + hh;
+              player.vy = 0;
+              if (player.rideBubble) {
+                player.rideBubble.dead = true; player.rideBubble = null;
+                spawnParts(player.x, player.y, '#bfdbfe', 8, '🫧');
+              }
+            }
+          }
+          // One-way platform collision (only when falling)
+          if (isOneWay(c, r) && player.vy > 0) {
+            const platTop = r * TILE_SIZE;
+            if (player.y + hh > platTop && player.y + hh < platTop + TILE_SIZE * 0.6) {
+              player.y = platTop - hh;
+              player.vy = 0;
+              if (!_was && !landedThisFrame) { SFX_land(); landedThisFrame = true; }
+              player.onGround = true; player.jumpCount = 0;
+            }
+          }
+        }
       }
     }
 
-    // Plataformas
-    for (const p of platforms) {
-      if (p.type === 'ground') continue;
-      if (player.x + player.w / 2 > p.x && player.x - player.w / 2 < p.x + p.w &&
-          player.y + player.h / 2 > p.y && player.y + player.h / 2 < p.y + p.h && player.vy > 0) {
-        player.y = p.y - player.h / 2; player.vy = 0;
-        if (!_was && !landedThisFrame) { SFX_land(); landedThisFrame = true; }
-        player.onGround = true; player.jumpCount = 0;
+    // Clamp to world bounds
+    if (player.x < hw) { player.x = hw; player.vx = 0; }
+    if (player.x > WORLD_W - hw) { player.x = WORLD_W - hw; player.vx = 0; }
+
+    // ── ABYSS check (tilemap-based) ──
+    {
+      const pc = Math.floor(player.x / TILE_SIZE);
+      const pr = Math.floor((player.y + hh) / TILE_SIZE);
+      if (isAbyss(pc, pr) && !player.rideBubble) {
+        if (!player.fallingAbyss) {
+          player.fallingAbyss = true;
+          player.fallingTimer = 18;
+          SFX_hurt(); takeDamage();
+          toast('🕳️ ¡Caíste al abismo!');
+        }
+      }
+    }
+    if (player.fallingAbyss) {
+      player.fallingTimer--;
+      player.vy = 8; player.vx = 0;
+      if (player.fallingTimer <= 0) {
+        player.fallingAbyss = false;
+        // Respawn at spawn point
+        player.x = ENTITY_DEFS.spawn.col * TILE_SIZE + TILE_SIZE / 2;
+        player.y = ENTITY_DEFS.spawn.row * TILE_SIZE;
+        player.vy = -3;
+      }
+      return;
+    }
+
+    // ── EXIT check (tilemap-based) ──
+    {
+      const pc = Math.floor(player.x / TILE_SIZE);
+      const pr = Math.floor(player.y / TILE_SIZE);
+      if (isExit(pc, pr)) { triggerWin(); return; }
+    }
+
+    // ── BRICK WALL collision (from tilemap, hint on touch) ──
+    {
+      const left  = Math.floor((player.x - hw) / TILE_SIZE);
+      const right = Math.floor((player.x + hw) / TILE_SIZE);
+      const top   = Math.floor((player.y - hh) / TILE_SIZE);
+      const bot   = Math.floor((player.y + hh) / TILE_SIZE);
+      for (let r = top; r <= bot; r++) {
+        for (let c = left; c <= right; c++) {
+          if (getTile(c, r) === TILE.BRICK && !player._brickHint) {
+            player._brickHint = true;
+            toast('🧱 Pared — usa 💣 para romperla');
+          }
+        }
       }
     }
 
@@ -622,59 +652,15 @@
     if (atkPressed) doAction();
     prevKeys.jump = keys.jump; prevKeys.attack = keys.attack;
 
-    // Obstáculos
+    // Obstáculos (fire)
     for (const o of obstacles) {
       if (o.dead) continue;
-      if (player.x + player.w / 2 > o.x && player.x - player.w / 2 < o.x + o.w &&
-          player.y + player.h / 2 > o.y && player.y - player.h / 2 < o.y + o.h) {
-        if (player.x < o.x + o.w / 2) player.x = o.x - player.w / 2 - 1; else player.x = o.x + o.w + player.w / 2 + 1;
+      if (player.x + hw > o.x && player.x - hw < o.x + o.w &&
+          player.y + hh > o.y && player.y - hh < o.y + o.h) {
+        if (player.x < o.x + o.w / 2) player.x = o.x - hw - 1; else player.x = o.x + o.w + hw + 1;
         player.vx = 0;
         if (!player.invincible && o.type === 'fire') takeDamage();
       }
-    }
-
-    // Paredes ladrillo
-    for (const bw of brickWalls) {
-      if (bw.dead) continue;
-      if (player.x + player.w / 2 > bw.x && player.x - player.w / 2 < bw.x + bw.w &&
-          player.y + player.h / 2 > bw.y && player.y - player.h / 2 < bw.y + bw.h) {
-        if (player.x < bw.x + bw.w / 2) { player.x = bw.x - player.w / 2 - 1; }
-        else { player.x = bw.x + bw.w + player.w / 2 + 1; }
-        player.vx = 0;
-        if (!bw.hintShown) { bw.hintShown = true; toast('🧱 Pared — usa 💣 para romperla'); }
-      }
-    }
-
-    // ABISMO: quita un corazón y teletransporta al borde izquierdo
-    if (!player.rideBubble && // si va en burbuja no cae
-        player.x + player.w / 2 > abyssX && player.x - player.w / 2 < abyssX + abyssW &&
-        player.y + player.h / 2 > roadY + 5) { // cayendo en el hueco
-      
-      if (!player.fallingAbyss) {
-        player.fallingAbyss = true;
-        player.fallingTimer = 18; // Milisegundos representados en frames (aprox 300ms)
-        SFX_hurt();
-        takeDamage();
-        toast('🕳️ Caíste al abismo...');
-      }
-    }
-
-    if (player.fallingAbyss) {
-      player.fallingTimer--;
-      player.vy = 8; // Forzar caída
-      player.vx = 0;
-      if (player.fallingTimer <= 0) {
-        player.fallingAbyss = false;
-        // Teletransportar al borde izquierdo
-        player.x = abyssX - player.w / 2 - 5;
-        player.y = roadY - player.h / 2 - 20;
-        player.vy = -3;
-      }
-      return; // Saltarse el resto del update si está cayendo
-    }
-
-    if (!inShaft && Math.abs(player.x - abyssX) < 200 && !player._abyssHint) {
-      player._abyssHint = true; toast('🕳️ Abismo — necesitas 🌬️ y saltar para cruzar');
     }
 
     // Charcos
@@ -802,32 +788,32 @@
       }
     }
 
-    // Victoria
-    if (player.y < SHAFT_TOP_Y + 55 && player.x > SHAFT_L && player.x < SHAFT_R) { triggerWin(); return; }
+    // Victory is now handled by EXIT tile check above
 
-    if (player.y > roadY + 400) { player.alive = false; setTimeout(showDead, 350); return; }
+    // Death from falling out of world
+    if (player.y > WORLD_H + 100) { player.alive = false; setTimeout(showDead, 350); return; }
 
-    inShaft = player.y - player.h / 2 < CEIL_Y;
+    inShaft = (getZoneName() === "☁️ Camino Superior");
     
+    // ── FREE 2D CAMERA ──────────────────────────
     let targetCamX, targetCamY;
     
     if (cinematicActive) {
-      // Zoom/Enfoque en la araña
       targetCamX = boss.x - canvas.width / 2;
       targetCamY = boss.y - canvas.height / 2;
     } else {
-      if (player.x > SHAFT_L - canvas.width / 2) {
-        targetCamX = SHAFT_L + SHAFT_W / 2 - canvas.width / 2;
-      } else {
-        targetCamX = Math.max(0, Math.min(player.x - canvas.width / 3, HORIZ_END - canvas.width));
-      }
-      targetCamY = Math.min(0, player.y - canvas.height * 0.65);
+      targetCamX = player.x - canvas.width / 2;
+      targetCamY = player.y - canvas.height * 0.45;
     }
     
-    cameraX += (targetCamX - cameraX) * 0.08; // Más suave para la cinemática
-    cameraY += (targetCamY - cameraY) * 0.08;
+    // Clamp camera to world bounds
+    targetCamX = Math.max(0, Math.min(targetCamX, WORLD_W - canvas.width));
+    targetCamY = Math.max(0, Math.min(targetCamY, WORLD_H - canvas.height));
+    
+    cameraX += (targetCamX - cameraX) * 0.1;
+    cameraY += (targetCamY - cameraY) * 0.1;
 
-    document.getElementById('zone-hud').textContent = inShaft ? '↑ Pozo — usa 🫧' : (player.x > HORIZ_END - 320 ? '🧱 Pared — busca el pozo' : '🕳️ Cueva');
+    document.getElementById('zone-hud').textContent = getZoneName();
   }
 
   function hitBoss(dmg) {
@@ -863,11 +849,10 @@
         e.phase += 0.025; e.y = e.baseY + Math.sin(e.phase) * 45; e.x += e.vx + wp; 
       } else {
         let newVx = e.vx + wp * 0.6;
-        for (const bw of brickWalls) {
-          if (!bw.dead && e.x + newVx + e.w/2 > bw.x && e.x + newVx - e.w/2 < bw.x + bw.w &&
-              e.y + e.h/2 > bw.y && e.y - e.h/2 < bw.y + bw.h) {
-            newVx *= -1; e.vx *= -1; break;
-          }
+        const col = Math.floor((e.x + newVx + (newVx > 0 ? e.w/2 : -e.w/2)) / TILE_SIZE);
+        const row = Math.floor(e.y / TILE_SIZE);
+        if (isSolid(col, row)) {
+          newVx *= -1; e.vx *= -1;
         }
         e.x += newVx;
       }
@@ -931,24 +916,27 @@
         projectiles.splice(i, 1); hit = true; continue;
       }
 
-      // Paredes ladrillo
-      let bwHit = false;
-      for (const bw of brickWalls) {
-        if (bw.dead) continue;
-        if (p.x > bw.x - 10 && p.x < bw.x + bw.w + 10 && p.y > bw.y - 10 && p.y < bw.y + bw.h + 10) {
-          if (p.type === 'bomb') {
-            explode(p.x, p.y); bw.hp--; bw.hit = 8;
-            if (bw.hp <= 0) { bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 14, '🧱'); toast('💥 ¡Pared destruida!'); }
-          }
-          projectiles.splice(i, 1); bwHit = true; break;
+      // Check tile hits (bricks)
+      const pc = Math.floor(p.x / TILE_SIZE);
+      const pr = Math.floor(p.y / TILE_SIZE);
+      if (getTile(pc, pr) === TILE.BRICK) {
+        if (p.type === 'bomb') {
+          explode(p.x, p.y);
+          breakBrick(pc, pr);
+          toast('💥 ¡Pared destruida!');
         }
+        projectiles.splice(i, 1);
+        continue;
+      } else if (isSolid(pc, pr)) { // Just solid ground
+        if (p.type === 'bomb') explode(p.x, p.y);
+        projectiles.splice(i, 1);
+        continue;
       }
-      if (bwHit) continue;
 
-      // Obstáculos
+      // Obstáculos (culling and world culling already check range)
       for (const o of obstacles) {
         if (o.dead) continue;
-        if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 2 - p.y) < 28) {
+        if (Math.abs(o.x + 18 - p.x) < 36 && Math.abs(o.y + 18 - p.y) < 36) {
           if (o.type === 'rock' && p.type === 'bomb') { explode(p.x, p.y); o.dead = true; toast('💥 ¡Roca destruida!'); }
           else if (o.type === 'fire' && p.type === 'water') { o.dead = true; SFX_splash(); spawnParts(o.x + 18, o.y, '#60a5fa', 10, '💦'); toast('💦 Fuego apagado'); }
           else if (o.type === 'fire' && p.type === 'bomb') { spreadFireFrom(o.x, o.y); explode(p.x, p.y); toast('🔥 ¡El fuego se expandió!'); }
@@ -969,9 +957,8 @@
     let added = 0;
     for (const off of offsets) {
       const nx = originX + off.dx;
-      const ny = roadY - 20;
-      if (nx < 40 || nx > HORIZ_END - 40) continue;
-      if (nx + 18 > abyssX && nx < abyssX + abyssW) continue;
+      const ny = originY; 
+      if (nx < 40 || nx > WORLD_W - 40) continue;
       const tooClose = obstacles.some(o => !o.dead && o.type === 'fire' && Math.abs(o.x - nx) < 60);
       if (tooClose) continue;
       obstacles.push({ x: nx, y: ny, w: 36, h: 36, type: 'fire', dead: false, hint: false, ff: 0 });
@@ -984,17 +971,23 @@
   function explode(x, y) {
     SFX_boom(); spawnParts(x, y, '#f97316', 18, '💥'); spawnParts(x, y, '#fbbf24', 8);
     enemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 85) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); } });
-    // Al explotar cerca del fuego, este se expande
+    // Expansion effects for local fires
     obstacles.forEach(o => { 
       if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) { 
         spreadFireFrom(o.x, o.y); 
       } 
     });
-    brickWalls.forEach(bw => {
-      if (!bw.dead && Math.hypot(bw.x + bw.w / 2 - x, bw.y + bw.h / 2 - y) < 80) {
-        bw.hp = 0; bw.dead = true; spawnParts(bw.x + bw.w / 2, bw.y + bw.h / 2, '#c68642', 10, '🧱');
+    // Radius demolition on tilemap
+    const radius = 2; // tiles
+    const cx = Math.floor(x / TILE_SIZE);
+    const cy = Math.floor(y / TILE_SIZE);
+    for (let r = cy - radius; r <= cy + radius; r++) {
+      for (let c = cx - radius; c <= cx + radius; c++) {
+        if (getTile(c, r) === TILE.BRICK) {
+          breakBrick(c, r);
+        }
       }
-    });
+    }
     if (boss && !boss.dead && Math.hypot(boss.x - x, boss.y - y) < 100) {
       hitBoss(3);
     }
@@ -1120,149 +1113,111 @@
   function drawBackground() {
     const W = canvas.width, H = canvas.height;
     if (W <= 0 || H <= 0) return;
-
-    // Fondo según zona: normal, cerca entrada pozo, dentro pozo
-    const zone = getZone();
-    
-    if (zone === 'shaft') {
-      ctx.fillStyle = '#1a1209';
-      ctx.fillRect(0, 0, W, H);
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#2d1f10');
-      g.addColorStop(0.3, '#1a1209');
-      g.addColorStop(1, '#0a0804');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-    } else {
-      ctx.fillStyle = '#060402';
-      ctx.fillRect(0, 0, W, H);
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#0a0705');
-      g.addColorStop(1, '#000000');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-    }
+    ctx.fillStyle = '#060402';
+    ctx.fillRect(0, 0, W, H);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0a0705');
+    g.addColorStop(1, '#000000');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   function drawCaveStructure() {
-    const rdy = DY(roadY), cly = DY(CEIL_Y), W = canvas.width, H = canvas.height;
-    const zone = getZone();
-
-    if (zone === 'shaft') {
-      ctx.fillStyle = '#1a1208';
-      ctx.fillRect(0, 0, W, cly + 5);
-      ctx.fillStyle = '#1a1208';
-      ctx.fillRect(0, rdy - 5, W, H - rdy + 30);
-      return;
-    }
-
-    ctx.fillStyle = '#0a0705';
-    ctx.fillRect(0, 0, W, cly + 5);
-
-    const abyssStartX = DX(abyssX);
-    const abyssEndX = DX(abyssX + abyssW);
-
-    if (abyssEndX < 0 || abyssStartX > W) {
-      ctx.fillRect(0, rdy - 5, W, H - rdy + 30);
-    } else {
-      if (abyssStartX > 0) ctx.fillRect(0, rdy - 5, abyssStartX, H - rdy + 30);
-      if (abyssEndX < W) ctx.fillRect(abyssEndX, rdy - 5, W - abyssEndX, H - rdy + 30);
-    }
-
-    ctx.fillStyle = '#1a110a';
-    for (let x = -cameraX % 150; x < W; x += 150) {
-      const worldX = x + cameraX;
-      const onAbyss = worldX > abyssX && worldX < abyssX + abyssW;
-      ctx.beginPath(); ctx.moveTo(x, cly); ctx.lineTo(x + 50, cly + 18); ctx.lineTo(x + 100, cly); ctx.fill();
-      if (!onAbyss) {
-        ctx.beginPath(); ctx.moveTo(x + 20, rdy); ctx.lineTo(x + 70, rdy - 12); ctx.lineTo(x + 120, rdy); ctx.fill();
+    if (!tileMap) return;
+    const W = canvas.width, H = canvas.height;
+    const startCol = Math.max(0, Math.floor(cameraX / TILE_SIZE));
+    const endCol = Math.min(MAP_COLS - 1, Math.floor((cameraX + W) / TILE_SIZE));
+    const startRow = Math.max(0, Math.floor(cameraY / TILE_SIZE));
+    const endRow = Math.min(MAP_ROWS - 1, Math.floor((cameraY + H) / TILE_SIZE));
+    
+    for (let r = startRow; r <= endRow; r++) {
+      for (let c = startCol; c <= endCol; c++) {
+        const t = tileMap[r][c];
+        if (t === TILE.AIR) continue;
+        const sx = Math.round(c * TILE_SIZE - cameraX);
+        const sy = Math.round(r * TILE_SIZE - cameraY);
+        
+        if (t === TILE.STONE) {
+          const shade = ((c * 7 + r * 13) % 3);
+          ctx.fillStyle = shade === 0 ? '#1a130d' : shade === 1 ? '#15100a' : '#120e08';
+          ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+          if (r > 0 && tileMap[r-1][c] !== TILE.STONE && tileMap[r-1][c] !== TILE.BRICK) {
+            ctx.fillStyle = '#2d1e10'; ctx.fillRect(sx, sy, TILE_SIZE, 3);
+          }
+          if (c > 0 && tileMap[r][c-1] !== TILE.STONE && tileMap[r][c-1] !== TILE.BRICK) {
+            ctx.fillStyle = '#2d1e10'; ctx.fillRect(sx, sy, 2, TILE_SIZE);
+          }
+          if (c < MAP_COLS-1 && tileMap[r][c+1] !== TILE.STONE && tileMap[r][c+1] !== TILE.BRICK) {
+            ctx.fillStyle = '#2d1e10'; ctx.fillRect(sx + TILE_SIZE - 2, sy, 2, TILE_SIZE);
+          }
+        } else if (t === TILE.PLATFORM) {
+          ctx.fillStyle = '#7a6248';
+          ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE * 0.55);
+          ctx.fillStyle = '#c68642';
+          ctx.fillRect(sx, sy, TILE_SIZE, 3);
+          ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(sx + TILE_SIZE/2, sy); ctx.lineTo(sx + TILE_SIZE/2, sy + TILE_SIZE * 0.55); ctx.stroke();
+        } else if (t === TILE.BRICK) {
+          ctx.fillStyle = '#8b4513';
+          ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+          ctx.fillStyle = 'rgba(20,10,3,.6)';
+          ctx.fillRect(sx, sy, TILE_SIZE, 2);
+          ctx.fillRect(sx, sy + TILE_SIZE/2, TILE_SIZE, 2);
+          const off = r % 2 ? TILE_SIZE/2 : TILE_SIZE/4;
+          ctx.fillRect(sx + off, sy, 2, TILE_SIZE);
+          ctx.fillStyle = 'rgba(255,170,90,.12)';
+          ctx.fillRect(sx + 3, sy + 3, TILE_SIZE - 6, 6);
+          ctx.strokeStyle = 'rgba(40,20,5,.6)'; ctx.lineWidth = 1;
+          ctx.strokeRect(sx, sy, TILE_SIZE, TILE_SIZE);
+        } else if (t === TILE.ABYSS) {
+          ctx.fillStyle = '#020101';
+          ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+          const pulse = .15 + .1 * Math.sin(frameCount * .08 + c * .5);
+          ctx.fillStyle = `rgba(255,50,30,${pulse})`;
+          ctx.fillRect(sx, sy, TILE_SIZE, 2);
+        } else if (t === TILE.STALACTITE) {
+          const h = 12 + ((c * 7 + r * 3) % 20);
+          ctx.fillStyle = '#2d1e10';
+          ctx.beginPath();
+          ctx.moveTo(sx + TILE_SIZE/2 - 6, sy);
+          ctx.lineTo(sx + TILE_SIZE/2, sy + h);
+          ctx.lineTo(sx + TILE_SIZE/2 + 6, sy);
+          ctx.fill();
+        } else if (t === TILE.EXIT) {
+          const pulse = .5 + .5 * Math.sin(frameCount * .08);
+          ctx.save();
+          ctx.shadowColor = '#fff8c0'; ctx.shadowBlur = 20 + pulse * 10;
+          ctx.fillStyle = `rgba(255,248,180,${.3 + pulse * .3})`;
+          ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+          ctx.restore();
+        }
       }
-    }
-
-    ctx.fillStyle = '#2d1e10';
-    for (let i = 0; i < 15; i++) {
-      const sx = ((i * 137 - cameraX * 0.2) % (W + 100) + W + 100) % (W + 100) - 50;
-      ctx.beginPath(); ctx.moveTo(sx - 5, cly); ctx.lineTo(sx, cly + 25); ctx.lineTo(sx + 5, cly); ctx.fill();
-    }
-
-    // PARED SÓLIDA FINAL - dibujar si está visible en pantalla
-    const wallXStart = DX(HORIZ_END - 50);
-    if (wallXStart > -50 && wallXStart < W) {
-      ctx.fillStyle = '#120c07';
-      ctx.fillRect(wallXStart, 0, Math.max(0, W - wallXStart), H);
-      ctx.fillStyle = '#1a130d';
-      for (let k = 0; k < H; k += 40) {
-        ctx.fillRect(wallXStart + 5, k, 12, 35);
-      }
-      ctx.fillStyle = '#2d2115';
-      ctx.fillRect(wallXStart, 0, 6, H);
     }
   }
 
   function drawPlatforms() {
-    for (const p of platforms) {
-      if (p.type === 'ground') continue;
-      const dx = DX(p.x), dy = DY(p.y); const { w, h } = p;
-      if (dx > canvas.width + 80 || dx + w < -80 || dy > canvas.height + 30 || dy + h < -50) continue;
-      ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.roundRect(dx + 4, dy + 6, w, h + 4, 4); ctx.fill();
-      const sg = ctx.createLinearGradient(dx, dy, dx, dy + h);
-      sg.addColorStop(0, '#7a6248'); sg.addColorStop(.4, '#5e4a32'); sg.addColorStop(1, '#3d2e1a');
-      ctx.fillStyle = sg; ctx.beginPath(); ctx.roundRect(dx, dy, w, h, 3); ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1;
-      for (let bx = 0; bx < w; bx += 22) { ctx.beginPath(); ctx.moveTo(dx + bx, dy); ctx.lineTo(dx + bx, dy + h); ctx.stroke(); }
-      ctx.beginPath(); ctx.moveTo(dx, dy + h * .5); ctx.lineTo(dx + w, dy + h * .5); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.roundRect(dx + 2, dy + 2, w - 4, h * .35, 2); ctx.fill();
-      const mg = ctx.createLinearGradient(dx, dy - 6, dx, dy + 6);
-      mg.addColorStop(0, '#c68642'); mg.addColorStop(.5, '#a06832'); mg.addColorStop(1, '#6b4520');
-      ctx.fillStyle = mg; ctx.beginPath(); ctx.roundRect(dx, dy - 4, w, 8, [4, 4, 0, 0]); ctx.fill();
-      ctx.strokeStyle = 'rgba(198,134,66,.55)'; ctx.lineWidth = 1.2;
-      for (let tx = 4; tx < w - 4; tx += 9) {
-        ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.moveTo(dx + tx, dy - 4); ctx.lineTo(dx + tx - 1, dy - 10);
-        ctx.moveTo(dx + tx, dy - 4); ctx.lineTo(dx + tx + 2, dy - 8); ctx.stroke();
-      } ctx.globalAlpha = 1;
-    }
+    // Platforms are now rendered by drawCaveStructure (tilemap)
   }
 
   function drawCaveFloor() {
-    const W = canvas.width, rdy = DY(roadY), H = canvas.height;
-    if (rdy > H + 5) return;
-
-    const zone = getZone();
-
-    if (zone === 'shaft') {
-      ctx.fillStyle = '#1a1208';
-      ctx.fillRect(0, rdy, W, H - rdy + 30);
-      ctx.strokeStyle = '#2d1f12';
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, rdy); ctx.lineTo(W, rdy); ctx.stroke();
-      return;
-    }
-
-    // Suelo normal de cueva oscura
-    ctx.fillStyle = '#0a0805';
-    ctx.fillRect(0, rdy, W, H - rdy + 30);
-    
-    // Línea de horizonte de suelo nítida
-    ctx.strokeStyle = '#2d1e10';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, rdy); ctx.lineTo(W, rdy); ctx.stroke();
-
+    // Puddles only — floor is tilemap
     for (const pu of puddles) {
       if (!pu.active) continue;
-      const dx = DX(pu.x); if (dx > W + 60 || dx + pu.w < -60) continue;
+      const dx = DX(pu.x), dy = DY(pu.y);
+      if (dx > canvas.width + 60 || dx + pu.w < -60) continue;
       ctx.save();
       ctx.fillStyle = 'rgba(56,189,248,0.45)';
-      ctx.beginPath(); ctx.ellipse(dx + pu.w / 2, rdy + pu.h / 2 + 2, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(dx + pu.w / 2, dy + pu.h / 2, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
       ctx.font = '11px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('💧', dx + pu.w / 2, rdy + pu.h / 2 + 2); ctx.restore();
+      ctx.fillText('💧', dx + pu.w / 2, dy + pu.h / 2); ctx.restore();
     }
   }
 
   function drawObstacles() {
-    if (inShaft) return;
     for (const o of obstacles) {
       if (o.dead) continue;
-      const dx = DX(o.x), dy = DY(o.y); if (dx > canvas.width + 60 || dx + o.w < -60) continue;
+      const dx = DX(o.x), dy = DY(o.y);
+      if (dx > canvas.width + 60 || dx + o.w < -60 || dy > canvas.height + 60 || dy < -60) continue;
       if (Math.abs(o.x - player.x) < 300) {
         ctx.save(); ctx.font = '9px sans-serif'; ctx.fillStyle = 'rgba(255,210,140,.62)'; ctx.textAlign = 'center';
         ctx.fillText(o.type === 'rock' ? '[💣]' : '[🔫/🌧️]', dx + o.w / 2, dy - 14); ctx.restore();
@@ -1277,26 +1232,7 @@
   }
 
   function drawBrickWalls() {
-    if (inShaft) return;
-    for (const bw of brickWalls) {
-      if (bw.dead) continue;
-      const dx = DX(bw.x), dy = DY(bw.y);
-      if (dx > canvas.width + 50 || dx + bw.w < -50) continue;
-      ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(dx + 3, dy + 3, bw.w, bw.h);
-      if (bw.hit > 0) { bw.hit--; ctx.fillStyle = 'rgba(255,200,100,.4)'; ctx.fillRect(dx, dy, bw.w, bw.h); }
-      const brickH = 18;
-      for (let row = 0; row * brickH < bw.h; row++) {
-        const by2 = dy + row * brickH;
-        const lg = ctx.createLinearGradient(dx, by2, dx, by2 + brickH);
-        lg.addColorStop(0, '#8b4513'); lg.addColorStop(.5, '#7a3c10'); lg.addColorStop(1, '#5c2c0a');
-        ctx.fillStyle = lg; ctx.fillRect(dx, by2, bw.w, Math.min(brickH, bw.h - row * brickH));
-        ctx.fillStyle = 'rgba(20,10,3,.6)'; ctx.fillRect(dx, by2, bw.w, 2);
-        const off = row % 2 ? bw.w / 2 : 4;
-        ctx.fillRect(dx + off, by2, 2, brickH);
-        ctx.fillStyle = 'rgba(255,170,90,.1)'; ctx.fillRect(dx + 3, by2 + 3, bw.w - 6, 6);
-      }
-      ctx.strokeStyle = 'rgba(40,20,5,.6)'; ctx.lineWidth = 1.5; ctx.strokeRect(dx, dy, bw.w, bw.h);
-    }
+    // Brick walls are now rendered by drawCaveStructure (tilemap)
   }
 
   function drawEnemies() {
@@ -1452,12 +1388,9 @@
     if (lightOn || !player) return;
 
     // No dibujar oscuridad dentro del pozo
-    if (getZone() === 'shaft') return;
-
-    const W = canvas.width, H = canvas.height;
-    if (W <= 0 || H <= 0) return;
-
     const cx = DX(player.x), cy = DY(player.y), R = 75;
+    // Don't show darkness in Crystal Grotto
+    if (getZoneName() === "💎 Gruta de Cristal") return;
     
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
@@ -1482,59 +1415,9 @@
     ctx.restore();
   }
 
-  function drawExit() {
-    const ex = SHAFT_MID, ey = SHAFT_TOP_Y + 28;
-    const sx = DX(ex), sy = DY(ey);
-    if (sy < -120 || sy > canvas.height + 80) return;
-    const coneW = SHAFT_W * .88, coneH = SHAFT_HT * .72;
-    const lg = ctx.createLinearGradient(sx, sy, sx, sy + coneH);
-    lg.addColorStop(0, 'rgba(255,248,180,.38)');
-    lg.addColorStop(.3, 'rgba(255,230,110,.15)');
-    lg.addColorStop(1, 'rgba(255,200,80,0)');
-    ctx.save(); ctx.beginPath();
-    ctx.moveTo(sx - 20, sy); ctx.lineTo(sx + 20, sy);
-    ctx.lineTo(sx + coneW / 2, sy + coneH); ctx.lineTo(sx - coneW / 2, sy + coneH);
-    ctx.closePath(); ctx.fillStyle = lg; ctx.fill();
-    for (let i = 0; i < 10; i++) {
-      const t = ((frameCount * .011 + i * .72) % 1);
-      const mx = sx + (Math.sin(i * 2.5 + frameCount * .018) * coneW * .4 * t);
-      const my = sy + t * coneH * .65;
-      ctx.globalAlpha = (.65 - t * .7) * 0.6;
-      ctx.fillStyle = 'rgba(255,245,170,.9)'; ctx.beginPath(); ctx.arc(mx, my, 1.4, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.globalAlpha = 1; ctx.restore();
-    ctx.save(); ctx.shadowColor = '#fff8c0'; ctx.shadowBlur = 40;
-    const og = ctx.createRadialGradient(sx, sy, 0, sx, sy, 46);
-    og.addColorStop(0, '#fffde4'); og.addColorStop(.5, '#ffe87a'); og.addColorStop(1, 'rgba(255,210,60,0)');
-    ctx.fillStyle = og; ctx.beginPath(); ctx.ellipse(sx, sy, 46, 28, 0, 0, Math.PI * 2); ctx.fill();
-    const eg = ctx.createRadialGradient(sx, sy - 4, 2, sx, sy, 34);
-    eg.addColorStop(0, '#fffde8'); eg.addColorStop(.4, '#ffe87a'); eg.addColorStop(.85, '#f59e0b'); eg.addColorStop(1, '#c68642');
-    ctx.fillStyle = eg; ctx.beginPath(); ctx.ellipse(sx, sy, 34, 21, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,245,.94)'; ctx.beginPath(); ctx.ellipse(sx, sy - 2, 17, 11, 0, 0, Math.PI * 2); ctx.fill();
-    const pulse = .5 + .5 * Math.sin(frameCount * .08);
-    ctx.strokeStyle = `rgba(255,220,80,${pulse * .6})`; ctx.lineWidth = 2 + pulse;
-    ctx.beginPath(); ctx.ellipse(sx, sy, 38 + pulse * 4, 23 + pulse * 2, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = 'rgba(100,65,0,.9)';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText('☀️ SALIDA', sx, sy - 24); ctx.restore();
-  }
+  function drawExit() { }
 
-  function drawAbyss() {
-    if (getZone() === 'shaft') return;
-    
-    const ax = DX(abyssX), aw = DX(abyssX + abyssW) - DX(abyssX);
-    if (ax > canvas.width + 80 || ax + aw < -80) return;
-    const ag = ctx.createLinearGradient(ax, DY(roadY), ax, DY(roadY) + 90);
-    ag.addColorStop(0, 'rgba(0,0,0,.9)'); ag.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = ag; ctx.fillRect(ax, DY(roadY), aw, 90);
-    ctx.fillStyle = '#3d2810';
-    ctx.beginPath(); ctx.moveTo(ax - 2, DY(roadY) - 14); ctx.lineTo(ax + 10, DY(roadY) + 35); ctx.lineTo(ax - 2, DY(roadY) + 35); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(ax + aw + 2, DY(roadY) - 14); ctx.lineTo(ax + aw - 10, DY(roadY) + 35); ctx.lineTo(ax + aw + 2, DY(roadY) + 35); ctx.fill();
-    const pulse = .5 + .5 * Math.sin(frameCount * .14);
-    ctx.save(); ctx.fillStyle = `rgba(255,80,50,${pulse * .9})`;
-    ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('⚠️ ¡CUIDADO! ABISMO', ax + aw / 2, DY(roadY) - 22); ctx.restore();
-  }
+  function drawAbyss() { }
 
   function drawDrops() {
     for (const d of drops) {
@@ -1572,11 +1455,7 @@
         drawBackground();
         drawCaveStructure();
         drawCaveFloor();
-        drawAbyss();
-        drawPlatforms();
-        drawBrickWalls();
         drawObstacles();
-        drawExit();
         drawBubbles();
         drawDrops();
         drawEnemies();
@@ -1584,7 +1463,6 @@
         drawParticles();
         drawRain();
         drawDarkness();
-        // El jugador se dibuja al final para máxima visibilidad técnica
         drawPlayer();
         drawHUDCanvas();
       }
