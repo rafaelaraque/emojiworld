@@ -1,4 +1,4 @@
-(function() {
+(function () {
   'use strict';
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
@@ -28,6 +28,7 @@
   // Mundo
   let enemies = [], obstacles = [], projectiles = [];
   let particles = [], rainDrops = [], bubbles = [], puddles = [];
+  let drips = [], drippers = []; // New for puddle generation
   let brickWalls = [];
   let drops = []; // { x, y, emoji, collected }
 
@@ -73,7 +74,23 @@
   function SFX_eat() { osc('sine', 500, 850, .14, .2); }
   function SFX_shoot() { osc('sine', 1100, 350, .1, .28); }
   function SFX_bub() { osc('sine', 300, 900, .22, .1); }
-  function SFX_splash() { nz(.22, .18); }
+  function SFX_splash() {
+    // Water drip: high ping followed by a tiny low bounce
+    const ac = AC(); if (!ac) return; const t = ac.currentTime;
+    try {
+      const o1 = ac.createOscillator(), g1 = ac.createGain();
+      o1.type = 'sine'; o1.frequency.setValueAtTime(1400, t);
+      o1.frequency.exponentialRampToValueAtTime(1800, t + 0.04);
+      g1.gain.setValueAtTime(0.12, t); g1.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      o1.connect(g1); g1.connect(ac.destination); o1.start(t); o1.stop(t + 0.1);
+      
+      const o2 = ac.createOscillator(), g2 = ac.createGain();
+      o2.type = 'sine'; o2.frequency.setValueAtTime(600, t + 0.05);
+      o2.frequency.exponentialRampToValueAtTime(1100, t + 0.12);
+      g2.gain.setValueAtTime(0.06, t + 0.05); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      o2.connect(g2); g2.connect(ac.destination); o2.start(t + 0.05); o2.stop(t + 0.18);
+    } catch(e){}
+  }
   function SFX_wind() { nz(.6, .1); }
 
   let musicOn = false, mTimers = [];
@@ -174,21 +191,41 @@
       });
     });
 
-    // Spawn fire obstacles
+    // Spawn fire obstacles (guarantee ground/platform placement)
     ENTITY_DEFS.fires.forEach(def => {
+      let r = def.row;
+      // Snap down to nearest solid surface
+      while (r < MAP_ROWS - 1 && !isSolid(def.col, r) && !isOneWay(def.col, r)) {
+        r++;
+      }
       obstacles.push({
-        x: def.col * TILE_SIZE, y: def.row * TILE_SIZE - 4,
+        x: def.col * TILE_SIZE, y: r * TILE_SIZE - 4,
         w: 36, h: 36, type: 'fire', dead: false, hint: false, ff: 0
       });
     });
 
-    // Spawn puddles
+    // Identify "dripper" stalactites from ENTITY_DEFS.puddles locations
+    drippers = [];
     ENTITY_DEFS.puddles.forEach(def => {
-      puddles.push({
-        x: def.col * TILE_SIZE, y: def.row * TILE_SIZE + 2,
-        w: def.w * TILE_SIZE, h: 14, active: true
-      });
+      // For each puddle, find a stalactite above it (search range)
+      let bestS = null, minDist = 9999;
+      for (let r = 0; r < def.row; r++) {
+        for (let dc = 0; dc <= 2; dc++) {
+          if (getTile(def.col + dc, r) === TILE.STALACTITE) {
+            const dist = def.row - r;
+            if (dist < minDist) { minDist = dist; bestS = { r, c: def.col + dc }; }
+          }
+        }
+      }
+      if (bestS) {
+        drippers.push({ x: (bestS.c * TILE_SIZE) + TILE_SIZE / 2, y: (bestS.r * TILE_SIZE) + TILE_SIZE, targetY: def.row * TILE_SIZE, w: def.w * TILE_SIZE });
+      } else {
+        // Backup: pre-spawn if no stalactite found above
+        puddles.push({ x: def.col * TILE_SIZE, y: def.row * TILE_SIZE + 2, w: def.w * TILE_SIZE, h: 14, active: true });
+      }
     });
+
+    drips = [];
 
     // Spawn boss
     const bd = ENTITY_DEFS.boss;
@@ -231,7 +268,7 @@
     const container = document.getElementById('quick-pick');
     if (!container) return;
     container.innerHTML = '';
-    
+
     // Solo mostrar objetos disponibles para agregar
     const quickEmojis = ['🔦', '🌧️', '🔫', '🫧', '💣', '🌬️', '🍎'];
     quickEmojis.forEach(em => {
@@ -254,14 +291,14 @@
       };
       container.appendChild(btn);
     });
-    
+
     document.getElementById('picker-overlay').classList.add('show');
   }
-  
-  function closePicker() { 
+
+  function closePicker() {
     const overlay = document.getElementById('picker-overlay');
-    if (overlay) overlay.classList.remove('show'); 
-    picTarget = null; 
+    if (overlay) overlay.classList.remove('show');
+    picTarget = null;
   }
 
   function initQuickPick() {
@@ -290,7 +327,7 @@
   // Botón cancelar del picker
   const pickerCancel = document.getElementById('picker-cancel');
   if (pickerCancel) pickerCancel.onclick = closePicker;
-  
+
   // Slots - al hacer clic en un slot se abre el picker
   for (let i = 0; i < 5; i++) {
     const slotEl = document.getElementById(`ps${i}`);
@@ -298,23 +335,23 @@
       slotEl.onclick = () => { if (gameActive) openPicker(i); };
     }
   }
-  
+
   document.getElementById('attack-btn-wrapper').addEventListener('click', function () {
     if (!gameActive) return;
     // Solo ejecutar acción si hay un objeto en el slot de acción
     if (this.classList.contains('ready')) doAction();
     // No abrir picker - el botón ahora es solo para usar el item seleccionado
   });
-  
+
   // Función para actualizar estado del botón de acción
   function updateAttackButton() {
     const atkBtn = document.getElementById('attack-btn-wrapper');
     if (!atkBtn) return;
-    
+
     // Verificar si hay algún slot con objetos
     const hasItems = slots.some(s => s !== null);
     const hasAction = actionSlot !== null;
-    
+
     if (hasAction) {
       atkBtn.classList.add('ready');
     } else {
@@ -338,7 +375,7 @@
     const normEm = normalize(em);
     const inPower = slots.some(s => s && normalize(s.emoji) === normEm);
     const inAction = actionSlot && normalize(actionSlot.emoji) === normEm;
-    
+
     if (inPower || inAction) {
       toast(`⚠️ ${em} ya está en tu inventario`);
       return;
@@ -450,7 +487,7 @@
     if (foodEm) {
       eatFood(foodEm);
       if (foodIndex === 'action') clearActionSlot(); else clearSlot(foodIndex);
-      atkCd = 20; return; 
+      atkCd = 20; return;
     }
 
     // Uso simultáneo de armas
@@ -461,12 +498,12 @@
     let firedBomb = false;
 
     if (hasGun) {
-      if (gunAmmo > 0) { fireGun(); firedGun = true; } 
+      if (gunAmmo > 0) { fireGun(); firedGun = true; }
       else { fireGun(); /* dispara seco con aviso */ }
     }
 
     if (hasBomb) {
-      if (rainOn) { toast('🌧️ La lluvia apaga las bombas'); } 
+      if (rainOn) { toast('🌧️ La lluvia apaga las bombas'); }
       else { launchBomb(); firedBomb = true; }
     }
 
@@ -530,10 +567,10 @@
     // Horizontal movement + tile collision
     player.x += player.vx;
     {
-      const left  = Math.floor((player.x - hw) / TILE_SIZE);
+      const left = Math.floor((player.x - hw) / TILE_SIZE);
       const right = Math.floor((player.x + hw - 1) / TILE_SIZE);
-      const top   = Math.floor((player.y - hh + 2) / TILE_SIZE);
-      const bot   = Math.floor((player.y + hh - 2) / TILE_SIZE);
+      const top = Math.floor((player.y - hh + 2) / TILE_SIZE);
+      const bot = Math.floor((player.y + hh - 2) / TILE_SIZE);
       for (let r = top; r <= bot; r++) {
         for (let c = left; c <= right; c++) {
           if (isSolid(c, r)) {
@@ -554,10 +591,10 @@
     let landedThisFrame = false;
 
     {
-      const left  = Math.floor((player.x - hw + 2) / TILE_SIZE);
+      const left = Math.floor((player.x - hw + 2) / TILE_SIZE);
       const right = Math.floor((player.x + hw - 2) / TILE_SIZE);
-      const top   = Math.floor((player.y - hh) / TILE_SIZE);
-      const bot   = Math.floor((player.y + hh - 1) / TILE_SIZE);
+      const top = Math.floor((player.y - hh) / TILE_SIZE);
+      const bot = Math.floor((player.y + hh - 1) / TILE_SIZE);
       for (let r = top; r <= bot; r++) {
         for (let c = left; c <= right; c++) {
           if (isSolid(c, r)) {
@@ -628,10 +665,10 @@
 
     // ── BRICK WALL collision (from tilemap, hint on touch) ──
     {
-      const left  = Math.floor((player.x - hw) / TILE_SIZE);
+      const left = Math.floor((player.x - hw) / TILE_SIZE);
       const right = Math.floor((player.x + hw) / TILE_SIZE);
-      const top   = Math.floor((player.y - hh) / TILE_SIZE);
-      const bot   = Math.floor((player.y + hh) / TILE_SIZE);
+      const top = Math.floor((player.y - hh) / TILE_SIZE);
+      const bot = Math.floor((player.y + hh) / TILE_SIZE);
       for (let r = top; r <= bot; r++) {
         for (let c = left; c <= right; c++) {
           if (getTile(c, r) === TILE.BRICK && !player._brickHint) {
@@ -656,7 +693,7 @@
     for (const o of obstacles) {
       if (o.dead) continue;
       if (player.x + hw > o.x && player.x - hw < o.x + o.w &&
-          player.y + hh > o.y && player.y - hh < o.y + o.h) {
+        player.y + hh > o.y && player.y - hh < o.y + o.h) {
         if (player.x < o.x + o.w / 2) player.x = o.x - hw - 1; else player.x = o.x + o.w + hw + 1;
         player.vx = 0;
         if (!player.invincible && o.type === 'fire') takeDamage();
@@ -667,7 +704,7 @@
     for (const pu of puddles) {
       if (!pu.active) continue;
       if (player.x + player.w / 2 > pu.x && player.x - player.w / 2 < pu.x + pu.w &&
-          player.y + player.h / 2 >= pu.y - 6 && player.y + player.h / 2 <= pu.y + pu.h + 12) {
+        player.y + player.h / 2 >= pu.y - 6 && player.y + player.h / 2 <= pu.y + pu.h + 12) {
         if (gunAmmo < 12) { gunAmmo = 12; toast('🔫 Pistola recargada × 12'); spawnParts(player.x, pu.y, '#60a5fa', 6, '💦'); }
       }
     }
@@ -712,34 +749,34 @@
           if (boss.agro) {
             const speed = boss.fury ? 3.5 : 1.5;
             let newVx = (boss.x < player.x) ? speed : -speed;
-            
+
             for (const bw of brickWalls) {
-              if (!bw.dead && boss.x + newVx + boss.w/2 > bw.x && boss.x + newVx - boss.w/2 < bw.x + bw.w &&
-                  boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
+              if (!bw.dead && boss.x + newVx + boss.w / 2 > bw.x && boss.x + newVx - boss.w / 2 < bw.x + bw.w &&
+                boss.y + boss.h / 2 > bw.y && boss.y - boss.h / 2 < bw.y + bw.h) {
                 newVx = 0; break;
               }
             }
             boss.x += newVx;
-            
+
             if (boss.fury) {
               boss.phase += 0.12; boss.y = boss.baseY + Math.sin(boss.phase) * 12;
             } else {
               boss.phase += 0.05; boss.y = boss.baseY + Math.sin(boss.phase) * 5;
             }
-            
+
             boss.poisonCd--;
             if (boss.poisonCd <= 0) {
               boss.poisonCd = boss.fury ? 50 : 85;
-              const dx = player.x - boss.x, dy = player.y - Math.abs(player.vx)*2 - boss.y;
+              const dx = player.x - boss.x, dy = player.y - Math.abs(player.vx) * 2 - boss.y;
               const dist = Math.hypot(dx, dy);
-              projectiles.push({ type: 'poison', emoji: '🟢', x: boss.x, y: boss.y, vx: (dx/dist)*8, vy: -6, life: 120 });
+              projectiles.push({ type: 'poison', emoji: '🟢', x: boss.x, y: boss.y, vx: (dx / dist) * 8, vy: -6, life: 120 });
               SFX_shoot();
             }
           } else {
             let bvx = boss.vx;
             for (const bw of brickWalls) {
-              if (!bw.dead && boss.x + bvx + boss.w/2 > bw.x && boss.x + bvx - boss.w/2 < bw.x + bw.w &&
-                  boss.y + boss.h/2 > bw.y && boss.y - boss.h/2 < bw.y + bw.h) {
+              if (!bw.dead && boss.x + bvx + boss.w / 2 > bw.x && boss.x + bvx - boss.w / 2 < bw.x + bw.w &&
+                boss.y + boss.h / 2 > bw.y && boss.y - boss.h / 2 < bw.y + bw.h) {
                 bvx *= -1; boss.vx *= -1; break;
               }
             }
@@ -748,7 +785,7 @@
           }
         }
       }
-      
+
       // Daño al jugador solo si la araña está activa (luz encendida)
       if (spiderAwake && !player.invincible && Math.abs(boss.x - player.x) < 45 && Math.abs(boss.y - player.y) < 45) {
         takeDamage(); player.vx = player.x < boss.x ? -10 : 10; player.vy = -6;
@@ -765,13 +802,13 @@
     }
     if (player.rideBubble) {
       const b = player.rideBubble;
-      if (b.dead || Math.abs(player.x - b.x) > 28) { 
-        player.rideBubble = null; 
-      } else { 
-        player.y = b.y - 38; 
-        player.vy = 0; 
-        player.onGround = true; 
-        player.jumpCount = 0; 
+      if (b.dead || Math.abs(player.x - b.x) > 28) {
+        player.rideBubble = null;
+      } else {
+        player.y = b.y - 38;
+        player.vy = 0;
+        player.onGround = true;
+        player.jumpCount = 0;
       }
     }
 
@@ -794,10 +831,10 @@
     if (player.y > WORLD_H + 100) { player.alive = false; setTimeout(showDead, 350); return; }
 
     inShaft = (getZoneName() === "☁️ Camino Superior");
-    
+
     // ── FREE 2D CAMERA ──────────────────────────
     let targetCamX, targetCamY;
-    
+
     if (cinematicActive) {
       targetCamX = boss.x - canvas.width / 2;
       targetCamY = boss.y - canvas.height / 2;
@@ -805,11 +842,11 @@
       targetCamX = player.x - canvas.width / 2;
       targetCamY = player.y - canvas.height * 0.45;
     }
-    
+
     // Clamp camera to world bounds
     targetCamX = Math.max(0, Math.min(targetCamX, WORLD_W - canvas.width));
     targetCamY = Math.max(0, Math.min(targetCamY, WORLD_H - canvas.height));
-    
+
     cameraX += (targetCamX - cameraX) * 0.1;
     cameraY += (targetCamY - cameraY) * 0.1;
 
@@ -845,11 +882,11 @@
     for (const e of enemies) {
       if (e.dead) { e.deathT++; continue; }
       const wp = windOn ? 2.2 : 0;
-      if (e.type === 'bat') { 
-        e.phase += 0.025; e.y = e.baseY + Math.sin(e.phase) * 45; e.x += e.vx + wp; 
+      if (e.type === 'bat') {
+        e.phase += 0.025; e.y = e.baseY + Math.sin(e.phase) * 45; e.x += e.vx + wp;
       } else {
         let newVx = e.vx + wp * 0.6;
-        const col = Math.floor((e.x + newVx + (newVx > 0 ? e.w/2 : -e.w/2)) / TILE_SIZE);
+        const col = Math.floor((e.x + newVx + (newVx > 0 ? e.w / 2 : -e.w / 2)) / TILE_SIZE);
         const row = Math.floor(e.y / TILE_SIZE);
         if (isSolid(col, row)) {
           newVx *= -1; e.vx *= -1;
@@ -911,7 +948,7 @@
 
       // Jefe
       if (boss && !boss.dead && Math.abs(boss.x - p.x) < 35 && Math.abs(boss.y - p.y) < 35) {
-        if (p.type === 'bomb') { explode(p.x, p.y); hitBoss(2); } 
+        if (p.type === 'bomb') { explode(p.x, p.y); hitBoss(2); }
         else if (p.type === 'water') { hitBoss(1); }
         projectiles.splice(i, 1); hit = true; continue;
       }
@@ -957,7 +994,7 @@
     let added = 0;
     for (const off of offsets) {
       const nx = originX + off.dx;
-      const ny = originY; 
+      const ny = originY;
       if (nx < 40 || nx > WORLD_W - 40) continue;
       const tooClose = obstacles.some(o => !o.dead && o.type === 'fire' && Math.abs(o.x - nx) < 60);
       if (tooClose) continue;
@@ -972,10 +1009,10 @@
     SFX_boom(); spawnParts(x, y, '#f97316', 18, '💥'); spawnParts(x, y, '#fbbf24', 8);
     enemies.forEach(e => { if (!e.dead && Math.hypot(e.x - x, e.y - y) < 85) { e.dead = true; spawnParts(e.x, e.y, '#fbbf24', 8, e.emoji); } });
     // Expansion effects for local fires
-    obstacles.forEach(o => { 
-      if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) { 
-        spreadFireFrom(o.x, o.y); 
-      } 
+    obstacles.forEach(o => {
+      if (!o.dead && o.type === 'fire' && Math.hypot(o.x + 18 - x, o.y - y) < 85) {
+        spreadFireFrom(o.x, o.y);
+      }
     });
     // Radius demolition on tilemap
     const radius = 2; // tiles
@@ -1011,7 +1048,41 @@
       }
       if (r.wy >= roadY && frameCount % 35 === 0) {
         if (!puddles.find(pu => Math.abs(pu.x + 40 - r.wx) < 90) && puddles.length < 14)
-          puddles.push({ x: r.wx - 40, y: roadY + 2, w: 80, h: 14, active: true });
+          puddles.push({ x: r.wx - 40, y: roadY + 2, w: 80, h: 16, active: true });
+      }
+    }
+    
+    // Apagar fuegos encima de charcos
+    for (const o of obstacles) {
+      if (!o.dead && o.type === 'fire') {
+        const atop = puddles.find(pu => Math.abs(pu.x + pu.w/2 - (o.x + 18)) < pu.w/2 + 5);
+        if (atop) { o.dead = true; spawnParts(o.x + 18, o.y, '#60a5fa', 5, '💦'); }
+      }
+    }
+  }
+
+  function updateDrips() {
+    // Menor frecuencia de caída de gota (cada 2 segundos aprox)
+    if (frameCount % 240 === 0 && drippers.length > 0) {
+      const d = drippers[Math.floor(Math.random() * drippers.length)];
+      if (Math.abs(d.x - (cameraX + canvas.width / 2)) < canvas.width) {
+        drips.push({ x: d.x, y: d.y, vy: 0, targetY: d.targetY, w: d.w });
+      }
+    }
+
+    for (let i = drips.length - 1; i >= 0; i--) {
+      const p = drips[i];
+      p.vy += 0.25; p.y += p.vy;
+      if (p.y >= p.targetY) {
+        // Impact!
+        const existing = puddles.find(pu => Math.abs(pu.x + pu.w / 2 - p.x) < 5);
+        if (!existing) {
+          puddles.push({ x: p.x - p.w / 2, y: p.targetY, w: p.w, h: 16, active: true });
+          toast('💧 Se ha formado un charco');
+        }
+        spawnParts(p.x, p.targetY, '#60a5fa', 6, '💦');
+        SFX_splash();
+        drips.splice(i, 1);
       }
     }
   }
@@ -1036,7 +1107,7 @@
           if (Math.abs(r.wx - b.x) < b.r && Math.abs(r.wy - b.y) < b.r) {
             b.life = 0; // Pop
             rainDrops.splice(j, 1); // Consume raindrop
-            break; 
+            break;
           }
         }
       }
@@ -1086,11 +1157,12 @@
 
   // ── DIBUJO (todo con opacidad 1 para elementos vivos) ──
   const DX = wx => {
-    const x = Math.round(wx - (cameraX || 0));
+    // Estabilizar restando el entero de la cámara del entero del mundo
+    const x = Math.floor(wx) - Math.floor(cameraX || 0);
     return isNaN(x) ? 0 : x;
   };
   const DY = wy => {
-    const y = Math.round(wy - (cameraY || 0));
+    const y = Math.floor(wy) - Math.floor(cameraY || 0);
     return isNaN(y) ? 0 : y;
   };
 
@@ -1129,25 +1201,25 @@
     const endCol = Math.min(MAP_COLS - 1, Math.floor((cameraX + W) / TILE_SIZE));
     const startRow = Math.max(0, Math.floor(cameraY / TILE_SIZE));
     const endRow = Math.min(MAP_ROWS - 1, Math.floor((cameraY + H) / TILE_SIZE));
-    
+
     for (let r = startRow; r <= endRow; r++) {
       for (let c = startCol; c <= endCol; c++) {
         const t = tileMap[r][c];
         if (t === TILE.AIR) continue;
         const sx = Math.round(c * TILE_SIZE - cameraX);
         const sy = Math.round(r * TILE_SIZE - cameraY);
-        
+
         if (t === TILE.STONE) {
           const shade = ((c * 7 + r * 13) % 3);
           ctx.fillStyle = shade === 0 ? '#1a130d' : shade === 1 ? '#15100a' : '#120e08';
           ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
-          if (r > 0 && tileMap[r-1][c] !== TILE.STONE && tileMap[r-1][c] !== TILE.BRICK) {
+          if (r > 0 && tileMap[r - 1][c] !== TILE.STONE && tileMap[r - 1][c] !== TILE.BRICK) {
             ctx.fillStyle = '#2d1e10'; ctx.fillRect(sx, sy, TILE_SIZE, 3);
           }
-          if (c > 0 && tileMap[r][c-1] !== TILE.STONE && tileMap[r][c-1] !== TILE.BRICK) {
+          if (c > 0 && tileMap[r][c - 1] !== TILE.STONE && tileMap[r][c - 1] !== TILE.BRICK) {
             ctx.fillStyle = '#2d1e10'; ctx.fillRect(sx, sy, 2, TILE_SIZE);
           }
-          if (c < MAP_COLS-1 && tileMap[r][c+1] !== TILE.STONE && tileMap[r][c+1] !== TILE.BRICK) {
+          if (c < MAP_COLS - 1 && tileMap[r][c + 1] !== TILE.STONE && tileMap[r][c + 1] !== TILE.BRICK) {
             ctx.fillStyle = '#2d1e10'; ctx.fillRect(sx + TILE_SIZE - 2, sy, 2, TILE_SIZE);
           }
         } else if (t === TILE.PLATFORM) {
@@ -1156,14 +1228,14 @@
           ctx.fillStyle = '#c68642';
           ctx.fillRect(sx, sy, TILE_SIZE, 3);
           ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(sx + TILE_SIZE/2, sy); ctx.lineTo(sx + TILE_SIZE/2, sy + TILE_SIZE * 0.55); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(sx + TILE_SIZE / 2, sy); ctx.lineTo(sx + TILE_SIZE / 2, sy + TILE_SIZE * 0.55); ctx.stroke();
         } else if (t === TILE.BRICK) {
           ctx.fillStyle = '#8b4513';
           ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
           ctx.fillStyle = 'rgba(20,10,3,.6)';
           ctx.fillRect(sx, sy, TILE_SIZE, 2);
-          ctx.fillRect(sx, sy + TILE_SIZE/2, TILE_SIZE, 2);
-          const off = r % 2 ? TILE_SIZE/2 : TILE_SIZE/4;
+          ctx.fillRect(sx, sy + TILE_SIZE / 2, TILE_SIZE, 2);
+          const off = r % 2 ? TILE_SIZE / 2 : TILE_SIZE / 4;
           ctx.fillRect(sx + off, sy, 2, TILE_SIZE);
           ctx.fillStyle = 'rgba(255,170,90,.12)';
           ctx.fillRect(sx + 3, sy + 3, TILE_SIZE - 6, 6);
@@ -1179,9 +1251,9 @@
           const h = 12 + ((c * 7 + r * 3) % 20);
           ctx.fillStyle = '#2d1e10';
           ctx.beginPath();
-          ctx.moveTo(sx + TILE_SIZE/2 - 6, sy);
-          ctx.lineTo(sx + TILE_SIZE/2, sy + h);
-          ctx.lineTo(sx + TILE_SIZE/2 + 6, sy);
+          ctx.moveTo(sx + TILE_SIZE / 2 - 6, sy);
+          ctx.lineTo(sx + TILE_SIZE / 2, sy + h);
+          ctx.lineTo(sx + TILE_SIZE / 2 + 6, sy);
           ctx.fill();
         } else if (t === TILE.EXIT) {
           const pulse = .5 + .5 * Math.sin(frameCount * .08);
@@ -1204,12 +1276,38 @@
     for (const pu of puddles) {
       if (!pu.active) continue;
       const dx = DX(pu.x), dy = DY(pu.y);
-      if (dx > canvas.width + 60 || dx + pu.w < -60) continue;
+      if (dx > canvas.width + 100 || dx + pu.w < -100) continue;
+
       ctx.save();
-      ctx.fillStyle = 'rgba(56,189,248,0.45)';
-      ctx.beginPath(); ctx.ellipse(dx + pu.w / 2, dy + pu.h / 2, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.font = '11px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('💧', dx + pu.w / 2, dy + pu.h / 2); ctx.restore();
+      // Dibujado del charco como "hoyo"
+      const cx = dx + pu.w / 2, cy = dy + pu.h / 2;
+
+      // Capa de fondo (hoyo oscuro)
+      ctx.fillStyle = 'rgba(10,5,2,0.6)';
+      ctx.beginPath(); ctx.ellipse(cx, cy, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Agua con gradiente
+      const grad = ctx.createRadialGradient(cx, cy - 2, 2, cx, cy, pu.w / 2);
+      grad.addColorStop(0, 'rgba(56,189,248,0.5)');
+      grad.addColorStop(0.7, 'rgba(14,165,233,0.3)');
+      grad.addColorStop(1, 'rgba(14,165,233,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.ellipse(cx, cy, pu.w / 2, pu.h / 2, 0, 0, Math.PI * 2); ctx.fill();
+
+      // Borde brillante
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+
+  function drawDrips() {
+    for (const p of drips) {
+      const sx = DX(p.x), sy = DY(p.y);
+      ctx.fillStyle = '#60a5fa';
+      ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, Math.PI * 2); ctx.fill();
     }
   }
 
@@ -1242,16 +1340,16 @@
     }
     if (boss && !boss.dead) {
       if (boss.state === 'hanging' || boss.state === 'dropping') {
-         ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
-         ctx.beginPath(); ctx.moveTo(DX(boss.x), DY(boss.webY)); ctx.lineTo(DX(boss.x), DY(boss.y) - 15); ctx.stroke();
-         ctx.restore();
+        ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(DX(boss.x), DY(boss.webY)); ctx.lineTo(DX(boss.x), DY(boss.y) - 15); ctx.stroke();
+        ctx.restore();
       }
-      
+
       const spiderAwake = lightOn;
       const bounce = spiderAwake ? (boss.fury ? Math.sin(frameCount * .15) * .2 : Math.sin(frameCount * .05) * .1) : 0;
       const glow = boss.fury ? '#ef4444' : (spiderAwake ? 'rgba(0,0,0,0)' : 'rgba(100,100,150,0.3)');
       drawEmoji(boss.x, boss.y, '🕷️', boss.fury ? 60 : 50, bounce, glow);
-      
+
       // Mostrar indicador de araña dormida
       if (!spiderAwake && boss.hp > 0) {
         const zx = DX(boss.x + 35), zy = DY(boss.y - 30);
@@ -1261,14 +1359,14 @@
         ctx.fillText('💤', zx, zy);
         ctx.restore();
       }
-      
+
       if (boss.agro && boss.hp > 0) {
         const bx = DX(boss.x), by = DY(boss.y) - (boss.fury ? 50 : 40);
         const pct = boss.hp / boss.maxHp;
         let hpColor = '#22c55e';
         if (pct <= 0.66) hpColor = '#eab308';
         if (pct <= 0.33) hpColor = '#ef4444';
-        
+
         ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(bx - 40, by, 80, 8);
         ctx.fillStyle = hpColor; ctx.fillRect(bx - 40, by, 80 * pct, 8);
       }
@@ -1294,16 +1392,16 @@
         ctx.lineCap = 'round';
         ctx.shadowColor = '#4ade80';
         ctx.shadowBlur = 6;
-        
+
         // Orientar la "gota" según su trayectoria parabólica
         const angle = Math.atan2(p.vy, p.vx);
         const len = 15; // Longitud de la gota
-        
+
         ctx.beginPath();
-        ctx.moveTo(sx - Math.cos(angle) * (len/2), sy - Math.sin(angle) * (len/2));
-        ctx.lineTo(sx + Math.cos(angle) * (len/2), sy + Math.sin(angle) * (len/2));
+        ctx.moveTo(sx - Math.cos(angle) * (len / 2), sy - Math.sin(angle) * (len / 2));
+        ctx.lineTo(sx + Math.cos(angle) * (len / 2), sy + Math.sin(angle) * (len / 2));
         ctx.stroke();
-        
+
         // Pequeño núcleo brillante
         ctx.strokeStyle = '#f0fff4';
         ctx.lineWidth = 1;
@@ -1311,7 +1409,7 @@
         ctx.moveTo(sx - Math.cos(angle) * 3, sy - Math.sin(angle) * 3);
         ctx.lineTo(sx + Math.cos(angle) * 3, sy + Math.sin(angle) * 3);
         ctx.stroke();
-        
+
         ctx.restore();
       } else {
         drawEmoji(p.x, p.y, '💣', 24);
@@ -1348,40 +1446,67 @@
 
   function drawParticles() {
     for (const p of particles) {
-      const a = Math.min(1, (p.life / p.maxLife) * 2); ctx.globalAlpha = a;
-      if (p.em) { ctx.font = `${p.size}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.em, DX(p.x), DY(p.y)); }
-      else { ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(DX(p.x), DY(p.y), p.size, 0, Math.PI * 2); ctx.fill(); }
+      const a = Math.min(1, (p.life / 25) * 2); ctx.globalAlpha = a;
+      if (p.em) { 
+        ctx.font = `${p.size}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; 
+        ctx.fillText(p.em, DX(p.x), DY(p.y)); 
+      } else { 
+        ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(DX(p.x), DY(p.y), p.size, 0, Math.PI * 2); ctx.fill(); 
+      }
     } ctx.globalAlpha = 1;
   }
 
   function drawPlayer() {
     if (!player) return;
-    
-    // Parpadeo solo si es invencible (opcional)
     if (player.invincible && (frameCount % 8 < 4)) return;
-    
-    const px = DX(player.x);
-    const py = DY(player.y);
-    
+
+    const px = DX(player.x), py = DY(player.y);
+
+    // Verificar si el jugador está en un charco
+    const inPuddle = puddles.find(pu =>
+      Math.abs(player.x - (pu.x + pu.w / 2)) < pu.w / 2 &&
+      Math.abs(player.y + player.h / 2 - pu.y) < 12
+    );
+
     ctx.save();
     ctx.translate(px, py);
+
+    // Si está en un charco, hundirlo un poco y recortar la parte inferior
+    if (inPuddle) {
+      ctx.translate(0, 8); // Hundir de forma entera
+      // Recorte para dar efecto de inmersión técnica
+      ctx.beginPath();
+      ctx.rect(-30, -30, 60, 48); // Deja fuera la parte de los pies
+      ctx.clip();
+    }
+
     ctx.rotate(player.rotation || 0);
-    
-    // Forzar opacidad sólida
     ctx.globalAlpha = 1.0;
-    
-    // Círculo de contraste
-    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
-    
-    // Emoji
+
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+    ctx.shadowBlur = (lightOn || inPuddle) ? 0 : 8;
+    ctx.fillStyle = 'rgba(0,0,0,0.95)';
+    ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
     ctx.font = "32px 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif";
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    
     const em = (hearts <= 1 || energy < 15) ? '😰' : (player.rideBubble ? '🥹' : '😊');
     ctx.fillStyle = 'white';
     ctx.fillText(em, 0, 0);
     ctx.restore();
+
+    // Si está en charco, dibujar una pequeña onda
+    if (inPuddle) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1;
+      const wave = (frameCount % 60) / 60;
+      ctx.beginPath();
+      ctx.ellipse(px, py + 14, 15 * wave, 5 * wave, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   function drawDarkness() {
@@ -1391,11 +1516,12 @@
     const cx = DX(player.x), cy = DY(player.y), R = 75;
     // Don't show darkness in Crystal Grotto
     if (getZoneName() === "💎 Gruta de Cristal") return;
-    
+
     ctx.save();
+    const W = canvas.width, H = canvas.height;
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = 'rgba(0,0,0,0.94)';
-    
+
     // 4 rectángulos alrededor del jugador
     if (cy - R > 0) ctx.fillRect(0, 0, W, cy - R);
     if (cy + R < H) ctx.fillRect(0, cy + R, W, H - (cy + R));
@@ -1403,15 +1529,15 @@
     const rectY = Math.max(0, cy - R);
     if (cx - R > 0) ctx.fillRect(0, rectY, cx - R, rectH);
     if (cx + R < W) ctx.fillRect(cx + R, rectY, W - (cx + R), rectH);
-    
+
     try {
-      const g = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, R);
+      const g = ctx.createRadialGradient(cx, cy, R * 0.75, cx, cy, R);
       g.addColorStop(0, 'rgba(0,0,0,0)');
       g.addColorStop(1, 'rgba(0,0,0,0.94)');
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
-    } catch(e) {}
-    
+    } catch (e) { }
+
     ctx.restore();
   }
 
@@ -1438,17 +1564,17 @@
   function gameLoop() {
     if (!gameActive) return;
     frameCount++;
-    
+
     try {
       updatePlayer(); updateEnemies(); updateProjectiles();
-      updateRain(); updateBubbles(); updateParticles();
-    } catch(err) {
+      updateRain(); updateDrips(); updateBubbles(); updateParticles();
+    } catch (err) {
       if (frameCount % 60 === 0) console.error('Update Error:', err);
     }
-    
+
     ctx.globalAlpha = 1.0;
     ctx.globalCompositeOperation = 'source-over';
-    
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     try {
       if (canvas.width > 0 && canvas.height > 0) {
@@ -1462,11 +1588,12 @@
         drawProjectiles();
         drawParticles();
         drawRain();
+        drawDrips();
         drawDarkness();
         drawPlayer();
         drawHUDCanvas();
       }
-    } catch(err) {
+    } catch (err) {
       if (frameCount % 60 === 0) console.error('Draw Error:', err);
     }
     requestAnimationFrame(gameLoop);
@@ -1488,7 +1615,7 @@
     if (victoryDone) return; victoryDone = true; gameActive = false; stopMusic();
     document.getElementById('win-stats').textContent = `¡Has escapado!`;
     document.getElementById('victory-screen').classList.add('show');
-    
+
     // Send message to main game with ring status
     window.parent.postMessage({ type: 'CAVE_EXIT', hasRing: playerHasRing }, '*');
   }

@@ -104,17 +104,17 @@ function buildMap() {
   plat(42, 53, 4);
 
   // Brick walls in left zone
-  brick(32, 55, 1, 4);  // Breakable barrier
-  brick(20, 62, 1, 7);  // Another barrier
+  brick(32, 48, 1, 21);  // Breakable barrier (full height)
+  brick(20, 48, 1, 21);  // Another barrier (full height)
 
   // ═══════════════════════════════════════════════
   //  ABISMO (deadly pit in main tunnel)
-  //  Rows 76–98, Cols 55–62
+  //  Rows 76–98, Cols 52–65 (width 14)
   // ═══════════════════════════════════════════════
-  fill(55, 76, 62, 98, TILE.ABYSS);
+  fill(52, 76, 65, 98, TILE.ABYSS);
   // Clear the floor tiles above the abyss so it's a real gap
-  carve(55, 68, 62, 79);
-  fill(55, 76, 62, 98, TILE.ABYSS);
+  carve(52, 68, 65, 79);
+  fill(52, 76, 65, 98, TILE.ABYSS);
 
   // ═══════════════════════════════════════════════
   //  ZONA 3 — CUEVAS CENTRALES (post-abismo)
@@ -137,7 +137,7 @@ function buildMap() {
   carve(100, 42, 108, 52);
 
   // Brick walls in central zone
-  brick(88, 68, 1, 5);
+  brick(88, 50, 1, 30);  // Full height barrier
 
   // ═══════════════════════════════════════════════
   //  ZONA 4 — ZONA DERECHA (murciélagos, cristales)
@@ -157,8 +157,8 @@ function buildMap() {
   plat(146, 34, 4);
 
   // Brick walls in right zone
-  brick(120, 40, 1, 5);
-  brick(142, 36, 1, 6);
+  brick(120, 30, 1, 21);
+  brick(142, 30, 1, 21);
 
   // ═══════════════════════════════════════════════
   //  ZONA 5 — ZONA SUPERIOR (plataformas altas, salida)
@@ -302,39 +302,31 @@ const ENTITY_DEFS = {
     { col: 150, row: 38, type: 'spider', hp: 3, patrolRange: 3 },
   ],
 
-  // Fire obstacles
+  // Fire obstacles (placed on floor)
   fires: [
-    // Main tunnel
-    { col: 25, row: 78 },
-    { col: 50, row: 78 },
-    { col: 85, row: 78 },
-    { col: 120, row: 78 },
-    { col: 145, row: 78 },
-    // Left zone
-    { col: 15, row: 67 },
-    { col: 35, row: 67 },
-    // Central
-    { col: 75, row: 78 },
-    { col: 100, row: 78 },
-    // Right
-    { col: 115, row: 49 },
-    { col: 135, row: 49 },
+    { col: 25, row: 80 },
+    { col: 50, row: 80 },
+    { col: 85, row: 80 },
+    { col: 120, row: 80 },
+    { col: 145, row: 80 },
+    { col: 15, row: 69 },
+    { col: 35, row: 69 },
+    { col: 75, row: 80 },
+    { col: 100, row: 80 },
+    { col: 115, row: 51 },
+    { col: 135, row: 51 },
   ],
 
-  // Puddles (water refill)
+  // Puddles (water refill, placed on floor)
   puddles: [
-    { col: 15, row: 79, w: 3 },
-    { col: 40, row: 79, w: 3 },
-    { col: 80, row: 79, w: 3 },
-    { col: 130, row: 79, w: 3 },
-    // Starting zone
-    { col: 25, row: 96, w: 3 },
-    // Left zone
-    { col: 12, row: 68, w: 2 },
-    // Right zone
-    { col: 110, row: 50, w: 2 },
-    // Upper zone
-    { col: 70, row: 30, w: 2 },
+    { col: 15, row: 80, w: 3 },
+    { col: 40, row: 80, w: 3 },
+    { col: 80, row: 80, w: 3 },
+    { col: 130, row: 80, w: 3 },
+    { col: 25, row: 97, w: 3 },
+    { col: 12, row: 69, w: 2 },
+    { col: 110, row: 51, w: 2 },
+    { col: 70, row: 31, w: 2 },
   ],
 
   // Boss definition
