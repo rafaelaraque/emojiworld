@@ -15,7 +15,7 @@
     let vpW = 800, vpH = 600;
     const MW = 2800, MH = 2000, SPD = 7;
     let keys = {};
-    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:1}, _pendingUnr: {} };
+    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:0, bombs:0, apple:0, relic:0, gem:0, watergun:0, rain:0, bubbles:0, wind:0, flashlight:0}, _pendingUnr: {}, wallDestroyed: false };
 
     // ── DATA ──────────────────────────────
     const NPCS = {
@@ -23,11 +23,12 @@
       mango: { av: '👨‍🌾', nm: 'Don Mango', rl: 'Dueño del Mercado Feliz', msgs: ['¡Hola, aventurero! 👨‍🌾 Bienvenido a mi puesto.', 'Si me ayudas con la estantería, te daré información valiosa.', '¡Haz clic en el mercado para empezar el minijuego! 🏪'] },
       void: { av: '🫅', nm: 'Rey Roland', rl: 'Rey de la Zona Real', msgs: ['asi que eres el nuevo aventurero?', 'demuestra cuanto sabes de Emoji World', 'mi castillo real cuantas torres lo protegen?'] },
       guardia: { av: '💂', nm: 'Guardia del Castillo', rl: 'Vigilante Real', msgs: ['¡Alto! 💂 Este castillo esta protegido', 'los puntos cardinales te daran la pista.', 'estamos vigilando el Castillo Real sin descanso 🏰'] },
+      guardia2: { av: '💂', nm: 'Guardia del Castillo', rl: 'Vigilante Real', msgs: ['¡Alto ahí! 💂 Solo se permite el paso con autorización.', 'El portón oeste es la entrada oficial a la Zona Real.', 'Si no tienes permiso, mejor aléjate... 🔒'] },
       robo: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Soy el científico principal de Tecnozona.', 'Tengo información valiosa sobre el generador. ¡Habla conmigo! 💻', 'El secreto: el *color del núcleo* del generador central ⚡'] },
       tecnico: { av: '👨‍🔬', nm: 'Dr. Bits', rl: 'Científico Principal', msgs: ['¡Hola! 👨‍🔬 Trabajo en el laboratorio de RoboX.', 'Nuestro generador tiene un núcleo principal', 'Es la energía que alimenta toda Tecnozona.'] },
       blaze: { av: '🥷', nm: 'Blaze', rl: 'Guerrero del Fuego', msgs: ['¡FUEGO Y GLORIA! 🔥💪 ¡Soy Blaze!', '¡ACEPTA mi desafío en el chat, guerrero! ⚔️'] },
       guerrero: { av: '🙅', nm: 'Kiran', rl: 'Templo de Fuego', msgs: ['¡El honor del fuego me guía! ⚔️🔥', 'Nuestro símbolo es un *animal sagrado*.', 'Sin su poder el *Reino de Fuego* no existiría.'] },
-
+      vendedor: { av: '👳', nm: 'Vendedor', rl: 'Tienda del Viajero', msgs: ['¡Bienvenido a mi tienda! 🏕️', 'Aquí puedes comprar y vender objetos.', '💣 Bomba: 50🪙 | 🪏 Pala: 20🪙 | 🍎 Manzana: 5🪙', 'También compro reliquias y otros hallazgos. ¡Abre la tienda!'] },
       sage: { av: '🧙', nm: 'Sage', rl: 'El Sabio Ancestral', msgs: ['...te esperaba, joven... 🧙✨', 'Tengo una pregunta profunda en el chat... reflexiona 📜', 'La respuesta yace *bajo el Árbol Dorado* del bosque'] },
       anciano: { av: '👴', nm: 'Guardián del Árbol', rl: 'Bosque Ancestral', msgs: ['Cuido el *Árbol Dorado ✨*, el más antiguo de Emoji City. 👴', 'Bajo sus raíces está el *grimorio ancestral* 📜', 'El *Árbol Dorado* guarda todos los secretos del bosque 🌳✨'] },
       c1: { av: '🧒', nm: 'Luis', rl: 'Ciudadano', msgs: ['¡Buenos días! 😄 ¡Emoji City es increíble!', '¿Ya exploraste todas las zonas? ¡Hay mucho por descubrir! 🗺️'] },
@@ -266,18 +267,27 @@
       shovel:  { em:'🪏', nm:'Pala',    hint:'Cavar objetos enterrados' },
       permit:  { em:'📃', nm:'Permiso', hint:'Permiso de Emma para la cueva' },
       ring:    { em:'💍', nm:'Anillo',  hint:'El anillo perdido de Emma' },
-    
-      relic:  { em:'🏺', nm:'Reliquia', hint:'Objeto ancestral' },
-      gem:    { em:'💎', nm:'Gema',    hint:'Gema preciosa rara' },
+      relic:   { em:'🏺', nm:'Reliquia', hint:'Objeto ancestral' },
+      gem:     { em:'💎', nm:'Gema',    hint:'Gema preciosa rara' },
+      bombs:   { em:'💣', nm:'Bomba',   hint:'Destruye paredes de ladrillo' },
+      apple:   { em:'🍎', nm:'Manzana', hint:'Come para restaurar 1 ❤️' },
+      watergun:{ em:'🔫', nm:'Pistola Agua', hint:'Dispara chorros de agua' },
+      rain:    { em:'🌧️', nm:'Lluvia',  hint:'Controla la lluvia mágica' },
+      bubbles: { em:'🫧', nm:'Burbujas', hint:'Crea burbujas protectoras' },
+      wind:    { em:'💨', nm:'Viento',  hint:'Controla las ráfagas de viento' },
+      flashlight:{ em:'🔦', nm:'Linterna', hint:'Ilumina la oscuridad de la cueva' },
     };
     let activeItem = null;
 
     const BURIED_DEFS = [
-      { id:'bspot-0', item:'coins', val:15,  txt:'💰 +15 🪙' },
+      { id:'bspot-0', item:'coins', val:20,  txt:'💰 +20 🪙' },
       { id:'bspot-1', item:'relic', val:1,   txt:'🏺 ¡Reliquia encontrada!' },
-      { id:'bspot-2', item:'coins', val:25,  txt:'💰 +25 🪙' },
-      { id:'bspot-3', item:'gem',   val:1,   txt:'💎 ¡Gema rara!' },
-      { id:'bspot-4', item:'coins', val:40,  txt:'💰 +40 🪙' },
+      { id:'bspot-2', item:'coins', val:35,  txt:'💰 +35 🪙' },
+      { id:'bspot-3', item:'relic', val:1,   txt:'🏺 ¡Reliquia antigua!' },
+      { id:'bspot-4', item:'coins', val:50,  txt:'💰 +50 🪙' },
+      { id:'bspot-5', item:'relic', val:1,   txt:'🏺 ¡Reliquia valiosa!' },
+      { id:'bspot-6', item:'coins', val:15,  txt:'💰 +15 🪙' },
+      { id:'bspot-7', item:'gem',   val:1,   txt:'💎 ¡Gema rara!' },
     ];
     const foundBuried = new Set();
 
@@ -295,9 +305,20 @@
           + (G.inv[id] > 1 ? `<div class="inv-qty">×${G.inv[id]}</div>` : '');
         d.title = def.hint;
         d.onclick = () => {
-          // Si es el anillo y tiene ringPending y está en chat con Emma
+          if (id === 'apple') {
+            if (G.inv.apple <= 0) return;
+            G.inv.apple--;
+            G.hp = Math.min((G.hp || 3) + 1, 5);
+            toast('🍎 +1 ❤️ restaurada!');
+            hud(); sv(); renderInv();
+            return;
+          }
+          if (id === 'bombs') {
+            useBomb();
+            renderInv();
+            return;
+          }
           if (id === 'ring' && G.inv.ringPending && G._c === 'emma') {
-            // Enviar automáticamente al chat
             const inp = document.getElementById('minp');
             if (inp) {
               inp.value = '💍';
@@ -305,12 +326,10 @@
             }
             return;
           }
-          // Si es el anillo y tiene ringPending pero NO está en chat con Emma
           if (id === 'ring' && G.inv.ringPending && G._c !== 'emma') {
             toast('💍 Habla con Emma en el chat para entregar el anillo');
             return;
           }
-          // Normal selection
           activeItem = activeItem === id ? null : id;
           renderInv();
           const lbl = document.getElementById('invActiveLbl');
@@ -356,11 +375,10 @@
     }
 
     function doDig() {
-      if (activeItem !== 'shovel') { toast('🪏 Selecciona la Pala en tu Mochila'); return; }
+      if (!G.inv.shovel || G.inv.shovel <= 0) { toast('🪏 Necesitas una Pala. ¡Cómprala en la tienda!'); return; }
       const near = nearBuriedSpot();
       if (!near) return;
       const { el, def } = near;
-      // Animación pala
       const vp = document.getElementById('mapVP');
       const vpR = vp.getBoundingClientRect();
       const fx = document.createElement('div');
@@ -370,11 +388,9 @@
       fx.style.top  = (parseInt(el.style.top)  - G.my + vpR.top  - 10) + 'px';
       document.body.appendChild(fx);
       setTimeout(() => fx.remove(), 500);
-      // Marcar encontrado
       el.classList.add('found');
       foundBuried.add(def.id);
       document.getElementById('digBtn').classList.remove('show');
-      // Recompensa
       const fl = document.createElement('div');
       fl.className = 'collect-float';
       fl.textContent = def.txt;
@@ -409,6 +425,11 @@
           'Se me perdió mi anillo favorito ahí dentro... 💍',
           '¡Necesito que lo recuperes! Pero la cueva está restringida.',
           'Te envío un PERMISO OFICIAL 📃 — entrégaselo al Minero 👷',
+          'También agregué a tu mochila objetos que te servirán en la cueva:',
+          '🔫 Pistola de agua — para defensa básica',
+          '🌧️ Lluvia mágica — controla el agua del cielo',
+          '🫧 Burbujas protectoras — te cubren en el aire',
+          '💨 Viento ancestral — empuja enemigos y obstáculos',
           '¡Ten cuidado con la araña que vive en las profundidades! 🕷️',
         ];
         let delay = 0;
@@ -420,12 +441,15 @@
             G.cv[id].push({ t: m, s: 'c', ts });
             showMsgNotif(id, m);
             if (idx === msgs.length - 1) {
-              // Give permit to inventory
               if (!G.inv.permit) G.inv.permit = 0;
               G.inv.permit++;
-              G.ringQuestActive = true; // Marca que la misión del anillo está activa
+              G.inv.watergun = (G.inv.watergun || 0) + 1;
+              G.inv.rain = (G.inv.rain || 0) + 1;
+              G.inv.bubbles = (G.inv.bubbles || 0) + 1;
+              G.inv.wind = (G.inv.wind || 0) + 1;
+              G.ringQuestActive = true;
               sv();
-              toast('📃 ¡Emma te envió un Permiso para la Cueva!');
+              toast('📃 ¡Emma te envió un Permiso y equipo para la cueva!');
               updatePermitChip();
             }
           }, delay);
@@ -435,22 +459,28 @@
 
     // ── Cave system ────────────────────────────────────────
     function tryEnterCave() {
-      // Allow entry if:
-      // - has permit (first time)
-      // - already unlocked by miner
-      // - has ring pending (can re-enter to farm exp)
-      const hasAccess = (G.inv.permit > 0) || G.caveUnlocked || G.inv.ringPending;
-      if (!hasAccess) {
+      const hasPermit = G.inv.permit > 0;
+      const alreadyUnlocked = G.caveUnlocked === true;
+      const hasRingPending = G.inv.ringPending;
+
+      if (!hasPermit && !alreadyUnlocked && !hasRingPending) {
         const el = document.getElementById('caveBlockMsg');
-        if (el) { el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2800); }
+        if (el) {
+          el.textContent = '🔒 Área restringida — Necesitas un permiso de Emma 📃';
+          el.classList.add('show');
+          setTimeout(() => el.classList.remove('show'), 3000);
+        }
         return;
       }
-      // Auto-unlock if still has permit but hasn't talked to miner
-      if (G.inv.permit > 0 && !G.caveUnlocked) {
-        G.inv.permit = 0; G.caveUnlocked = true; sv();
+
+      if (hasPermit && !alreadyUnlocked) {
+        G.inv.permit = 0;
+        G.caveUnlocked = true;
+        sv();
         const ce = document.getElementById('caveEntrance');
         if (ce) ce.classList.remove('cave-blocked');
       }
+
       openCave();
     }
 
@@ -463,7 +493,6 @@
         return;
       }
 
-      // Recreate iframe element for a fresh context
       const container = frame.parentElement;
       const newFrame = document.createElement('iframe');
       newFrame.id = 'caveFrame';
@@ -486,41 +515,75 @@
       window.removeEventListener('message', onCaveMessage);
       window.addEventListener('message', onCaveMessage);
 
-      // Handle successful load
       const t = Date.now();
-      console.log('Loading cave level from: levels/cave/cave.html?t=' + t);
       frame.onload = () => {
-        console.log('Cave level loaded successfully (onload)');
+        console.log('Cave level loaded');
         if (loader) loader.style.display = 'none';
         frame.style.opacity = '1';
+        // Send inventory data to cave
+        setTimeout(() => {
+          frame.contentWindow.postMessage({
+            type: 'CAVE_INIT',
+            inventory: G.inv,
+            caveBombsUnlimited: G.caveBombsUnlimited || false,
+            hp: G.hp || 3
+          }, '*');
+        }, 500);
       };
       
-      // Fallback: hide loader after 3s regardless
       setTimeout(() => {
         if (loader) loader.style.display = 'none';
         if (frame) frame.style.opacity = '1';
+        // Send inventory even if onload didn't fire
+        setTimeout(() => {
+          try {
+            frame.contentWindow.postMessage({
+              type: 'CAVE_INIT',
+              inventory: G.inv,
+              caveBombsUnlimited: G.caveBombsUnlimited || false,
+              hp: G.hp || 3
+            }, '*');
+          } catch(e) {}
+        }, 800);
       }, 3000);
       
       frame.src = 'levels/cave/cave.html?t=' + t;
     }
 
     function onCaveMessage(e) {
-      // Legacy: Ring found via embedded HTML
       if (e.data === 'RING_FOUND' || (e.data && e.data.type === 'RING_FOUND')) {
         closeCave();
         onRingFound();
       }
-      // Nueva funcionalidad: Player exited cave
       if (e.data && e.data.type === 'CAVE_EXIT') {
         closeCave();
         if (e.data.hasRing) {
-          // El jugador tiene el anillo - guardar para entrega y agregar al inventario
           G.inv.ringPending = true;
-          G.inv.ring = 1;  // Agregar al inventario para que pueda enviarlo
+          G.inv.ring = 1;
           sv();
           toast('💍 ¡Tienes el anillo de Emma! Ve a entregárselo en el chat.');
-          renderInv();  // Actualizar inventario
+          renderInv();
         }
+        // Sync inventory changes from cave back to overworld
+        if (e.data.inventory) {
+          Object.keys(e.data.inventory).forEach(key => {
+            if (e.data.inventory[key] !== undefined) {
+              G.inv[key] = e.data.inventory[key];
+            }
+          });
+          sv();
+          renderInv();
+        }
+      }
+      // Receive inventory sync from cave during gameplay
+      if (e.data && e.data.type === 'CAVE_INV_UPDATE') {
+        Object.keys(e.data.inventory).forEach(key => {
+          if (e.data.inventory[key] !== undefined) {
+            G.inv[key] = e.data.inventory[key];
+          }
+        });
+        sv();
+        renderInv();
       }
     }
 
@@ -530,6 +593,7 @@
       if (ov) ov.classList.remove('show');
       if (fr) { fr.srcdoc = ''; fr.src = 'about:blank'; }
       window.removeEventListener('message', onCaveMessage);
+      renderInv();
     }
 
     // ── MERCADO SYSTEM ────────────────────────────────────────
@@ -656,28 +720,32 @@
       const hasPermit = G.inv.permit > 0;
       const alreadyUnlocked = G.caveUnlocked === true;
       
-      // Show NPC dialog directly
       document.getElementById('ndAv').textContent = '👷';
       document.getElementById('ndNm').textContent = 'Minero 👷';
       document.getElementById('ndRl').textContent = 'Guardián de la Cueva';
       
       let msgs;
       if (hasPermit && !alreadyUnlocked) {
-        // Use permit and unlock cave
         G.inv.permit = 0;
         G.caveUnlocked = true;
+        if (!G.inv.flashlight) {
+          G.inv.flashlight = 1;
+        }
+        G.caveBombsUnlimited = true;
         sv();
         const ce = document.getElementById('caveEntrance');
         if (ce) { ce.classList.remove('cave-blocked'); ce.classList.add('cave-unlocked'); }
         
         msgs = [
           '¡Permiso válido! ✅ Puedes pasar.',
-          'La araña está en las profundidades. 🕷️ ¡Cuidado!',
+          '🔦 Te doy esta Linterna — alla abajo está todo oscuro.',
+          '💣 Y escucha bien: alla abajo las bombas son ILIMITADAS.',
           '...y si encuentras un anillo brillante... probablemente es el de la chica. 💍',
         ];
       } else if (alreadyUnlocked) {
         msgs = [
           '¡Ya puedes entrar! 🕳️ La cueva está abierta.',
+          'Recuerda: alla abajo las bombas son ilimitadas. 💣',
           'Ten cuidado con la araña gigante. 🕷️',
         ];
       } else {
@@ -999,7 +1067,7 @@
 
     function checkNpcProximity() {
       // Buried spots — mostrar prompt + dig button
-      const hasShovel = activeItem === 'shovel';
+      const hasShovel = G.inv.shovel && G.inv.shovel > 0;
       let nearSpot = false;
       BURIED_DEFS.forEach(def => {
         const el = document.getElementById(def.id);
@@ -1156,8 +1224,11 @@
     let treeBlocks = null;
 
     let jumpableBlocks = null;   // bloques que se pasan saltando
+    let wallBlocks = null;      // bloques de muralla
+    let breakableBlocks = null;  // bloques rompibles
+    
     function buildTreeBlocks() {
-      treeBlocks = []; jumpableBlocks = [];
+      treeBlocks = []; jumpableBlocks = []; wallBlocks = []; breakableBlocks = [];
       // Árboles
       document.querySelectorAll('.tree').forEach(t => {
         let tx = parseInt(t.style.left) || 0;
@@ -1175,6 +1246,31 @@
         let jx = parseInt(j.style.left) || 0;
         let jy = parseInt(j.style.top)  || 0;
         jumpableBlocks.push({ x: jx + 14, y: jy + 14, r: 14 });
+      });
+      // Muralla del castillo - bloques rectangulares (AABB)
+      document.querySelectorAll('.castle-wall').forEach(w => {
+        let wx = parseInt(w.style.left) || 0;
+        let wy = parseInt(w.style.top)  || 0;
+        let ww = parseInt(w.style.width) || 40;
+        let wh = parseInt(w.style.height) || 40;
+        wallBlocks.push({ x: wx, y: wy, w: ww, h: wh });
+      });
+      // Portón del castillo (colisión rectangular)
+      document.querySelectorAll('.castle-gate').forEach(g => {
+        let gx = parseInt(g.style.left) || 0;
+        let gy = parseInt(g.style.top)  || 0;
+        let gw = parseInt(g.style.width) || 40;
+        let gh = parseInt(g.style.height) || 200;
+        wallBlocks.push({ x: gx, y: gy, w: gw, h: gh });
+      });
+      // Paredes rompibles (ladrillos) - solo si no están destruidas
+      document.querySelectorAll('.breakable-wall').forEach(w => {
+        if (w.style.display === 'none') return;
+        let bx = parseInt(w.style.left) || 0;
+        let by = parseInt(w.style.top)  || 0;
+        let bw = parseInt(w.style.width) || 120;
+        let bh = parseInt(w.style.height) || 40;
+        breakableBlocks.push({ x: bx + bw/2, y: by + bh/2, w: bw, h: bh, r: Math.min(bw, bh)/2, id: w.id });
       });
     }
 
@@ -1204,13 +1300,43 @@
       }
 
       if (dx !== 0 || dy !== 0) {
-        if (!treeBlocks) buildTreeBlocks();
+        // Siempre reconstruir bloques de muralla para asegurar colisiones actualizadas
+        if (!wallBlocks || !breakableBlocks) buildTreeBlocks();
         let nx = PX + dx, ny = PY + dy;
         let col = false;
         for (let i = 0; i < treeBlocks.length; i++) {
           const tb = treeBlocks[i];
           if (Math.hypot((nx + 21) - tb.x, (ny + 40) - tb.y) < (tb.r + 14)) {
             col = true; break;
+          }
+        }
+        // Muralla - colisión rectangular (AABB)
+        if (!col && wallBlocks) {
+          for (let w = 0; w < wallBlocks.length; w++) {
+            const wb = wallBlocks[w];
+            const pL = nx, pR = nx + 42, pT = ny, pB = ny + 42;
+            if (pR > wb.x && pL < wb.x + wb.w && pB > wb.y && pT < wb.y + wb.h) {
+              col = true;
+              break;
+            }
+          }
+        }
+        // Paredes rompibles - usar colisión rectangular para mejor precisión
+        if (!col && breakableBlocks) {
+          for (let b = 0; b < breakableBlocks.length; b++) {
+            const bb = breakableBlocks[b];
+            // Colisión rectangular más precisa
+            const playerLeft = nx;
+            const playerRight = nx + 42;
+            const playerTop = ny;
+            const playerBottom = ny + 42;
+            const wallLeft = bb.x - bb.w/2;
+            const wallRight = bb.x + bb.w/2;
+            const wallTop = bb.y - bb.h/2;
+            const wallBottom = bb.y + bb.h/2;
+            if (playerRight > wallLeft && playerLeft < wallRight && playerBottom > wallTop && playerTop < wallBottom) {
+              col = true; break;
+            }
           }
         }
         // Troncos — solo bloquean si no está saltando
@@ -1246,6 +1372,7 @@
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
       if (e.key === 'c' || e.key === 'C') { toggleIb(); return; }
       if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); doJump(); return; }
+      if (e.key === 'b' || e.key === 'B') { e.preventDefault(); useBomb(); return; }
       if (e.key === 'e' || e.key === 'E') {
         let bestId = null, bestDist = 999;
         document.querySelectorAll('.npc[data-npcid]').forEach(el => {
@@ -1289,6 +1416,16 @@
       if (id === 'miner') { handleMinerDialog(); return; }
       if (id === 'elfa')  { openElfaGate(); return; }
       if (id === 'cave')  { tryEnterCave(); return; }
+      if (id === 'vendedor') { openShop(); return; }
+      // Guardias del portón del castillo
+      if (id === 'gate-guard-1' || id === 'gate-guard-2') {
+        document.getElementById('ndAv').textContent = '💂';
+        document.getElementById('ndNm').textContent = 'Guardia del Reino';
+        document.getElementById('ndRl').textContent = 'Custodio del Portón';
+        document.getElementById('ndMs').innerHTML = '<div class="ndm">🔒 El reino está cerrado por orden del Rey.</div><div class="ndm">Deberás encontrar otra forma de entrar...</div>';
+        document.getElementById('npcOv').classList.add('show');
+        return;
+      }
 
       const n = NPCS[id]; if (!n) return;
       document.getElementById('ndAv').textContent = n.av;
@@ -1297,7 +1434,260 @@
       document.getElementById('ndMs').innerHTML = n.msgs.map(m => `<div class="ndm">${m.replace(/\*(.*?)\*/g, '<em>$1</em>')}</div>`).join('');
       document.getElementById('npcOv').classList.add('show');
     }
-    function closeNpc(e) { if (!e || e.target === document.getElementById('npcOv')) document.getElementById('npcOv').classList.remove('show'); }
+
+    function closeNpc(e) {
+      document.getElementById('npcOv').classList.remove('show');
+    }
+
+    // ═══════════════════════════════════════
+    // SHOP SYSTEM - Tienda del Vendedor (compra y venta)
+    // ═══════════════════════════════════════
+    let shopTab = 'buy';
+
+    function openShop() {
+      shopTab = 'buy';
+      const shopOv = document.getElementById('shopOv');
+      if (!shopOv) {
+        createShopOverlay();
+        return;
+      }
+      shopOv.style.display = 'flex';
+      updateShopDisplay();
+    }
+
+    function createShopOverlay() {
+      const ov = document.createElement('div');
+      ov.id = 'shopOv';
+      ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
+      ov.innerHTML = `
+        <div style="background:linear-gradient(135deg,#2d2d2d,#1a1a1a);padding:25px;border-radius:20px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #FFD700;">
+          <div style="text-align:center;margin-bottom:15px;">
+            <span style="font-size:48px;">🏕️</span>
+            <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#FFD700;">Tienda del Viajero</div>
+            <div style="color:#aaa;font-size:13px;">¡Compra equipo y vende hallazgos!</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:15px;">
+            <button id="shopTabBuy" onclick="setShopTab('buy')" style="flex:1;padding:8px;border:2px solid #FFD700;border-radius:8px;font-weight:bold;cursor:pointer;font-size:14px;background:#FFD700;color:#000;">🛒 Comprar</button>
+            <button id="shopTabSell" onclick="setShopTab('sell')" style="flex:1;padding:8px;border:2px solid #FFD700;border-radius:8px;font-weight:bold;cursor:pointer;font-size:14px;background:transparent;color:#FFD700;">💰 Vender</button>
+          </div>
+          <div id="shopItems" style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;">
+          </div>
+          <div style="text-align:center;margin-top:15px;padding-top:12px;border-top:1px solid #444;">
+            <div style="color:#FFD700;font-size:16px;margin-bottom:5px;">🪙 <span id="shopCoins">0</span></div>
+          </div>
+          <button onclick="closeShop()" style="margin-top:12px;width:100%;background:rgba(255,255,255,0.1);color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;cursor:pointer;">CERRAR</button>
+        </div>
+      `;
+      document.body.appendChild(ov);
+      updateShopDisplay();
+    }
+
+    function setShopTab(tab) {
+      shopTab = tab;
+      const buyBtn = document.getElementById('shopTabBuy');
+      const sellBtn = document.getElementById('shopTabSell');
+      if (tab === 'buy') {
+        buyBtn.style.background = '#FFD700'; buyBtn.style.color = '#000';
+        sellBtn.style.background = 'transparent'; sellBtn.style.color = '#FFD700';
+      } else {
+        sellBtn.style.background = '#FFD700'; sellBtn.style.color = '#000';
+        buyBtn.style.background = 'transparent'; buyBtn.style.color = '#FFD700';
+      }
+      updateShopDisplay();
+    }
+
+    function updateShopDisplay() {
+      const container = document.getElementById('shopItems');
+      const coinsEl = document.getElementById('shopCoins');
+      if (coinsEl) coinsEl.textContent = G.coins;
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (shopTab === 'buy') {
+        const items = [
+          { em: '💣', nm: 'Bomba', price: 50, key: 'bombs', desc: 'Destruye paredes de ladrillo' },
+          { em: '🪏', nm: 'Pala', price: 20, key: 'shovel', desc: 'Desentierra secretos', single: true },
+          { em: '🍎', nm: 'Manzana', price: 5, key: 'apple', desc: 'Restaura 1 ❤️' }
+        ];
+        items.forEach(it => {
+          const owned = it.single ? (G.inv[it.key] || 0) > 0 : false;
+          const div = document.createElement('div');
+          div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.08);padding:12px;border-radius:12px;';
+          div.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:28px;">${it.em}</span>
+              <div>
+                <div style="color:#fff;font-weight:bold;">${it.nm}</div>
+                <div style="color:#aaa;font-size:11px;">${it.desc}</div>
+                <div style="color:#FFD700;font-size:12px;">${it.price} 🪙</div>
+              </div>
+            </div>
+            <button onclick="buyItem('${it.key}',${it.price})" style="background:${owned ? '#4CAF50' : '#FFD700'};color:#000;border:none;padding:8px 14px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:13px;" ${owned ? 'disabled' : ''}>${owned ? '✅' : 'COMPRAR'}</button>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        const sellable = [];
+        if (G.inv.relic && G.inv.relic > 0) {
+          sellable.push({ key:'relic', em: '🏺', nm: 'Reliquia', qty: G.inv.relic, price: 75 });
+        }
+        if (G.inv.gem && G.inv.gem > 0) {
+          sellable.push({ key:'gem', em: '💎', nm: 'Gema rara', qty: G.inv.gem, price: 120 });
+        }
+        if (G.inv.bombs && G.inv.bombs > 0) {
+          sellable.push({ key:'bombs', em: '💣', nm: 'Bomba', qty: G.inv.bombs, price: 25 });
+        }
+        if (G.inv.apple && G.inv.apple > 0) {
+          sellable.push({ key:'apple', em: '🍎', nm: 'Manzana', qty: G.inv.apple, price: 2 });
+        }
+        if (G.inv.shovel && G.inv.shovel > 0) {
+          sellable.push({ key:'shovel', em: '🪏', nm: 'Pala', qty: 1, price: 10 });
+        }
+        if (G.inv.watergun && G.inv.watergun > 0) {
+          sellable.push({ key:'watergun', em: '🔫', nm: 'Pistola Agua', qty: G.inv.watergun, price: 30 });
+        }
+        if (G.inv.rain && G.inv.rain > 0) {
+          sellable.push({ key:'rain', em: '🌧️', nm: 'Lluvia', qty: G.inv.rain, price: 50 });
+        }
+        if (G.inv.bubbles && G.inv.bubbles > 0) {
+          sellable.push({ key:'bubbles', em: '🫧', nm: 'Burbujas', qty: G.inv.bubbles, price: 40 });
+        }
+        if (G.inv.wind && G.inv.wind > 0) {
+          sellable.push({ key:'wind', em: '💨', nm: 'Viento', qty: G.inv.wind, price: 45 });
+        }
+        if (G.inv.flashlight && G.inv.flashlight > 0) {
+          sellable.push({ key:'flashlight', em: '🔦', nm: 'Linterna', qty: G.inv.flashlight, price: 35 });
+        }
+        if (sellable.length === 0) {
+          container.innerHTML = '<div style="text-align:center;color:#888;padding:30px;font-size:14px;">No tienes objetos para vender.<br>¡Explora y encuentra reliquias y gemas! 🏺💎</div>';
+        } else {
+          sellable.forEach(it => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.08);padding:12px;border-radius:12px;';
+            const key = it.key;
+            div.innerHTML = `
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:28px;">${it.em}</span>
+                <div>
+                  <div style="color:#fff;font-weight:bold;">${it.nm} x${it.qty}</div>
+                  <div style="color:#4CAF50;font-size:12px;">Vender: ${it.price} 🪙 c/u</div>
+                </div>
+              </div>
+              <button style="background:#4CAF50;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:13px;">VENDER</button>
+            `;
+            div.querySelector('button').onclick = () => sellItem(key, it.price);
+            container.appendChild(div);
+          });
+        }
+      }
+    }
+
+    function buyItem(item, price) {
+      if (G.coins < price) {
+        toast('¡No tienes suficientes monedas!');
+        return;
+      }
+      if (item === 'shovel' && G.inv.shovel > 0) {
+        toast('¡Ya tienes una pala!');
+        return;
+      }
+      G.coins -= price;
+      G.inv[item] = (G.inv[item] || 0) + 1;
+      const names = { bombs: '💣 Bomba', shovel: '🪏 Pala', apple: '🍎 Manzana' };
+      toast(`${names[item] || item} comprado!`);
+      hud(); sv(); updateShopDisplay();
+    }
+
+    function sellItem(item, price) {
+      if (!G.inv[item] || G.inv[item] <= 0) {
+        toast('No tienes ese objeto.');
+        return;
+      }
+      G.inv[item]--;
+      G.coins += price;
+      const names = { relic: '🏺 Reliquia', gem: '💎 Gema rara', bombs: '💣 Bomba', apple: '🍎 Manzana', shovel: '🪏 Pala', watergun: '🔫 Pistola Agua', rain: '🌧️ Lluvia', bubbles: '🫧 Burbujas', wind: '💨 Viento', flashlight: '🔦 Linterna' };
+      toast(`${names[item] || item} vendida por ${price} 🪙`);
+      hud(); sv(); updateShopDisplay();
+    }
+
+    function closeShop() {
+      const shopOv = document.getElementById('shopOv');
+      if (shopOv) shopOv.style.display = 'none';
+    }
+
+    // ═══════════════════════════════════════
+    // BOMB SYSTEM - Usar bombas para destruir paredes
+    // ═══════════════════════════════════════
+    function tryBreakWall() {
+      if (G.wallDestroyed) {
+        toast('💥 Esta pared ya fue destruida.');
+        return;
+      }
+      useBomb();
+    }
+
+    function useBomb() {
+      if (!G.inv.bombs || G.inv.bombs <= 0) {
+        toast('💣 No tienes bombas. ¡Compra algunas en la tienda!');
+        return;
+      }
+      
+      // Buscar pared rompible cerca
+      const nearWall = findNearBreakableWall();
+      if (!nearWall) {
+        toast('💣 No hay ninguna pared cerca para destruir.');
+        return;
+      }
+      
+      // Usar bomba y destruir pared
+      G.inv.bombs--;
+      destroyBreakableWall(nearWall.id);
+      toast('💥¡BOOM! La pared ha sido destruida!');
+      hud(); sv();
+    }
+
+    function findNearBreakableWall() {
+      if (!breakableBlocks) buildTreeBlocks();
+      if (!breakableBlocks || breakableBlocks.length === 0) return null;
+      
+      const playerCX = PX + 21;
+      const playerCY = PY + 40;
+      const range = 100; // pixels de rango
+      
+      for (let b of breakableBlocks) {
+        const dist = Math.hypot(playerCX - b.x, playerCY - b.y);
+        if (dist < range) {
+          return b;
+        }
+      }
+      return null;
+    }
+
+    function destroyBreakableWall(wallId) {
+      // Ocultar los elementos de la pared
+      document.querySelectorAll('.breakable-wall').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // Marcar como destruido
+      G.wallDestroyed = true;
+      
+      // Recrear bloques de colisión sin las paredes rompibles
+      buildTreeBlocks();
+      
+      // Añadir efecto visual de destrucción
+      showExplosionEffect();
+    }
+
+    function showExplosionEffect() {
+      // Crear efecto visual de explosión
+      const explosion = document.createElement('div');
+      explosion.style.cssText = 'position:absolute;left:1880px;top:450px;font-size:60px;z-index:100;animation:explode 1s forwards;';
+      explosion.textContent = '💥';
+      document.getElementById('mapWorld').appendChild(explosion);
+      
+      setTimeout(() => explosion.remove(), 1000);
+    }
 
     function openIb() { renderList(); document.getElementById('ibPanel').classList.add('open'); }
     function closeIb() {
@@ -2148,6 +2538,12 @@
 
     function init() {
       loadGameFiles();
+      
+      // Initialize WorldMap system
+      if (typeof WorldMap !== 'undefined') {
+        WorldMap.init();
+        updateBarrierStates();
+      }
       // Restore alien ship if phase2 already started
       if (G.phase2) {
         phase2Started = true;
