@@ -1413,6 +1413,12 @@
     }
 
     function loop() {
+      // Skip player movement during cinematic
+      if (window._cinematicActive) {
+        requestAnimationFrame(loop);
+        return;
+      }
+
       let dx = 0, dy = 0;
 
       const U = keys['ArrowUp']    || keys['w'] || keys['W'];
@@ -2741,29 +2747,7 @@
       if (tb) tb.style.display = '';
     }
 
-    function init() {
-      loadGameFiles();
-      
-      // Initialize WorldMap system
-      if (typeof WorldMap !== 'undefined') {
-        WorldMap.init();
-        updateBarrierStates();
-      }
-      // Restore alien ship if phase2 already started
-      if (G.phase2) {
-        phase2Started = true;
-        const ship = document.getElementById('alienShip');
-        if (ship) ship.style.display = 'block';
-      }
-      if (G.elfaPowers) elfaPowersGiven = true;
-      if (G.caveUnlocked) {
-        const ce = document.getElementById('caveEntrance');
-        if (ce) { ce.classList.remove('cave-blocked'); }
-      }
-
-      // Check if emoji game was won
-      checkEmojiGameWin();
-
+    function startGameLoop() {
       getVP(); setupJoystick(); setPlayerPos(PX, PY); updatePlayerViewport(); hud(); renderList(); updateBadge();
       requestAnimationFrame(loop);
       Object.keys(CHARS).forEach(id => {
@@ -2816,18 +2800,50 @@
 
       // ── RENDER INITIAL SLOTS ──
       renderPowerSlots();
+    }
+
+    function init() {
+      loadGameFiles();
+      
+      // Initialize WorldMap system
+      if (typeof WorldMap !== 'undefined') {
+        WorldMap.init();
+        updateBarrierStates();
+      }
+      // Restore alien ship if phase2 already started
+      if (G.phase2) {
+        phase2Started = true;
+        const ship = document.getElementById('alienShip');
+        if (ship) ship.style.display = 'block';
+      }
+      if (G.elfaPowers) elfaPowersGiven = true;
+      if (G.caveUnlocked) {
+        const ce = document.getElementById('caveEntrance');
+        if (ce) { ce.classList.remove('cave-blocked'); }
+      }
+
+      // Check if emoji game was won
+      checkEmojiGameWin();
 
       // ── CINEMATIC INTRO (first play only) ──
       if (!G.storyProgress || G.storyProgress === 0) {
         disableControls();
-        // Hide player sprite during cinematic
         const pl = document.getElementById('player');
         if (pl) pl.style.opacity = '0';
+
+        // Start game loop but don't move player during cinematic
+        startGameLoop();
+
+        // Run cinematic
         Cinematic.play();
-        // Restore player after cinematic
-        const t = setTimeout(() => {
+
+        // Restore player visibility after cinematic
+        setTimeout(() => {
           if (pl) pl.style.opacity = '';
-        }, 12000);
+        }, 15000);
+      } else {
+        // No cinematic — start normally
+        startGameLoop();
       }
     }
     window.addEventListener('resize', () => {

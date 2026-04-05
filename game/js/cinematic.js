@@ -17,6 +17,9 @@ const Cinematic = {
     this.active = true;
     this.skipped = false;
 
+    // Block player movement
+    window._cinematicActive = true;
+
     // 1. Splash screen
     await this._showSplash();
     if (this.skipped) return this._cleanup();
@@ -217,6 +220,7 @@ const Cinematic = {
 
   _finish() {
     this.active = false;
+    window._cinematicActive = false;
 
     // Set story progress
     if (typeof G !== 'undefined') {
@@ -281,6 +285,7 @@ const Cinematic = {
 
     // If skipped, still set progress and open chat
     if (this.skipped) {
+      window._cinematicActive = false;
       if (typeof G !== 'undefined') {
         G.storyProgress = 1;
         if (typeof sv === 'function') sv();
