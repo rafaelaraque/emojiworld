@@ -361,15 +361,12 @@
       if (!btnB) return;
       const hasAction = slots.some(id => id && ['shovel','bombs','apple'].includes(id));
       if (hasAction) {
-        const activeId = slots.find(id => id && ['shovel','bombs','apple'].includes(id));
-        if (activeId) {
-          btnB.textContent = ITEM_DEFS[activeId].em;
-          btnB.style.background = 'radial-gradient(circle at 38% 35%, rgba(168,85,247,.95), rgba(124,58,237,.92))';
-          btnB.style.borderColor = 'rgba(180,120,255,.7)';
-          btnB.style.boxShadow = '0 4px 0 rgba(80,20,140,.6), 0 6px 16px rgba(168,85,247,.35)';
-        }
+        btnB.textContent = 'B';
+        btnB.style.background = 'radial-gradient(circle at 38% 35%, rgba(76,175,80,.95), rgba(56,142,60,.92))';
+        btnB.style.borderColor = 'rgba(100,200,100,.7)';
+        btnB.style.boxShadow = '0 4px 0 rgba(30,100,30,.6), 0 6px 16px rgba(76,175,80,.35)';
       } else {
-        btnB.textContent = '⚡';
+        btnB.textContent = 'B';
         btnB.style.background = '';
         btnB.style.borderColor = '';
         btnB.style.boxShadow = '';
@@ -394,6 +391,19 @@
     //  DO ACTION (Button B)
     // ══════════════════════════════════════════════════════
     function doAction() {
+      // Priority 1: Interact with nearby NPC
+      let nearNpcId = null, nearNpcDist = 999;
+      document.querySelectorAll('.npc[data-npcid]').forEach(el => {
+        const nx = parseInt(el.style.left) || 0, ny = parseInt(el.style.top) || 0;
+        const d = Math.hypot(PX - nx - 20, PY - ny - 30);
+        if (d < PROX_DIST && d < nearNpcDist) { nearNpcDist = d; nearNpcId = el.dataset.npcid; }
+      });
+      if (nearNpcId) {
+        showNpc(nearNpcId);
+        return;
+      }
+
+      // Priority 2: Execute item action from slots
       for (let i = 0; i < 5; i++) {
         if (slots[i] === 'bombs') {
           useBomb();
@@ -415,7 +425,7 @@
           return;
         }
       }
-      toast('⚡ No hay acción disponible. Agrega un item a un slot.');
+      toast('⚡ No hay acción disponible. Acércate a un NPC o agrega un item a un slot.');
     }
 
     const BURIED_DEFS = [
@@ -1817,10 +1827,21 @@
       setTimeout(() => explosion.remove(), 1000);
     }
 
-    function openIb() { renderList(); document.getElementById('ibPanel').classList.add('open'); }
+    function openIb() {
+      renderList();
+      document.getElementById('ibPanel').classList.add('open');
+      const bc = document.getElementById('bottomControls');
+      const cb = document.getElementById('chatBubble');
+      if (bc) bc.classList.add('hidden');
+      if (cb) cb.classList.add('hidden');
+    }
     function closeIb() {
       document.getElementById('ibPanel').classList.remove('open');
       document.getElementById('chPanel').classList.remove('show');
+      const bc = document.getElementById('bottomControls');
+      const cb = document.getElementById('chatBubble');
+      if (bc) bc.classList.remove('hidden');
+      if (cb) cb.classList.remove('hidden');
       G._c = null;
     }
     function toggleIb() { document.getElementById('ibPanel').classList.contains('open') ? closeIb() : openIb(); }
@@ -2697,14 +2718,17 @@
       });
       updateResponsive();
 
-      // ── POWER SLOTS EVENT LISTENERS ──
+      // ── POWER SLOTS EVENT LISTENERS — touchstart for instant response ──
       for (let i = 0; i < 5; i++) {
         const slotEl = document.getElementById(`ps${i}`);
         if (slotEl) {
-          slotEl.onclick = () => {
-            if (slots[i]) return; // filled slot, clear button handles removal
+          const handleSlot = e => {
+            e.preventDefault();
+            if (slots[i]) return;
             openPicker(i);
           };
+          slotEl.addEventListener('touchstart', handleSlot, { passive: false });
+          slotEl.addEventListener('mousedown', handleSlot);
         }
       }
 
@@ -2716,7 +2740,7 @@
         btnA.addEventListener('mousedown', doJumpA);
       }
 
-      // ── BUTTON B (Action) ──
+      // ── BUTTON B (Action / NPC interact) ──
       const btnB = document.getElementById('btnB');
       if (btnB) {
         const doAct = e => { e.preventDefault(); doAction(); };

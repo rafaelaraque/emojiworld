@@ -137,6 +137,17 @@ body {
   flex-shrink: 0;
   z-index: 900;
   background: transparent;
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+
+#bottomControls.hidden {
+  transform: translateY(100%);
+}
+
+#chatBubble.hidden {
+  transform: translateY(100px);
+  opacity: 0;
+  pointer-events: none;
 }
 
 #mapVP.drag {
@@ -928,10 +939,12 @@ body {
   border: 2px solid rgba(139, 94, 60, 0.7);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,.05);
   cursor: pointer;
-  transition: all .2s;
+  transition: all .15s;
   overflow: visible;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .power-slot:active {
@@ -1023,41 +1036,11 @@ body {
   transform: translate(-50%, -50%) scale(.9);
 }
 
-/* ── BUTTON A (Jump) — Nintendo diagonal: arriba-derecha ── */
+/* ── BUTTON A (Jump) — ROJO con letra A ── */
 #btnA {
   position: absolute;
   right: 24px;
   bottom: 110px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 35%, rgba(76,175,80,.95), rgba(56,142,60,.92));
-  border: 2.5px solid rgba(100,200,100,.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 900;
-  color: rgba(255,255,255,.95);
-  cursor: pointer;
-  z-index: 910;
-  box-shadow: 0 4px 0 rgba(30,100,30,.6), 0 6px 16px rgba(76,175,80,.35);
-  transition: transform .07s, box-shadow .07s;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-}
-
-#btnA:active, #btnA.pressed {
-  transform: translateY(3px) scale(.93);
-  box-shadow: 0 1px 0 rgba(30,100,30,.6), 0 2px 8px rgba(76,175,80,.25);
-}
-
-/* ── BUTTON B (Action) — Nintendo diagonal: abajo-izquierda ── */
-#btnB {
-  position: absolute;
-  right: 84px;
-  bottom: 52px;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -1066,9 +1049,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   color: rgba(255,255,255,.95);
+  letter-spacing: 1px;
   cursor: pointer;
   z-index: 910;
   box-shadow: 0 4px 0 rgba(140,20,20,.6), 0 6px 16px rgba(229,57,53,.35);
@@ -1078,9 +1062,40 @@ body {
   touch-action: none;
 }
 
-#btnB:active, #btnB.pressed {
+#btnA:active, #btnA.pressed {
   transform: translateY(3px) scale(.93);
   box-shadow: 0 1px 0 rgba(140,20,20,.6), 0 2px 8px rgba(229,57,53,.25);
+}
+
+/* ── BUTTON B (Action) — VERDE con letra B ── */
+#btnB {
+  position: absolute;
+  right: 84px;
+  bottom: 52px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, rgba(76,175,80,.95), rgba(56,142,60,.92));
+  border: 2.5px solid rgba(100,200,100,.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: rgba(255,255,255,.95);
+  letter-spacing: 1px;
+  cursor: pointer;
+  z-index: 910;
+  box-shadow: 0 4px 0 rgba(30,100,30,.6), 0 6px 16px rgba(76,175,80,.35);
+  transition: transform .07s, box-shadow .07s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#btnB:active, #btnB.pressed {
+  transform: translateY(3px) scale(.93);
+  box-shadow: 0 1px 0 rgba(30,100,30,.6), 0 2px 8px rgba(76,175,80,.25);
 }
 
 /* ── CHAT BUBBLE — right side, above slots ── */
@@ -1099,7 +1114,7 @@ body {
   cursor: pointer;
   z-index: 860;
   box-shadow: 0 4px 20px rgba(0, 200, 83, .4);
-  transition: transform .12s;
+  transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s;
   user-select: none;
   -webkit-user-select: none;
 }
