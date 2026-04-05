@@ -92,6 +92,19 @@
   50%      { opacity: .8; }
 }
 
+.splash-skip {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  color: rgba(255,255,255,.3);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  animation: skipPulse 2s ease-in-out infinite;
+  z-index: 10;
+  user-select: none;
+}
+
 /* CINEMATIC OVERLAY */
 #cinematicOverlay {
   position: fixed;

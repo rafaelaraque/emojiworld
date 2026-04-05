@@ -8,21 +8,34 @@ const Cinematic = {
   active: false,
   skipped: false,
   timers: [],
+  safetyTimer: null,
 
   /* ── PUBLIC ── */
 
   play() {
+    console.log('[Cinematic] Starting intro sequence');
     this.active = true;
     this.skipped = false;
     window._cinematicActive = true;
+
+    // Safety: force end after 15 seconds no matter what
+    const self = this;
+    this.safetyTimer = setTimeout(function() {
+      console.log('[Cinematic] Safety timeout triggered, forcing end');
+      self.skipped = true;
+      self._cleanup();
+    }, 15000);
+
     this._run();
   },
 
   skip() {
+    console.log('[Cinematic] Skipped by user');
     this.skipped = true;
     this.active = false;
-    this.timers.forEach(t => clearTimeout(t));
+    this.timers.forEach(function(t) { clearTimeout(t); });
     this.timers = [];
+    if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
     this._cleanup();
   },
 
@@ -31,25 +44,22 @@ const Cinematic = {
   _run() {
     const self = this;
 
-    // Step 1: Splash screen (2s)
+    console.log('[Cinematic] Step 1: Splash screen');
     this._animateSplash(2000, function() {
       if (self.skipped) return;
-
-      // Step 2: Aerial pan (3.5s)
+      console.log('[Cinematic] Step 2: Aerial pan');
       self._aerialPan(function() {
         if (self.skipped) return;
-
-        // Step 3: Emma arrives (1.5s)
+        console.log('[Cinematic] Step 3: Emma arrives');
         self._emmaArrives(function() {
           if (self.skipped) return;
-
-          // Step 4: Welcome dialogue (6s total)
+          console.log('[Cinematic] Step 4: Welcome dialogue');
           self._welcomeDialogue(function() {
             if (self.skipped) return;
-
-            // Step 5: Emma leaves (1.5s)
+            console.log('[Cinematic] Step 5: Emma leaves');
             self._emmaLeaves(function() {
               if (self.skipped) return;
+              console.log('[Cinematic] Sequence complete');
               self._finish();
             });
           });
@@ -64,7 +74,13 @@ const Cinematic = {
     const self = this;
     const overlay = document.getElementById('splashScreen');
     const fill = document.querySelector('.splash-fill');
-    if (!overlay) { callback(); return; }
+
+    // If splash element doesn't exist, continue immediately
+    if (!overlay) {
+      console.log('[Cinematic] Splash element not found, continuing');
+      callback();
+      return;
+    }
 
     const start = Date.now();
 
@@ -128,7 +144,6 @@ const Cinematic = {
     const mapWorld = document.getElementById('mapWorld');
     if (!mapWorld) { callback(); return; }
 
-    // Create Emma temp element
     const emma = document.createElement('div');
     emma.className = 'emma-temp';
     emma.id = 'emmaTemp';
@@ -194,7 +209,6 @@ const Cinematic = {
     const emma = document.getElementById('emmaTemp');
     if (!emma) { callback(); return; }
 
-    // Remove dialogue bubble
     document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
 
     emma.classList.add('emma-spin');
@@ -210,14 +224,15 @@ const Cinematic = {
   _finish() {
     this.active = false;
     window._cinematicActive = false;
+    if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
 
-    // Set story progress
+    console.log('[Cinematic] Finishing, setting storyProgress=1');
+
     if (typeof G !== 'undefined') {
       G.storyProgress = 1;
       if (typeof sv === 'function') sv();
     }
 
-    // Enable controls
     if (typeof enableControls === 'function') enableControls();
 
     // Show Emma NPC on map for 8 seconds
@@ -250,6 +265,7 @@ const Cinematic = {
   _cleanup() {
     this.active = false;
     window._cinematicActive = false;
+    if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
     this.timers.forEach(function(t) { clearTimeout(t); });
     this.timers = [];
 
@@ -266,8 +282,9 @@ const Cinematic = {
 
     if (typeof enableControls === 'function') enableControls();
 
-    // If skipped mid-way, still set progress and open chat
+    // If skipped, still set progress and open chat
     if (this.skipped) {
+      console.log('[Cinematic] Cleanup after skip, opening chat');
       if (typeof G !== 'undefined') {
         G.storyProgress = 1;
         if (typeof sv === 'function') sv();

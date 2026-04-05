@@ -2827,6 +2827,7 @@
 
       // ── CINEMATIC INTRO (first play only) ──
       if (!G.storyProgress || G.storyProgress === 0) {
+        console.log('[Init] First play — starting cinematic');
         disableControls();
         const pl = document.getElementById('player');
         if (pl) pl.style.opacity = '0';
@@ -2838,11 +2839,14 @@
         Cinematic.play();
 
         // Restore player visibility after cinematic
-        setTimeout(() => {
+        setTimeout(function() {
           if (pl) pl.style.opacity = '';
         }, 15000);
       } else {
         // No cinematic — start normally
+        console.log('[Init] Returning player — skipping cinematic');
+        startGameLoop();
+      }
         startGameLoop();
       }
     }
