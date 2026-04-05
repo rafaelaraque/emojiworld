@@ -423,6 +423,59 @@ body {
   box-shadow: 2px 0 8px rgba(0, 0, 0, .3);
 }
 
+/* ═══════════════════════════════════════
+   CITY ELEMENTS — Plaza Central
+   ═══════════════════════════════════════ */
+
+/* Arcos de entrada */
+.city-arch {
+  position: absolute;
+  font-size: 32px;
+  z-index: 5;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Jardineras con flores */
+.flower-bed {
+  position: absolute;
+  font-size: 20px;
+  z-index: 5;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+  pointer-events: none;
+}
+
+/* Faroles */
+.street-lamp {
+  position: absolute;
+  font-size: 24px;
+  z-index: 5;
+  filter: drop-shadow(0 0 8px rgba(255,200,50,.5));
+  pointer-events: none;
+}
+
+/* Bancas */
+.bench {
+  position: absolute;
+  font-size: 22px;
+  z-index: 5;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+  pointer-events: none;
+}
+
+/* Caminos peatonales */
+.ped-path {
+  position: absolute;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0px, transparent 1px, transparent 12px, rgba(0,0,0,.06) 13px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0px, transparent 1px, transparent 12px, rgba(0,0,0,.06) 13px),
+    rgba(200, 180, 140, .25);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* LANDMARKS */
 .lm {
   position: absolute;
@@ -1850,23 +1903,21 @@ body {
 /* TOAST */
 #toast {
   position: fixed;
-  bottom: 270px;
+  top: 54px;
   left: 50%;
-  transform: translateX(-50%) translateY(12px);
-  background: rgba(10, 16, 20, .92);
-  backdrop-filter: blur(8px);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 16px;
-  border-radius: 16px;
+  transform: translateX(-50%) translateY(-12px);
+  background: linear-gradient(135deg, var(--yl), var(--or));
+  color: #1a0b00;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 7px 18px;
+  border-radius: 20px;
   z-index: 500;
   opacity: 0;
-  transition: all .25s;
+  transition: all .3s;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 2px 12px rgba(0,0,0,.4);
-  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 4px 20px rgba(255, 107, 53, .45);
 }
 
 #toast.show {
