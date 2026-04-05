@@ -2,233 +2,207 @@
 
 /* ═══════════════════════════════════════
    CINEMATIC INTRO MODULE
-   Splash screen → Aerial pan → Emma arrives → Welcome dialogue → Auto-open chat
    ═══════════════════════════════════════ */
 
 const Cinematic = {
   active: false,
   skipped: false,
-  _resolve: null,
-  _timeouts: [],
+  timers: [],
 
   /* ── PUBLIC ── */
 
-  async play() {
+  play() {
     this.active = true;
     this.skipped = false;
-
-    // Block player movement
     window._cinematicActive = true;
-
-    // 1. Splash screen
-    await this._showSplash();
-    if (this.skipped) return this._cleanup();
-
-    // 2. Aerial pan
-    await this._aerialPan();
-    if (this.skipped) return this._cleanup();
-
-    // 3. Zoom to player
-    await this._zoomToPlayer();
-    if (this.skipped) return this._cleanup();
-
-    // 4. Emma arrives bouncing
-    await this._emmaArrives();
-    if (this.skipped) return this._cleanup();
-
-    // 5. Welcome dialogue
-    await this._welcomeDialogue();
-    if (this.skipped) return this._cleanup();
-
-    // 6. Emma leaves spinning
-    await this._emmaLeaves();
-
-    // 7. Finish
-    this._cleanup();
-    this._finish();
+    this._run();
   },
 
   skip() {
     this.skipped = true;
-    this._timeouts.forEach(t => clearTimeout(t));
-    this._timeouts = [];
-    if (this._resolve) { this._resolve(); this._resolve = null; }
+    this.active = false;
+    this.timers.forEach(t => clearTimeout(t));
+    this.timers = [];
+    this._cleanup();
+  },
+
+  /* ── MAIN SEQUENCE ── */
+
+  _run() {
+    const self = this;
+
+    // Step 1: Splash screen (2s)
+    this._animateSplash(2000, function() {
+      if (self.skipped) return;
+
+      // Step 2: Aerial pan (3.5s)
+      self._aerialPan(function() {
+        if (self.skipped) return;
+
+        // Step 3: Emma arrives (1.5s)
+        self._emmaArrives(function() {
+          if (self.skipped) return;
+
+          // Step 4: Welcome dialogue (6s total)
+          self._welcomeDialogue(function() {
+            if (self.skipped) return;
+
+            // Step 5: Emma leaves (1.5s)
+            self._emmaLeaves(function() {
+              if (self.skipped) return;
+              self._finish();
+            });
+          });
+        });
+      });
+    });
   },
 
   /* ── SPLASH SCREEN ── */
 
-  _showSplash() {
-    return new Promise(resolve => {
-      const overlay = document.getElementById('splashScreen');
-      const fill = document.querySelector('.splash-fill');
-      if (!overlay) { resolve(); return; }
+  _animateSplash(duration, callback) {
+    const self = this;
+    const overlay = document.getElementById('splashScreen');
+    const fill = document.querySelector('.splash-fill');
+    if (!overlay) { callback(); return; }
 
-      let progress = 0;
-      const startTime = Date.now();
-      const maxDuration = 2000; // max 2 seconds
+    const start = Date.now();
 
-      const tick = () => {
-        if (this.skipped) { resolve(); return; }
+    function tick() {
+      if (self.skipped) return;
+      const elapsed = Date.now() - start;
+      const progress = Math.min(100, (elapsed / duration) * 100);
+      if (fill) fill.style.width = progress + '%';
 
-        const elapsed = Date.now() - startTime;
-        progress = Math.min(100, (elapsed / maxDuration) * 100);
+      if (progress >= 100) {
+        overlay.classList.add('fade-out');
+        const t = setTimeout(function() {
+          overlay.style.display = 'none';
+          callback();
+        }, 600);
+        self.timers.push(t);
+      } else {
+        const t = setTimeout(tick, 50);
+        self.timers.push(t);
+      }
+    }
 
-        if (fill) fill.style.width = progress + '%';
-
-        if (progress >= 100) {
-          // Fade out splash
-          overlay.classList.add('fade-out');
-          setTimeout(() => {
-            overlay.style.display = 'none';
-            resolve();
-          }, 600);
-        } else {
-          setTimeout(tick, 50);
-        }
-      };
-
-      setTimeout(tick, 100);
-    });
+    const t = setTimeout(tick, 100);
+    this.timers.push(t);
   },
 
   /* ── AERIAL PAN ── */
 
-  _aerialPan() {
-    return new Promise(resolve => {
-      const overlay = document.getElementById('cinematicOverlay');
-      if (!overlay) { resolve(); return; }
-      overlay.classList.add('active');
+  _aerialPan(callback) {
+    const self = this;
+    const overlay = document.getElementById('cinematicOverlay');
+    if (!overlay) { callback(); return; }
+    overlay.classList.add('active');
 
-      // Camera waypoints: [mx, my] — corners of the map
-      const waypoints = [
-        [0, 0],           // Top-left
-        [200, 200],       // Mercado Feliz area
-        [2100, 200],      // Zona Real
-        [2200, 900],      // Tecnozona
-        [1800, 1600],     // Zona de Fuego
-        [300, 1500],      // Bosque Ancestral
-        [1350, 930],      // Plaza Central (player)
-      ];
+    const waypoints = [
+      [0, 0],
+      [200, 200],
+      [2100, 200],
+      [2200, 900],
+      [1800, 1600],
+      [300, 1500],
+      [1350, 930],
+    ];
 
-      let i = 0;
-      const stepDuration = 500; // ms per waypoint
-      const maxTotalTime = 8000; // safety timeout
-      const startTime = Date.now();
+    let i = 0;
+    const stepMs = 500;
 
-      const animate = () => {
-        if (this.skipped || i >= waypoints.length || (Date.now() - startTime) > maxTotalTime) {
-          resolve();
-          return;
-        }
-        const [tx, ty] = waypoints[i];
-        this._smoothCamera(tx, ty, stepDuration, () => {
-          i++;
-          animate();
-        });
-      };
-      animate();
-    });
-  },
-
-  /* ── ZOOM TO PLAYER ── */
-
-  _zoomToPlayer() {
-    return new Promise(resolve => {
-      this._smoothCamera(1350, 930, 1200, resolve);
-    });
+    function next() {
+      if (self.skipped || i >= waypoints.length) { callback(); return; }
+      const [tx, ty] = waypoints[i];
+      i++;
+      self._smoothCamera(tx, ty, stepMs, next);
+    }
+    next();
   },
 
   /* ── EMMA ARRIVES ── */
 
-  _emmaArrives() {
-    return new Promise(resolve => {
-      // Create temporary Emma element
-      const emma = document.createElement('div');
-      emma.className = 'emma-temp';
-      emma.id = 'emmaTemp';
-      emma.innerHTML = '<span class="npe">🤗</span>';
-      emma.style.left = '1350px';
-      emma.style.top = '-50px';
-      emma.style.display = 'block';
-      document.getElementById('mapWorld').appendChild(emma);
+  _emmaArrives(callback) {
+    const self = this;
+    const mapWorld = document.getElementById('mapWorld');
+    if (!mapWorld) { callback(); return; }
 
-      // Animate Emma bouncing down to player position
-      const startY = -50;
-      const endY = 870; // Just above player (player is at 930)
-      const duration = 1500;
-      const startTime = performance.now();
+    // Create Emma temp element
+    const emma = document.createElement('div');
+    emma.className = 'emma-temp';
+    emma.id = 'emmaTemp';
+    emma.innerHTML = '<span class="npe">🤗</span>';
+    emma.style.left = '1350px';
+    emma.style.top = '-50px';
+    mapWorld.appendChild(emma);
 
-      const bounce = (now) => {
-        const elapsed = now - startTime;
-        const t = Math.min(elapsed / duration, 1);
+    const startY = -50;
+    const endY = 870;
+    const duration = 1500;
+    const start = Date.now();
 
-        // Easing with bounce effect
-        const eased = 1 - Math.pow(1 - t, 3);
-        const bounceOffset = t < 1 ? Math.sin(t * Math.PI * 4) * (1 - t) * 20 : 0;
-        const currentY = startY + (endY - startY) * eased + bounceOffset;
+    function animate() {
+      if (self.skipped) { callback(); return; }
+      const elapsed = Date.now() - start;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const bounce = t < 1 ? Math.sin(t * Math.PI * 4) * (1 - t) * 20 : 0;
+      const y = startY + (endY - startY) * eased + bounce;
+      emma.style.top = y + 'px';
 
-        emma.style.top = currentY + 'px';
-
-        if (t < 1 && !this.skipped) {
-          requestAnimationFrame(bounce);
-        } else {
-          emma.style.top = endY + 'px';
-          resolve();
-        }
-      };
-      requestAnimationFrame(bounce);
-    });
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        emma.style.top = endY + 'px';
+        callback();
+      }
+    }
+    requestAnimationFrame(animate);
   },
 
   /* ── WELCOME DIALOGUE ── */
 
-  _welcomeDialogue() {
-    return new Promise(resolve => {
-      const messages = [
-        { text: '¡Hola! 😊 ¡Bienvenido a Emoji City!', delay: 0 },
-        { text: 'Soy Emma, tu guía en esta aventura.', delay: 1800 },
-        { text: 'Si necesitas ayuda, contáctame por Emoji Chat 💬', delay: 3600 },
-        { text: '¡Mira! Ya te envié un mensaje. ¡Léelo!', delay: 5400 },
-      ];
+  _welcomeDialogue(callback) {
+    const self = this;
+    const emma = document.getElementById('emmaTemp');
+    if (!emma) { callback(); return; }
 
-      const emma = document.getElementById('emmaTemp');
-      if (!emma) { resolve(); return; }
+    const messages = [
+      { text: '¡Hola! 😊 ¡Bienvenido a Emoji City!', delay: 0 },
+      { text: 'Soy Emma, tu guía en esta aventura.', delay: 1800 },
+      { text: 'Si necesitas ayuda, contáctame por Emoji Chat 💬', delay: 3600 },
+      { text: '¡Mira! Ya te envié un mensaje. ¡Léelo!', delay: 5400 },
+    ];
 
-      messages.forEach(msg => {
-        const t = this._setTimeout(() => {
-          if (this.skipped) return;
-          this._showBubble(emma, msg.text);
-        }, msg.delay);
-        this._timeouts.push(t);
-      });
-
-      // Total dialogue time
-      const totalTime = messages[messages.length - 1].delay + 2000;
-      const t = this._setTimeout(resolve, totalTime);
-      this._timeouts.push(t);
+    messages.forEach(function(msg) {
+      const t = setTimeout(function() {
+        if (self.skipped) return;
+        self._showBubble(emma, msg.text);
+      }, msg.delay);
+      self.timers.push(t);
     });
+
+    const t = setTimeout(callback, 7400);
+    this.timers.push(t);
   },
 
   /* ── EMMA LEAVES ── */
 
-  _emmaLeaves() {
-    return new Promise(resolve => {
-      const emma = document.getElementById('emmaTemp');
-      if (!emma) { resolve(); return; }
+  _emmaLeaves(callback) {
+    const self = this;
+    const emma = document.getElementById('emmaTemp');
+    if (!emma) { callback(); return; }
 
-      // Remove dialogue bubble
-      const bubble = document.querySelector('.cine-bubble');
-      if (bubble) bubble.remove();
+    // Remove dialogue bubble
+    document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
 
-      // Add spin animation
-      emma.classList.add('emma-spin');
-
-      const t = this._setTimeout(() => {
-        emma.remove();
-        resolve();
-      }, 1500);
-      this._timeouts.push(t);
-    });
+    emma.classList.add('emma-spin');
+    const t = setTimeout(function() {
+      emma.remove();
+      callback();
+    }, 1500);
+    this.timers.push(t);
   },
 
   /* ── FINISH ── */
@@ -246,81 +220,59 @@ const Cinematic = {
     // Enable controls
     if (typeof enableControls === 'function') enableControls();
 
-    // Show Emma NPC on the map briefly
+    // Show Emma NPC on map for 8 seconds
     const emmaNpc = document.getElementById('emmaNpc');
     if (emmaNpc) {
       emmaNpc.style.display = '';
-      // Emma stays visible for 8 seconds then disappears (spinning away)
-      const t = this._setTimeout(() => {
+      const t = setTimeout(function() {
         emmaNpc.style.transition = 'opacity 1s';
         emmaNpc.style.opacity = '0';
-        const t2 = this._setTimeout(() => {
+        setTimeout(function() {
           emmaNpc.style.display = 'none';
           emmaNpc.style.opacity = '';
           emmaNpc.style.transition = '';
         }, 1000);
-        this._timeouts.push(t2);
       }, 8000);
-      this._timeouts.push(t);
+      this.timers.push(t);
     }
 
-    // Auto-open chat with Emma after a short delay
-    const t = this._setTimeout(() => {
-      if (typeof openChat === 'function') {
-        openChat('emma');
-      }
+    // Auto-open chat
+    const t = setTimeout(function() {
+      if (typeof openChat === 'function') openChat('emma');
     }, 800);
-    this._timeouts.push(t);
+    this.timers.push(t);
+
+    this._cleanup();
   },
 
   /* ── CLEANUP ── */
 
   _cleanup() {
     this.active = false;
-    this._timeouts.forEach(t => clearTimeout(t));
-    this._timeouts = [];
+    window._cinematicActive = false;
+    this.timers.forEach(function(t) { clearTimeout(t); });
+    this.timers = [];
 
-    // Remove splash
     const splash = document.getElementById('splashScreen');
     if (splash) splash.remove();
 
-    // Remove cinematic overlay
     const overlay = document.getElementById('cinematicOverlay');
     if (overlay) overlay.classList.remove('active');
 
-    // Remove temporary Emma
     const emma = document.getElementById('emmaTemp');
     if (emma) emma.remove();
 
-    // Remove any dialogue bubbles
-    document.querySelectorAll('.cine-bubble').forEach(b => b.remove());
+    document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
 
-    // Enable controls
     if (typeof enableControls === 'function') enableControls();
 
-    // If skipped, still set progress and open chat
+    // If skipped mid-way, still set progress and open chat
     if (this.skipped) {
-      window._cinematicActive = false;
       if (typeof G !== 'undefined') {
         G.storyProgress = 1;
         if (typeof sv === 'function') sv();
       }
-      // Show Emma NPC
-      const emmaNpc = document.getElementById('emmaNpc');
-      if (emmaNpc) {
-        emmaNpc.style.display = '';
-        const t = setTimeout(() => {
-          emmaNpc.style.transition = 'opacity 1s';
-          emmaNpc.style.opacity = '0';
-          setTimeout(() => {
-            emmaNpc.style.display = 'none';
-            emmaNpc.style.opacity = '';
-            emmaNpc.style.transition = '';
-          }, 1000);
-        }, 8000);
-      }
-      // Open chat
-      setTimeout(() => {
+      setTimeout(function() {
         if (typeof openChat === 'function') openChat('emma');
       }, 500);
     }
@@ -329,61 +281,52 @@ const Cinematic = {
   /* ── HELPERS ── */
 
   _smoothCamera(tx, ty, duration, callback) {
-    const startTime = performance.now();
+    const self = this;
+    const start = Date.now();
     const startMx = G.mx;
     const startMy = G.my;
-
-    // Calculate target camera position (centered on target)
     const targetMx = Math.max(0, Math.min(tx - vpW / 2 + 21, MW - vpW));
     const targetMy = Math.max(0, Math.min(ty - vpH / 2 + 21, MH - vpH));
 
-    const animate = (now) => {
-      const elapsed = now - startTime;
+    function animate() {
+      if (self.skipped) { callback(); return; }
+      const elapsed = Date.now() - start;
       const t = Math.min(elapsed / duration, 1);
-
-      // Smooth easing
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
       G.mx = startMx + (targetMx - startMx) * eased;
       G.my = startMy + (targetMy - startMy) * eased;
-
       if (typeof applyMap === 'function') applyMap();
 
-      if (t < 1 && !this.skipped) {
+      if (t < 1) {
         requestAnimationFrame(animate);
       } else {
         G.mx = targetMx;
         G.my = targetMy;
         if (typeof applyMap === 'function') applyMap();
-        if (callback) callback();
+        callback();
       }
-    };
+    }
     requestAnimationFrame(animate);
   },
 
   _showBubble(targetEl, text) {
-    // Remove existing bubble
-    document.querySelectorAll('.cine-bubble').forEach(b => b.remove());
+    document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
 
     const bubble = document.createElement('div');
     bubble.className = 'cine-bubble';
     bubble.textContent = text;
 
-    // Position above Emma
     const rect = targetEl.getBoundingClientRect();
     bubble.style.left = (rect.left - 60) + 'px';
     bubble.style.top = (rect.top - 60) + 'px';
     bubble.style.maxWidth = '260px';
 
-    document.getElementById('cinematicOverlay').appendChild(bubble);
+    const overlay = document.getElementById('cinematicOverlay');
+    if (overlay) overlay.appendChild(bubble);
 
-    // Trigger animation
-    requestAnimationFrame(() => {
+    requestAnimationFrame(function() {
       bubble.classList.add('show');
     });
-  },
-
-  _setTimeout(fn, ms) {
-    return setTimeout(fn, ms);
   }
 };
