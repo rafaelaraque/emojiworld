@@ -1,7 +1,7 @@
 'use strict';
 
 /* ═══════════════════════════════════════
-   CINEMATIC INTRO MODULE
+   CINEMATIC INTRO MODULE (Simplified Map Intro)
    ═══════════════════════════════════════ */
 
 const Cinematic = {
@@ -13,29 +13,23 @@ const Cinematic = {
   /* ── PUBLIC ── */
 
   play() {
-    console.log('[Cinematic] Starting intro sequence');
+    console.log('[Cinematic] Starting simplified map intro');
     this.active = true;
     this.skipped = false;
     window._cinematicActive = true;
 
-    // Safety: force end after 25 seconds no matter what
+    // Safety: force end after 30 seconds
     const self = this;
     this.safetyTimer = setTimeout(function() {
-      console.log('[Cinematic] Safety timeout triggered, forcing end');
-      self.skipped = true;
-      self._cleanup();
-    }, 25000);
+      self.skip();
+    }, 30000);
 
     this._run();
   },
 
   skip() {
-    console.log('[Cinematic] Skipped by user');
+    console.log('[Cinematic] Skip requested');
     this.skipped = true;
-    this.active = false;
-    this.timers.forEach(function(t) { clearTimeout(t); });
-    this.timers = [];
-    if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
     this._cleanup();
   },
 
@@ -44,27 +38,14 @@ const Cinematic = {
   _run() {
     const self = this;
 
+    // Step 1: Splash Screen
     console.log('[Cinematic] Step 1: Splash screen');
-    this._animateSplash(2000, function() {
+    this._animateSplash(5000, function() {
       if (self.skipped) return;
-      console.log('[Cinematic] Step 2: Aerial pan');
-      self._aerialPan(function() {
-        if (self.skipped) return;
-        console.log('[Cinematic] Step 3: Emma arrives');
-        self._emmaArrives(function() {
-          if (self.skipped) return;
-          console.log('[Cinematic] Step 4: Welcome dialogue');
-          self._welcomeDialogue(function() {
-            if (self.skipped) return;
-            console.log('[Cinematic] Step 5: Emma leaves');
-            self._emmaLeaves(function() {
-              if (self.skipped) return;
-              console.log('[Cinematic] Sequence complete');
-              self._finish();
-            });
-          });
-        });
-      });
+      
+      // Step 2: On-Map Dialogue
+      console.log('[Cinematic] Step 2: On-map dialogues');
+      self._onMapDialogue();
     });
   },
 
@@ -74,13 +55,24 @@ const Cinematic = {
     const self = this;
     const overlay = document.getElementById('splashScreen');
     const fill = document.querySelector('.splash-fill');
+    const loadingText = document.querySelector('.splash-text');
 
-    // If splash element doesn't exist, continue immediately
+    console.log('[Cinematic] _animateSplash called', {
+      hasOverlay: !!overlay,
+      hasFill: !!fill,
+      hasText: !!loadingText,
+      duration: duration
+    });
+
     if (!overlay) {
-      console.log('[Cinematic] Splash element not found, continuing');
+      console.warn('[Cinematic] Splash screen not found, skipping');
       callback();
       return;
     }
+
+    // Ensure splash is visible
+    overlay.style.opacity = '1';
+    overlay.style.display = 'flex';
 
     const start = Date.now();
 
@@ -88,267 +80,153 @@ const Cinematic = {
       if (self.skipped) return;
       const elapsed = Date.now() - start;
       const progress = Math.min(100, (elapsed / duration) * 100);
+      
       if (fill) fill.style.width = progress + '%';
+      if (loadingText) loadingText.textContent = 'cargando... ' + Math.floor(progress) + '%';
 
       if (progress >= 100) {
-        if (overlay) {
-          overlay.classList.add('fade-out');
-          const t = setTimeout(function() {
-            overlay.remove(); // Use remove() directly
-            callback();
-          }, 600);
-          self.timers.push(t);
-        } else {
+        overlay.classList.add('fade-out');
+        const t = setTimeout(function() {
+          overlay.remove();
           callback();
-        }
+        }, 600);
+        self.timers.push(t);
       } else {
         const t = setTimeout(tick, 50);
         self.timers.push(t);
       }
     }
-
     const t = setTimeout(tick, 100);
     this.timers.push(t);
   },
 
-  /* ── AERIAL PAN ── */
+  /* ── ON-MAP DIALOGUE ── */
 
-  _aerialPan(callback) {
+  _onMapDialogue() {
     const self = this;
-    const overlay = document.getElementById('cinematicOverlay');
-    if (!overlay) { callback(); return; }
-    overlay.classList.add('active');
+    
+    // Ensure controls are disabled
+    if (typeof disableControls === 'function') disableControls();
+    
+    // Ensure Player is visible
+    const pl = document.getElementById('player');
+    if (pl) {
+        pl.style.opacity = '1';
+        pl.style.display = 'block';
+    }
 
-    const waypoints = [
-      [1350, 930], // Start at player pos to avoid jump
-      [200, 200],
-      [2100, 200],
-      [2200, 900],
-      [1800, 1600],
-      [300, 1500],
-      [1350, 930],
+    // Ensure Emma NPC is visible
+    const emma = document.getElementById('emmaNpc');
+    if (emma) {
+      emma.style.opacity = '1';
+      emma.style.display = 'block';
+    }
+
+    const dialogue = [
+      { speaker: 'emma', text: '¡Hola! 😊 ¡Bienvenido a Emoji World!', delay: 500 },
+      { speaker: 'player', text: '¡Hola! ¿Dónde estoy?', delay: 3000 },
+      { speaker: 'emma', text: 'Estás en la Plaza Central de Emoji City. 🏙️', delay: 5500 },
+      { speaker: 'emma', text: 'Soy Emma, tu guía oficial en esta gran aventura.', delay: 8500 },
+      { speaker: 'emma', text: 'Tengo una misión muy especial para ti...', delay: 11500 },
+      { speaker: 'emma', text: '¡Te he enviado todos los detalles por el **Emoji Chat**! 📱', delay: 14500 }
     ];
 
-    let i = 0;
-    const stepMs = 500;
-
-    function next() {
-      if (self.skipped || i >= waypoints.length) { callback(); return; }
-      const [tx, ty] = waypoints[i];
-      i++;
-      self._smoothCamera(tx, ty, stepMs, next);
-    }
-    next();
-  },
-
-  /* ── EMMA ARRIVES ── */
-
-  _emmaArrives(callback) {
-    const self = this;
-    const mapWorld = document.getElementById('mapWorld');
-    if (!mapWorld) { callback(); return; }
-
-    const emma = document.createElement('div');
-    emma.className = 'emma-temp';
-    emma.id = 'emmaTemp';
-    emma.innerHTML = '<span class="npe">🤗</span>';
-    emma.style.left = '1350px';
-    emma.style.top = '-50px';
-    mapWorld.appendChild(emma);
-
-    const startY = -50;
-    const endY = 870;
-    const duration = 1500;
-    const start = Date.now();
-
-    function animate() {
-      if (self.skipped) { callback(); return; }
-      const elapsed = Date.now() - start;
-      const t = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const bounce = t < 1 ? Math.sin(t * Math.PI * 4) * (1 - t) * 20 : 0;
-      const y = startY + (endY - startY) * eased + bounce;
-      emma.style.top = y + 'px';
-
-      if (t < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        emma.style.top = endY + 'px';
-        callback();
-      }
-    }
-    requestAnimationFrame(animate);
-  },
-
-  /* ── WELCOME DIALOGUE ── */
-
-  _welcomeDialogue(callback) {
-    const self = this;
-    const emma = document.getElementById('emmaTemp');
-    if (!emma) { callback(); return; }
-
-    const messages = [
-      { text: '¡Hola! 😊 ¡Bienvenido a Emoji City!', delay: 500 },
-      { text: 'Soy Emma, tu guía en esta aventura.', delay: 2800 },
-      { text: 'Si necesitas ayuda, contáctame por Emoji Chat 💬', delay: 5100 },
-      { text: '¡Mira! Ya te envié un mensaje. ¡Léelo!', delay: 7400 },
-    ];
-
-    messages.forEach(function(msg) {
+    dialogue.forEach(function(step) {
       const t = setTimeout(function() {
         if (self.skipped) return;
-        self._showBubble(emma, msg.text);
-      }, msg.delay);
+        const target = step.speaker === 'emma' ? document.getElementById('emmaNpc') : document.getElementById('player');
+        if (target) self._showMapBubble(target, step.text);
+      }, step.delay);
       self.timers.push(t);
     });
 
-    const t = setTimeout(callback, 9500);
-    this.timers.push(t);
+    const finishT = setTimeout(function() {
+       if (!self.skipped) self._finish();
+    }, 18000);
+    this.timers.push(finishT);
   },
 
-  /* ── EMMA LEAVES ── */
+  _showMapBubble(targetEl, text) {
+    // Remove previous bubbles
+    document.querySelectorAll('.map-speech-bubble').forEach(b => b.remove());
 
-  _emmaLeaves(callback) {
-    const self = this;
-    const emma = document.getElementById('emmaTemp');
-    if (!emma) { callback(); return; }
+    const bubble = document.createElement('div');
+    bubble.className = 'map-speech-bubble';
+    bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Append to target entity (so it follows it if it moves, though it shouldn't here)
+    targetEl.appendChild(bubble);
 
-    document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
-
-    emma.classList.add('emma-spin');
-    const t = setTimeout(function() {
-      emma.remove();
-      callback();
-    }, 1500);
-    this.timers.push(t);
+    // Trigger animation
+    requestAnimationFrame(() => {
+      bubble.classList.add('visible');
+    });
   },
-
-  /* ── FINISH ── */
 
   _finish() {
     this.active = false;
     window._cinematicActive = false;
     if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
 
-    console.log('[Cinematic] Finishing, setting storyProgress=1');
+    console.log('[Cinematic] Sequence finished');
 
     if (typeof G !== 'undefined') {
       G.storyProgress = 1;
       if (typeof sv === 'function') sv();
     }
 
-    if (typeof enableControls === 'function') enableControls();
+    // Clear bubbles
+    document.querySelectorAll('.map-speech-bubble').forEach(b => b.remove());
 
-    // Show Emma NPC permanently once she arrives
-    const emmaNpc = document.getElementById('emmaNpc');
-    if (emmaNpc) {
-      emmaNpc.style.display = '';
-      emmaNpc.style.opacity = '1';
+    // Keep controls locked - they will be enabled when user closes the inbox
+    // Do NOT enable controls here - let closeIb() handle it
+
+    // Set flag to block chat closure during Emma's intro mission
+    G.emmaIntroActive = true;
+    if (typeof sv === 'function') sv();
+
+    // Trigger Notification & Open Chat
+    if (typeof MN !== 'undefined') {
+       MN.push('emma', '¡Hola! 😊 ¡Bienvenido a Emoji City! Soy Emma, tu guía. Visita a Don Mango en el Mercado Feliz 🏪 — tiene una misión para ti.');
     }
 
-    // Auto-open chat
-    const t = setTimeout(function() {
+    setTimeout(function() {
+      if (typeof openIb === 'function') openIb();
       if (typeof openChat === 'function') openChat('emma');
-    }, 800);
-    this.timers.push(t);
+    }, 1000);
 
     this._cleanup();
   },
 
-  /* ── CLEANUP ── */
-
   _cleanup() {
     this.active = false;
     window._cinematicActive = false;
-    if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
     this.timers.forEach(function(t) { clearTimeout(t); });
     this.timers = [];
+    if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
 
     const splash = document.getElementById('splashScreen');
     if (splash) splash.remove();
 
-    const overlay = document.getElementById('cinematicOverlay');
-    if (overlay) overlay.classList.remove('active');
+    document.querySelectorAll('.map-speech-bubble').forEach(b => b.remove());
 
-    const emma = document.getElementById('emmaTemp');
-    if (emma) emma.remove();
-
-    document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
-
-    // Restore player visibility immediately on cleanup
     const pl = document.getElementById('player');
-    if (pl) pl.style.opacity = '';
+    if (pl) pl.style.opacity = '1';
 
-    const emmaNpc = document.getElementById('emmaNpc');
-    if (emmaNpc) {
-      emmaNpc.style.display = '';
-      emmaNpc.style.opacity = '1';
+    const emma = document.getElementById('emmaNpc');
+    if (emma) {
+        emma.style.opacity = '1';
+        emma.style.display = 'block';
     }
 
-    if (typeof enableControls === 'function') enableControls();
-
-    // If skipped, still set progress and open chat
     if (this.skipped) {
-      console.log('[Cinematic] Cleanup after skip, opening chat');
-      if (typeof G !== 'undefined') {
-        G.storyProgress = 1;
-        if (typeof sv === 'function') sv();
-      }
-      setTimeout(function() {
-        if (typeof openChat === 'function') openChat('emma');
-      }, 500);
+      // If skipped, enable controls immediately and open chat
+      if (typeof enableControls === 'function') enableControls();
+      G.storyProgress = 1;
+      if (typeof sv === 'function') sv();
+      if (typeof openIb === 'function') openIb();
+      if (typeof openChat === 'function') openChat('emma');
     }
-  },
-
-  /* ── HELPERS ── */
-
-  _smoothCamera(tx, ty, duration, callback) {
-    const self = this;
-    const start = Date.now();
-    const startMx = G.mx;
-    const startMy = G.my;
-    const targetMx = Math.max(0, Math.min(tx - vpW / 2 + 21, MW - vpW));
-    const targetMy = Math.max(0, Math.min(ty - vpH / 2 + 21, MH - vpH));
-
-    function animate() {
-      if (self.skipped) { callback(); return; }
-      const elapsed = Date.now() - start;
-      const t = Math.min(elapsed / duration, 1);
-      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-
-      G.mx = startMx + (targetMx - startMx) * eased;
-      G.my = startMy + (targetMy - startMy) * eased;
-      if (typeof applyMap === 'function') applyMap();
-
-      if (t < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        G.mx = targetMx;
-        G.my = targetMy;
-        if (typeof applyMap === 'function') applyMap();
-        callback();
-      }
-    }
-    requestAnimationFrame(animate);
-  },
-
-  _showBubble(targetEl, text) {
-    document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
-
-    const bubble = document.createElement('div');
-    bubble.className = 'cine-bubble';
-    bubble.textContent = text;
-
-    const rect = targetEl.getBoundingClientRect();
-    bubble.style.left = (rect.left - 60) + 'px';
-    bubble.style.top = (rect.top - 60) + 'px';
-    bubble.style.maxWidth = '260px';
-
-    const overlay = document.getElementById('cinematicOverlay');
-    if (overlay) overlay.appendChild(bubble);
-
-    requestAnimationFrame(function() {
-      bubble.classList.add('show');
-    });
+    // If NOT skipped, controls remain locked until user closes the inbox (see closeIb)
   }
 };

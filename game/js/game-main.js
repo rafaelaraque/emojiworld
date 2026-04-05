@@ -15,7 +15,7 @@
     let vpW = 800, vpH = 600;
     const MW = 2800, MH = 2000, SPD = 7;
     let keys = {};
-    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:0, bombs:0, apple:0, relic:0, gem:0, watergun:0, rain:0, bubbles:0, wind:0, flashlight:0}, _pendingUnr: {}, wallDestroyed: false, storyProgress: 0 };
+    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:0, bombs:0, apple:0, relic:0, gem:0, watergun:0, rain:0, bubbles:0, wind:0, flashlight:0}, _pendingUnr: {}, wallDestroyed: false, storyProgress: 0, emmaIntroActive: false };
 
     // ── DATA ──────────────────────────────
     const NPCS = {
@@ -1427,15 +1427,17 @@
       const L = keys['ArrowLeft']  || keys['a'] || keys['A'];
       const R = keys['ArrowRight'] || keys['d'] || keys['D'];
 
-      if (U) dy -= SPD;
-      if (D) dy += SPD;
-      if (L) dx -= SPD;
-      if (R) dx += SPD;
+      if (!G._controlsLocked) {
+        if (U) dy -= SPD;
+        if (D) dy += SPD;
+        if (L) dx -= SPD;
+        if (R) dx += SPD;
 
-      if (joyActive) {
-        const dead = 0.12;
-        dx = Math.abs(joyDx) > dead ? joyDx * SPD : 0;
-        dy = Math.abs(joyDy) > dead ? joyDy * SPD : 0;
+        if (joyActive) {
+          const dead = 0.12;
+          dx = Math.abs(joyDx) > dead ? joyDx * SPD : 0;
+          dy = Math.abs(joyDy) > dead ? joyDy * SPD : 0;
+        }
       }
 
       if (dx !== 0 && dy !== 0) {
@@ -1848,6 +1850,20 @@
       if (ip) ip.style.transform = 'translateY(102%)';
     }
     function closeIb() {
+      // Block closure during Emma's intro mission
+      if (G.emmaIntroActive) {
+        // Check if Emma has sent her initial messages (3 messages in cv.emma)
+        const emmaMessages = G.cv.emma || [];
+        if (emmaMessages.length < 3) {
+          // Show toast to encourage waiting
+          toast('⏳ Espera a que Emma termine sus mensajes...');
+          return;
+        }
+        // Emma has finished, unlock the intro
+        G.emmaIntroActive = false;
+        if (typeof sv === 'function') sv();
+      }
+      
       document.getElementById('ibPanel').classList.remove('open');
       document.getElementById('chPanel').classList.remove('show');
       const bc = document.getElementById('bottomControls');
@@ -1858,6 +1874,13 @@
       const ip = document.getElementById('invPanel');
       if (ip) ip.style.transform = '';
       G._c = null;
+
+      // Enable controls when closing inbox after intro (first mission)
+      if (G.storyProgress === 1 && G._controlsLocked) {
+        enableControls();
+        G.storyProgress = 2;
+        if (typeof sv === 'function') sv();
+      }
     }
     function toggleIb() { document.getElementById('ibPanel').classList.contains('open') ? closeIb() : openIb(); }
 
@@ -2752,7 +2775,9 @@
       if (bc) bc.style.display = 'none';
       if (cb) cb.style.display = 'none';
       if (tb) tb.style.display = 'none';
+      G._controlsLocked = true;
     }
+    window.disableControls = disableControls;
 
     function enableControls() {
       const bc = document.getElementById('bottomControls');
@@ -2761,7 +2786,9 @@
       if (bc) bc.style.display = '';
       if (cb) cb.style.display = '';
       if (tb) tb.style.display = '';
+      G._controlsLocked = false;
     }
+    window.enableControls = enableControls;
 
     function startGameLoop() {
       getVP(); setupJoystick(); setPlayerPos(PX, PY); updatePlayerViewport(); hud(); renderList(); updateBadge();
@@ -2841,23 +2868,22 @@
       // Check if emoji game was won
       checkEmojiGameWin();
 
-      // ── CINEMATIC INTRO (first play only) ──
-      if (!G.storyProgress || G.storyProgress === 0) {
+      // ── CINEMATIC INTRO (first play or forced) ──
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceIntro = urlParams.get('intro') === '1';
+
+      if (forceIntro || !G.storyProgress || G.storyProgress === 0) {
         console.log('[Init] First play — starting cinematic');
         disableControls();
         const pl = document.getElementById('player');
-        if (pl) pl.style.opacity = '0';
+        if (pl) pl.style.opacity = '1'; // Ensure visible on map
+        pl.style.display = 'block';
 
-        // Start game loop but don't move player during cinematic
+        // Start game loop
         startGameLoop();
 
         // Run cinematic
         Cinematic.play();
-
-        // Restore player visibility after cinematic
-        setTimeout(function() {
-          if (pl) pl.style.opacity = '';
-        }, 15000);
       } else {
         // No cinematic — start normally
         console.log('[Init] Returning player — skipping cinematic');
