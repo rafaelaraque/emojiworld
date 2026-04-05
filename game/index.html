@@ -163,19 +163,19 @@
           <span class="lml">Mercado Feliz</span>
         </div>
 
-        <!-- EL HUERTO - hortizas alrededor del mercado -->
-        <div class="lm" style="left:130px;top:280px;"><span class="lmi">🥬</span></div>
-        <div class="lm" style="left:160px;top:250px;"><span class="lmi">🥕</span></div>
-        <div class="lm" style="left:190px;top:280px;"><span class="lmi">🥬</span></div>
-        <div class="lm" style="left:220px;top:250px;"><span class="lmi">🥕</span></div>
-        <div class="lm" style="left:250px;top:280px;"><span class="lmi">🥬</span></div>
-        <div class="lm" style="left:280px;top:250px;"><span class="lmi">🥕</span></div>
-        <div class="lm" style="left:130px;top:310px;"><span class="lmi">🥕</span></div>
-        <div class="lm" style="left:160px;top:340px;"><span class="lmi">🥬</span></div>
-        <div class="lm" style="left:190px;top:310px;"><span class="lmi">🥕</span></div>
-        <div class="lm" style="left:220px;top:340px;"><span class="lmi">🥬</span></div>
-        <div class="lm" style="left:250px;top:310px;"><span class="lmi">🥕</span></div>
-        <div class="lm" style="left:280px;top:340px;"><span class="lmi">🥬</span></div>
+        <!-- EL HUERTO - hortizas pequeñas alrededor del mercado -->
+        <div class="lm" style="left:130px;top:280px;"><span class="lmi" style="font-size:22px;">🥬</span></div>
+        <div class="lm" style="left:160px;top:250px;"><span class="lmi" style="font-size:22px;">🥕</span></div>
+        <div class="lm" style="left:190px;top:280px;"><span class="lmi" style="font-size:22px;">🥬</span></div>
+        <div class="lm" style="left:220px;top:250px;"><span class="lmi" style="font-size:22px;">🥕</span></div>
+        <div class="lm" style="left:250px;top:280px;"><span class="lmi" style="font-size:22px;">🥬</span></div>
+        <div class="lm" style="left:280px;top:250px;"><span class="lmi" style="font-size:22px;">🥕</span></div>
+        <div class="lm" style="left:130px;top:310px;"><span class="lmi" style="font-size:22px;">🥕</span></div>
+        <div class="lm" style="left:160px;top:340px;"><span class="lmi" style="font-size:22px;">🥬</span></div>
+        <div class="lm" style="left:190px;top:310px;"><span class="lmi" style="font-size:22px;">🥕</span></div>
+        <div class="lm" style="left:220px;top:340px;"><span class="lmi" style="font-size:22px;">🥬</span></div>
+        <div class="lm" style="left:250px;top:310px;"><span class="lmi" style="font-size:22px;">🥕</span></div>
+        <div class="lm" style="left:280px;top:340px;"><span class="lmi" style="font-size:22px;">🥬</span></div>
 
         <!-- Don Mango - dueño del mercado -->
         <div class="npc" style="left:408px; top:340px;" onclick="showNpc('mango')" data-npcid="mango">
@@ -184,12 +184,12 @@
         </div>
 
         <!-- ⛺ TIENDA DEL VIAJERO — corredor norte entre Mercado y Zona Real -->
-        <div class="lm" style="left:1150px;top:280px;" onclick="openShop()">
+        <div class="lm" style="left:1150px;top:200px;" onclick="openShop()">
           <span class="lmi" style="font-size:44px;">⛺</span>
           <span class="lml">Tienda del Viajero</span>
         </div>
         <!-- Vendedor - junto a la tienda -->
-        <div class="npc" style="left:1180px;top:310px;" onclick="showNpc('vendedor')" data-npcid="vendedor">
+        <div class="npc" style="left:1230px;top:200px;" onclick="showNpc('vendedor')" data-npcid="vendedor">
           <span class="npe">👳</span><span class="npn">Vendedor</span>
           <div class="prox-bubble" id="prox-vendedor">Hablar</div>
         </div>
@@ -198,7 +198,7 @@
         <!-- Muralla Norte -->
         <div class="castle-wall" style="left:1950px;top:80px;width:550px;height:45px;"></div>
         <!-- Muralla Norte-Este (pared rompible con bomba) -->
-        <div class="breakable-wall" id="breakableWallNE" style="left:2500px;top:80px;width:150px;height:45px;" onclick="tryBreakWall()"></div>
+        <div class="breakable-wall" id="breakableWallNE" style="left:2605px;top:80px;width:45px;height:45px;" onclick="tryBreakWall()"></div>
         <!-- Muralla Sur -->
         <div class="castle-wall" style="left:1950px;top:660px;width:700px;height:45px;"></div>
         <!-- Muralla Este -->
@@ -401,127 +401,127 @@
         <div class="tree" style="left:730px;top:970px;"></div>
         <div class="tree" style="left:710px;top:1020px;"></div>
 
-        <!-- 🔬 TECNOZONA — encerramiento con árboles -->
+        <!-- 🔬 TECNOZONA — encerramiento con árboles (tamaños variados) -->
         <!-- Norte -->
-        <div class="tree dark" style="left:2000px;top:780px;"></div>
-        <div class="tree dark" style="left:2052px;top:780px;"></div>
-        <div class="tree dark" style="left:2104px;top:780px;"></div>
-        <div class="tree dark" style="left:2156px;top:780px;"></div>
-        <div class="tree dark" style="left:2208px;top:780px;"></div>
-        <div class="tree dark" style="left:2260px;top:780px;"></div>
-        <div class="tree dark" style="left:2312px;top:780px;"></div>
-        <div class="tree dark" style="left:2364px;top:780px;"></div>
-        <div class="tree dark" style="left:2416px;top:780px;"></div>
-        <div class="tree dark" style="left:2468px;top:780px;"></div>
-        <div class="tree dark" style="left:2520px;top:780px;"></div>
-        <div class="tree dark" style="left:2572px;top:780px;"></div>
-        <div class="tree dark" style="left:2624px;top:780px;"></div>
-        <div class="tree dark" style="left:2676px;top:780px;"></div>
+        <div class="tree dark" style="left:2000px;top:780px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:2052px;top:780px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:2104px;top:780px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:2156px;top:780px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:2208px;top:780px;transform:scale(0.8);"></div>
+        <div class="tree dark" style="left:2260px;top:780px;transform:scale(1.15);"></div>
+        <div class="tree dark" style="left:2312px;top:780px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:2364px;top:780px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:2416px;top:780px;transform:scale(1.08);"></div>
+        <div class="tree dark" style="left:2468px;top:780px;transform:scale(0.92);"></div>
+        <div class="tree dark" style="left:2520px;top:780px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:2572px;top:780px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:2624px;top:780px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:2676px;top:780px;transform:scale(0.9);"></div>
         <!-- Sur (con apertura para el sendero) -->
-        <div class="tree dark" style="left:2000px;top:1340px;"></div>
-        <div class="tree dark" style="left:2052px;top:1340px;"></div>
-        <div class="tree dark" style="left:2260px;top:1340px;"></div>
-        <div class="tree dark" style="left:2312px;top:1340px;"></div>
-        <div class="tree dark" style="left:2364px;top:1340px;"></div>
-        <div class="tree dark" style="left:2416px;top:1340px;"></div>
-        <div class="tree dark" style="left:2468px;top:1340px;"></div>
-        <div class="tree dark" style="left:2520px;top:1340px;"></div>
-        <div class="tree dark" style="left:2572px;top:1340px;"></div>
-        <div class="tree dark" style="left:2624px;top:1340px;"></div>
-        <div class="tree dark" style="left:2676px;top:1340px;"></div>
+        <div class="tree dark" style="left:2000px;top:1340px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:2052px;top:1340px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:2260px;top:1340px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:2312px;top:1340px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:2364px;top:1340px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:2416px;top:1340px;transform:scale(1.02);"></div>
+        <div class="tree dark" style="left:2468px;top:1340px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:2520px;top:1340px;transform:scale(1.15);"></div>
+        <div class="tree dark" style="left:2572px;top:1340px;transform:scale(0.8);"></div>
+        <div class="tree dark" style="left:2624px;top:1340px;transform:scale(1.08);"></div>
+        <div class="tree dark" style="left:2676px;top:1340px;transform:scale(0.92);"></div>
         <!-- Este -->
-        <div class="tree dark" style="left:2680px;top:800px;"></div>
-        <div class="tree dark" style="left:2680px;top:852px;"></div>
-        <div class="tree dark" style="left:2680px;top:904px;"></div>
-        <div class="tree dark" style="left:2680px;top:956px;"></div>
-        <div class="tree dark" style="left:2680px;top:1008px;"></div>
-        <div class="tree dark" style="left:2680px;top:1060px;"></div>
-        <div class="tree dark" style="left:2680px;top:1112px;"></div>
-        <div class="tree dark" style="left:2680px;top:1164px;"></div>
-        <div class="tree dark" style="left:2680px;top:1216px;"></div>
-        <div class="tree dark" style="left:2680px;top:1268px;"></div>
-        <div class="tree dark" style="left:2680px;top:1320px;"></div>
+        <div class="tree dark" style="left:2680px;top:800px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:2680px;top:852px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:2680px;top:904px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:2680px;top:956px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:2680px;top:1008px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:2680px;top:1060px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:2680px;top:1112px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:2680px;top:1164px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:2680px;top:1216px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:2680px;top:1268px;transform:scale(0.92);"></div>
+        <div class="tree dark" style="left:2680px;top:1320px;transform:scale(1.08);"></div>
         <!-- Oeste -->
-        <div class="tree dark" style="left:1980px;top:800px;"></div>
-        <div class="tree dark" style="left:1980px;top:852px;"></div>
-        <div class="tree dark" style="left:1980px;top:904px;"></div>
-        <div class="tree dark" style="left:1980px;top:956px;"></div>
-        <div class="tree dark" style="left:1980px;top:1008px;"></div>
-        <div class="tree dark" style="left:1980px;top:1060px;"></div>
-        <div class="tree dark" style="left:1980px;top:1112px;"></div>
-        <div class="tree dark" style="left:1980px;top:1164px;"></div>
-        <div class="tree dark" style="left:1980px;top:1216px;"></div>
-        <div class="tree dark" style="left:1980px;top:1268px;"></div>
-        <div class="tree dark" style="left:1980px;top:1320px;"></div>
+        <div class="tree dark" style="left:1980px;top:800px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:1980px;top:852px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:1980px;top:904px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:1980px;top:956px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:1980px;top:1008px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:1980px;top:1060px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:1980px;top:1112px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:1980px;top:1164px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:1980px;top:1216px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:1980px;top:1268px;transform:scale(1.02);"></div>
+        <div class="tree dark" style="left:1980px;top:1320px;transform:scale(0.92);"></div>
 
         <!-- 🌲 SENDERO Tecnozona → Zona de Fuego -->
         <!-- Columna izquierda -->
-        <div class="tree big" style="left:2090px;top:1280px;"></div>
-        <div class="tree" style="left:2090px;top:1332px;"></div>
-        <div class="tree" style="left:2090px;top:1384px;"></div>
-        <div class="tree" style="left:2090px;top:1436px;"></div>
-        <div class="tree" style="left:2090px;top:1488px;"></div>
-        <div class="tree" style="left:2090px;top:1540px;"></div>
-        <div class="tree big" style="left:2090px;top:1592px;"></div>
+        <div class="tree big" style="left:2090px;top:1280px;transform:scale(1.1);"></div>
+        <div class="tree" style="left:2090px;top:1332px;transform:scale(0.9);"></div>
+        <div class="tree" style="left:2090px;top:1384px;transform:scale(1.05);"></div>
+        <div class="tree" style="left:2090px;top:1436px;transform:scale(0.85);"></div>
+        <div class="tree" style="left:2090px;top:1488px;transform:scale(1.0);"></div>
+        <div class="tree" style="left:2090px;top:1540px;transform:scale(0.95);"></div>
+        <div class="tree big" style="left:2090px;top:1592px;transform:scale(1.1);"></div>
         <!-- Columna derecha -->
-        <div class="tree big" style="left:2210px;top:1280px;"></div>
-        <div class="tree" style="left:2210px;top:1332px;"></div>
-        <div class="tree" style="left:2210px;top:1384px;"></div>
-        <div class="tree" style="left:2210px;top:1436px;"></div>
-        <div class="tree" style="left:2210px;top:1488px;"></div>
-        <div class="tree" style="left:2210px;top:1540px;"></div>
-        <div class="tree big" style="left:2210px;top:1592px;"></div>
+        <div class="tree big" style="left:2210px;top:1280px;transform:scale(0.9);"></div>
+        <div class="tree" style="left:2210px;top:1332px;transform:scale(1.05);"></div>
+        <div class="tree" style="left:2210px;top:1384px;transform:scale(0.88);"></div>
+        <div class="tree" style="left:2210px;top:1436px;transform:scale(1.12);"></div>
+        <div class="tree" style="left:2210px;top:1488px;transform:scale(0.92);"></div>
+        <div class="tree" style="left:2210px;top:1540px;transform:scale(1.0);"></div>
+        <div class="tree big" style="left:2210px;top:1592px;transform:scale(0.85);"></div>
 
-        <!-- 🔥 ZONA DE FUEGO — encerramiento con árboles -->
+        <!-- 🔥 ZONA DE FUEGO — encerramiento con árboles (tamaños variados) -->
         <!-- Norte (con apertura para el sendero) -->
-        <div class="tree dark" style="left:1600px;top:1400px;"></div>
-        <div class="tree dark" style="left:1652px;top:1400px;"></div>
-        <div class="tree dark" style="left:1704px;top:1400px;"></div>
-        <div class="tree dark" style="left:1756px;top:1400px;"></div>
-        <div class="tree dark" style="left:1808px;top:1400px;"></div>
-        <div class="tree dark" style="left:1860px;top:1400px;"></div>
-        <div class="tree dark" style="left:1912px;top:1400px;"></div>
-        <div class="tree dark" style="left:1964px;top:1400px;"></div>
-        <div class="tree dark" style="left:2016px;top:1400px;"></div>
-        <div class="tree dark" style="left:2068px;top:1400px;"></div>
-        <div class="tree dark" style="left:2260px;top:1400px;"></div>
+        <div class="tree dark" style="left:1600px;top:1400px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:1652px;top:1400px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:1704px;top:1400px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:1756px;top:1400px;transform:scale(0.92);"></div>
+        <div class="tree dark" style="left:1808px;top:1400px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:1860px;top:1400px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:1912px;top:1400px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:1964px;top:1400px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:2016px;top:1400px;transform:scale(1.08);"></div>
+        <div class="tree dark" style="left:2068px;top:1400px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:2260px;top:1400px;transform:scale(0.95);"></div>
         <!-- Sur -->
-        <div class="tree dark" style="left:1600px;top:1900px;"></div>
-        <div class="tree dark" style="left:1652px;top:1900px;"></div>
-        <div class="tree dark" style="left:1704px;top:1900px;"></div>
-        <div class="tree dark" style="left:1756px;top:1900px;"></div>
-        <div class="tree dark" style="left:1808px;top:1900px;"></div>
-        <div class="tree dark" style="left:1860px;top:1900px;"></div>
-        <div class="tree dark" style="left:1912px;top:1900px;"></div>
-        <div class="tree dark" style="left:1964px;top:1900px;"></div>
-        <div class="tree dark" style="left:2016px;top:1900px;"></div>
-        <div class="tree dark" style="left:2068px;top:1900px;"></div>
-        <div class="tree dark" style="left:2120px;top:1900px;"></div>
-        <div class="tree dark" style="left:2172px;top:1900px;"></div>
-        <div class="tree dark" style="left:2224px;top:1900px;"></div>
-        <div class="tree dark" style="left:2276px;top:1900px;"></div>
+        <div class="tree dark" style="left:1600px;top:1900px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:1652px;top:1900px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:1704px;top:1900px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:1756px;top:1900px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:1808px;top:1900px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:1860px;top:1900px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:1912px;top:1900px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:1964px;top:1900px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:2016px;top:1900px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:2068px;top:1900px;transform:scale(1.08);"></div>
+        <div class="tree dark" style="left:2120px;top:1900px;transform:scale(0.92);"></div>
+        <div class="tree dark" style="left:2172px;top:1900px;transform:scale(1.02);"></div>
+        <div class="tree dark" style="left:2224px;top:1900px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:2276px;top:1900px;transform:scale(1.1);"></div>
         <!-- Este -->
-        <div class="tree dark" style="left:2280px;top:1420px;"></div>
-        <div class="tree dark" style="left:2280px;top:1472px;"></div>
-        <div class="tree dark" style="left:2280px;top:1524px;"></div>
-        <div class="tree dark" style="left:2280px;top:1576px;"></div>
-        <div class="tree dark" style="left:2280px;top:1628px;"></div>
-        <div class="tree dark" style="left:2280px;top:1680px;"></div>
-        <div class="tree dark" style="left:2280px;top:1732px;"></div>
-        <div class="tree dark" style="left:2280px;top:1784px;"></div>
-        <div class="tree dark" style="left:2280px;top:1836px;"></div>
-        <div class="tree dark" style="left:2280px;top:1888px;"></div>
+        <div class="tree dark" style="left:2280px;top:1420px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:2280px;top:1472px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:2280px;top:1524px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:2280px;top:1576px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:2280px;top:1628px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:2280px;top:1680px;transform:scale(0.92);"></div>
+        <div class="tree dark" style="left:2280px;top:1732px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:2280px;top:1784px;transform:scale(1.08);"></div>
+        <div class="tree dark" style="left:2280px;top:1836px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:2280px;top:1888px;transform:scale(1.1);"></div>
         <!-- Oeste -->
-        <div class="tree dark" style="left:1580px;top:1420px;"></div>
-        <div class="tree dark" style="left:1580px;top:1472px;"></div>
-        <div class="tree dark" style="left:1580px;top:1524px;"></div>
-        <div class="tree dark" style="left:1580px;top:1576px;"></div>
-        <div class="tree dark" style="left:1580px;top:1628px;"></div>
-        <div class="tree dark" style="left:1580px;top:1680px;"></div>
-        <div class="tree dark" style="left:1580px;top:1732px;"></div>
-        <div class="tree dark" style="left:1580px;top:1784px;"></div>
-        <div class="tree dark" style="left:1580px;top:1836px;"></div>
-        <div class="tree dark" style="left:1580px;top:1888px;"></div>
+        <div class="tree dark" style="left:1580px;top:1420px;transform:scale(0.88);"></div>
+        <div class="tree dark" style="left:1580px;top:1472px;transform:scale(1.05);"></div>
+        <div class="tree dark" style="left:1580px;top:1524px;transform:scale(0.9);"></div>
+        <div class="tree dark" style="left:1580px;top:1576px;transform:scale(1.1);"></div>
+        <div class="tree dark" style="left:1580px;top:1628px;transform:scale(0.82);"></div>
+        <div class="tree dark" style="left:1580px;top:1680px;transform:scale(1.0);"></div>
+        <div class="tree dark" style="left:1580px;top:1732px;transform:scale(0.95);"></div>
+        <div class="tree dark" style="left:1580px;top:1784px;transform:scale(1.12);"></div>
+        <div class="tree dark" style="left:1580px;top:1836px;transform:scale(0.85);"></div>
+        <div class="tree dark" style="left:1580px;top:1888px;transform:scale(1.02);"></div>
 
         <div class="tree" style="left:1400px;top:720px;"></div>
         <div class="tree" style="left:1420px;top:770px;"></div>
