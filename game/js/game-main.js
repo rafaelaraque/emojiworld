@@ -1834,6 +1834,16 @@
       const cb = document.getElementById('chatBubble');
       if (bc) bc.classList.add('hidden');
       if (cb) cb.classList.add('hidden');
+      closeInv();
+    }
+    function closeIb() {
+      document.getElementById('ibPanel').classList.remove('open');
+      document.getElementById('chPanel').classList.remove('show');
+      const bc = document.getElementById('bottomControls');
+      const cb = document.getElementById('chatBubble');
+      if (bc) bc.classList.remove('hidden');
+      if (cb) cb.classList.remove('hidden');
+      G._c = null;
     }
     function closeIb() {
       document.getElementById('ibPanel').classList.remove('open');
