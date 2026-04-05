@@ -252,7 +252,7 @@
         const pending = (G._pendingUnr && G._pendingUnr[ch.id]) || 0;
         tot += unr + pending;
       });
-      const badge = document.getElementById('fbadge');
+      const badge = document.getElementById('chatBadge');
       if (badge) {
         badge.textContent = tot > 0 ? tot : '';
         badge.style.display = tot > 0 ? 'flex' : 'none';
@@ -278,6 +278,145 @@
       flashlight:{ em:'🔦', nm:'Linterna', hint:'Ilumina la oscuridad de la cueva' },
     };
     let activeItem = null;
+
+    // ══════════════════════════════════════════════════════
+    //  POWER SLOTS SYSTEM
+    // ══════════════════════════════════════════════════════
+    const SLOT_ITEMS = ['shovel','bombs','apple','watergun','rain','bubbles','wind','flashlight'];
+    let slots = [null, null, null, null, null];
+    let pickerTarget = null;
+
+    function renderPowerSlots() {
+      for (let i = 0; i < 5; i++) {
+        const el = document.getElementById(`ps${i}`);
+        if (!el) continue;
+        el.innerHTML = '';
+        if (slots[i]) {
+          const def = ITEM_DEFS[slots[i]];
+          if (def) {
+            el.textContent = def.em;
+            el.classList.add('glow');
+            const x = document.createElement('div');
+            x.className = 'sclr';
+            x.textContent = '✕';
+            x.onclick = e => { e.stopPropagation(); clearSlot(i); };
+            el.appendChild(x);
+          }
+        } else {
+          el.classList.remove('glow');
+          const plus = document.createElement('span');
+          plus.className = 'plus';
+          plus.textContent = '+';
+          el.appendChild(plus);
+        }
+      }
+      updateActionBtn();
+    }
+
+    function openPicker(slotIdx) {
+      pickerTarget = slotIdx;
+      const overlay = document.getElementById('pickerOverlay');
+      const container = document.getElementById('pickerItems');
+      if (!overlay || !container) return;
+      container.innerHTML = '';
+      const available = SLOT_ITEMS.filter(id => G.inv[id] && G.inv[id] > 0 && !slots.includes(id));
+      if (available.length === 0) {
+        container.innerHTML = '<div style="color:#888;font-size:12px;padding:10px;text-align:center;">No hay items disponibles</div>';
+      } else {
+        available.forEach(id => {
+          const def = ITEM_DEFS[id];
+          if (!def) return;
+          const d = document.createElement('div');
+          d.className = 'picker-item';
+          d.textContent = def.em;
+          d.title = `${def.nm} (x${G.inv[id]})`;
+          d.onclick = () => { setPowerSlot(slotIdx, id); closePicker(); };
+          container.appendChild(d);
+        });
+      }
+      overlay.classList.add('show');
+    }
+
+    function closePicker() {
+      const overlay = document.getElementById('pickerOverlay');
+      if (overlay) overlay.classList.remove('show');
+      pickerTarget = null;
+    }
+
+    function setPowerSlot(idx, itemId) {
+      slots[idx] = itemId;
+      renderPowerSlots();
+      const def = ITEM_DEFS[itemId];
+      if (def) toast(`${def.em} ${def.nm} en slot ${idx + 1}`);
+    }
+
+    function clearSlot(idx) {
+      slots[idx] = null;
+      renderPowerSlots();
+      toast('Slot vaciado');
+    }
+
+    function updateActionBtn() {
+      const btnB = document.getElementById('btnB');
+      if (!btnB) return;
+      const hasAction = slots.some(id => id && ['shovel','bombs','apple'].includes(id));
+      if (hasAction) {
+        const activeId = slots.find(id => id && ['shovel','bombs','apple'].includes(id));
+        if (activeId) {
+          btnB.textContent = ITEM_DEFS[activeId].em;
+          btnB.style.background = 'radial-gradient(circle at 38% 35%, rgba(168,85,247,.95), rgba(124,58,237,.92))';
+          btnB.style.borderColor = 'rgba(180,120,255,.7)';
+          btnB.style.boxShadow = '0 4px 0 rgba(80,20,140,.6), 0 6px 16px rgba(168,85,247,.35)';
+        }
+      } else {
+        btnB.textContent = '⚡';
+        btnB.style.background = '';
+        btnB.style.borderColor = '';
+        btnB.style.boxShadow = '';
+      }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  PAUSE SYSTEM
+    // ══════════════════════════════════════════════════════
+    let gamePaused = false;
+
+    function togglePause() {
+      gamePaused = !gamePaused;
+      const overlay = document.getElementById('pauseOverlay');
+      if (overlay) {
+        if (gamePaused) overlay.classList.add('show');
+        else overlay.classList.remove('show');
+      }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  DO ACTION (Button B)
+    // ══════════════════════════════════════════════════════
+    function doAction() {
+      for (let i = 0; i < 5; i++) {
+        if (slots[i] === 'bombs') {
+          useBomb();
+          renderPowerSlots();
+          return;
+        }
+        if (slots[i] === 'shovel') {
+          doDig();
+          renderPowerSlots();
+          return;
+        }
+        if (slots[i] === 'apple') {
+          if (G.inv.apple > 0) {
+            G.inv.apple--;
+            G.hp = Math.min((G.hp || 3) + 1, 5);
+            toast('🍎 +1 ❤️ restaurada!');
+            hud(); sv(); renderPowerSlots();
+          }
+          return;
+        }
+      }
+      toast('⚡ No hay acción disponible. Agrega un item a un slot.');
+    }
 
     const BURIED_DEFS = [
       { id:'bspot-0', item:'coins', val:20,  txt:'💰 +20 🪙' },
@@ -351,11 +490,9 @@
     function openInv() {
       renderInv();
       document.getElementById('invPanel').classList.add('open');
-      document.getElementById('bnbInv').classList.add('on');
     }
     function closeInv() {
       document.getElementById('invPanel').classList.remove('open');
-      document.getElementById('bnbInv').classList.remove('on');
     }
     function toggleInv() {
       const open = document.getElementById('invPanel').classList.contains('open');
@@ -1205,16 +1342,6 @@
       });
       window.addEventListener('touchcancel', () => { if (joyActive) joyEnd(); });
 
-      const jb = document.getElementById('jumpBtn');
-      if (jb) {
-        const jOn  = e => { e.preventDefault(); jb.classList.add('pressed'); doJump(); };
-        const jOff = e => { jb.classList.remove('pressed'); };
-        jb.addEventListener('mousedown', jOn);
-        jb.addEventListener('touchstart', jOn, { passive: false });
-        jb.addEventListener('mouseup', jOff);
-        jb.addEventListener('touchend', jOff);
-      }
-
       document.body.addEventListener('click', e => {
         const b = e.target.closest('.prox-bubble');
         if (b && b.classList.contains('visible')) showNpc(b.id.replace('prox-', ''));
@@ -1372,7 +1499,8 @@
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
       if (e.key === 'c' || e.key === 'C') { toggleIb(); return; }
       if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); doJump(); return; }
-      if (e.key === 'b' || e.key === 'B') { e.preventDefault(); useBomb(); return; }
+      if (e.key === 'b' || e.key === 'B') { e.preventDefault(); doAction(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); togglePause(); return; }
       if (e.key === 'e' || e.key === 'E') {
         let bestId = null, bestDist = 999;
         document.querySelectorAll('.npc[data-npcid]').forEach(el => {
@@ -1393,16 +1521,16 @@
 
     let drag = null, tdrag = null;
     const vp = document.getElementById('mapVP');
-    if (MAP_DRAG_ENABLED) {
+      if (MAP_DRAG_ENABLED) {
       vp.addEventListener('mousedown', e => {
-        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#fab') || e.target.closest('#bNav') || e.target.closest('#invPanel') || e.target.closest('#digBtn') || e.target.closest('#caveOv') || e.target.closest('#emojiGameOv') || e.target.closest('#elfaGateOv') || e.target.closest('#alienGateOv')) return;
+        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#chatBubble') || e.target.closest('#controlArea') || e.target.closest('#powerBar') || e.target.closest('#invPanel') || e.target.closest('#digBtn') || e.target.closest('#caveOv') || e.target.closest('#emojiGameOv') || e.target.closest('#elfaGateOv') || e.target.closest('#alienGateOv')) return;
         drag = { sx: e.clientX, sy: e.clientY, mx: G.mx, my: G.my };
         vp.classList.add('drag'); e.preventDefault();
       });
       window.addEventListener('mousemove', e => { if (!drag) return; G.mx = drag.mx - (e.clientX - drag.sx); G.my = drag.my - (e.clientY - drag.sy); applyMap(); });
       window.addEventListener('mouseup', () => { drag = null; vp.classList.remove('drag'); });
       vp.addEventListener('touchstart', e => {
-        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#bNav') || e.target.closest('#invPanel') || e.target.closest('#digBtn')) return;
+        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#chatBubble') || e.target.closest('#controlArea') || e.target.closest('#powerBar') || e.target.closest('#invPanel') || e.target.closest('#digBtn')) return;
         const t = e.touches[0]; tdrag = { sx: t.clientX, sy: t.clientY, mx: G.mx, my: G.my };
       }, { passive: true });
       vp.addEventListener('touchmove', e => {
@@ -1721,7 +1849,7 @@
       </div>`;
         list.appendChild(d);
       });
-      const badge = document.getElementById('fbadge');
+      const badge = document.getElementById('chatBadge');
       if (badge) {
         badge.textContent = tot || (tot > 0 ? tot : '');
         badge.style.display = tot ? 'flex' : 'none';
@@ -2568,6 +2696,46 @@
         }
       });
       updateResponsive();
+
+      // ── POWER SLOTS EVENT LISTENERS ──
+      for (let i = 0; i < 5; i++) {
+        const slotEl = document.getElementById(`ps${i}`);
+        if (slotEl) {
+          slotEl.onclick = () => {
+            if (slots[i]) return; // filled slot, clear button handles removal
+            openPicker(i);
+          };
+        }
+      }
+
+      // ── BUTTON A (Jump) ──
+      const btnA = document.getElementById('btnA');
+      if (btnA) {
+        const doJumpA = e => { e.preventDefault(); doJump(); };
+        btnA.addEventListener('touchstart', doJumpA, { passive: false });
+        btnA.addEventListener('mousedown', doJumpA);
+      }
+
+      // ── BUTTON B (Action) ──
+      const btnB = document.getElementById('btnB');
+      if (btnB) {
+        const doAct = e => { e.preventDefault(); doAction(); };
+        btnB.addEventListener('touchstart', doAct, { passive: false });
+        btnB.addEventListener('mousedown', doAct);
+      }
+
+      // ── CLOSE PICKER ON OUTSIDE CLICK ──
+      document.addEventListener('click', e => {
+        const overlay = document.getElementById('pickerOverlay');
+        if (overlay && overlay.classList.contains('show')) {
+          if (!overlay.contains(e.target) && !e.target.classList.contains('power-slot')) {
+            closePicker();
+          }
+        }
+      });
+
+      // ── RENDER INITIAL SLOTS ──
+      renderPowerSlots();
     }
     window.addEventListener('resize', () => {
       getVP(); applyMap(); updateResponsive();

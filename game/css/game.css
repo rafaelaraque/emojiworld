@@ -193,6 +193,153 @@ body {
     repeating-conic-gradient(#3a2e38 0% 25%, #352834 25% 50%, #3f3040 50% 75%, #3a2e38 75% 100%) 0 0 / 80px 80px;
 }
 
+/* ═══════════════════════════════════════
+   MURALLA DEL CASTILLO - Estilo piedra medieval
+   ═══════════════════════════════════════ */
+
+.castle-wall {
+  position: absolute;
+  background:
+    /* líneas de mortero horizontales */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 18px,
+      #a8a49a 18px,
+      #a8a49a 20px
+    ),
+    /* líneas de mortero verticales escalonadas */
+    repeating-linear-gradient(
+      90deg,
+      #b5b0a6 0px,
+      #b5b0a6 1px,
+      transparent 1px,
+      transparent 38px
+    ),
+    /* base cemento claro con variación */
+    repeating-linear-gradient(
+      0deg,
+      #d4cfc7 0px,
+      #d4cfc7 18px,
+      #ccc7be 18px,
+      #ccc7be 36px
+    );
+  border: 2px solid #9e9a90;
+  box-shadow: 
+    inset 0 0 12px rgba(0,0,0,0.15),
+    2px 3px 8px rgba(0,0,0,0.35);
+  z-index: 15;
+}
+
+/* almenas en la parte superior de muros horizontales */
+.castle-wall::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #c8c3b8 0px,
+      #c8c3b8 14px,
+      transparent 14px,
+      transparent 28px
+    );
+  border: 1px solid #9e9a90;
+  border-bottom: none;
+}
+
+.castle-gate {
+  position: absolute;
+  background: 
+    repeating-linear-gradient(90deg, #4a3020 0px, #4a3020 20px, #3a2010 20px, #3a2010 40px),
+    linear-gradient(to bottom, #5a4030, #3a2010);
+  border: 4px solid #2a1a0a;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  z-index: 16;
+}
+
+.castle-gate::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  right: 10%;
+  bottom: 20%;
+  background: repeating-linear-gradient(90deg, transparent 0px, transparent 8px, #2a2a2a 8px, #2a2a2a 12px);
+}
+
+.breakable-wall {
+  position: absolute;
+  background:
+    /* mortero horizontal entre filas de ladrillos */
+    repeating-linear-gradient(
+      0deg,
+      #8b7355 0px,
+      #8b7355 2px,
+      #b5651d 2px,
+      #b5651d 10px,
+      #a0522d 10px,
+      #a0522d 18px,
+      #8b7355 18px,
+      #8b7355 20px
+    ),
+    /* mortero vertical entre ladrillos */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 28px,
+      #8b7355 28px,
+      #8b7355 30px,
+      transparent 30px,
+      transparent 58px,
+      #8b7355 58px,
+      #8b7355 60px
+    ),
+    /* base ladrillo cálido */
+    linear-gradient(135deg, #c4722f, #a0522d, #8b4513);
+  border: 2px solid #5a2e11;
+  z-index: 17;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 10px rgba(0,0,0,0.35),
+    2px 2px 6px rgba(0,0,0,0.4);
+}
+
+.breakable-wall::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* filas alternadas desplazadas (patrón de ladrillo real) */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 19px,
+      rgba(60,30,10,0.7) 19px,
+      rgba(60,30,10,0.7) 21px
+    );
+}
+
+/* grietas visibles al acercarse con bomba */
+.breakable-wall::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  right: 4px;
+  bottom: 2px;
+  background:
+    linear-gradient(45deg, transparent 40%, rgba(0,0,0,0.12) 42%, transparent 44%),
+    linear-gradient(-30deg, transparent 60%, rgba(0,0,0,0.1) 62%, transparent 64%);
+  pointer-events: none;
+}
+
 /* Tecnozona - metal tiles */
 .z4 {
   left: 2000px;
@@ -694,7 +841,7 @@ body {
 /* JOYSTICK */
 #joystick {
   position: absolute;
-  bottom: calc(60px + 14px);
+  bottom: calc(180px + 14px);
   left: 14px;
   width: 110px;
   height: 110px;
@@ -736,20 +883,495 @@ body {
 }
 #joyKnob.active { transition: none; }
 
-/* ── BOTTOM NAVIGATION ── */
-#bNav {
+/* ═══════════════════════════════════════
+   POWER SLOTS BAR — above control area
+   ═══════════════════════════════════════ */
+
+#powerBar {
+  position: absolute;
+  bottom: 180px;
+  left: 0;
+  right: 0;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: linear-gradient(180deg, rgba(10,16,20,0) 0%, rgba(10,16,20,.92) 30%, rgba(10,16,20,.97) 100%);
+  border-top: 1px solid rgba(255,215,0,.15);
+  z-index: 850;
+  backdrop-filter: blur(6px);
+}
+
+.power-slot {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 26px;
+  background: rgba(30, 20, 10, 0.9);
+  border: 2px solid rgba(139, 94, 60, 0.7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,.05);
+  cursor: pointer;
+  transition: all .2s;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.power-slot:active {
+  transform: scale(.88);
+}
+
+.power-slot .plus {
+  font-size: 30px;
+  color: rgba(212, 165, 116, 0.7);
+  line-height: 1;
+  font-weight: 300;
+}
+
+.power-slot.glow {
+  border-color: #fbbf24;
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.5), 0 4px 12px rgba(0,0,0,.5);
+  animation: slotPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes slotPulse {
+  from { box-shadow: 0 0 8px rgba(251, 191, 36, 0.3), 0 4px 12px rgba(0,0,0,.5); }
+  to   { box-shadow: 0 0 22px rgba(251, 191, 36, 0.6), 0 0 36px rgba(251, 191, 36, 0.2), 0 4px 12px rgba(0,0,0,.5); }
+}
+
+.power-slot .sclr {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #ff4444;
+  color: #fff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(255,0,0,.4);
+}
+
+/* ═══════════════════════════════════════
+   CONTROL AREA — D-pad + Pause + A/B
+   ═══════════════════════════════════════ */
+
+#controlArea {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: rgba(10, 16, 20, .95);
-  border-top: 1px solid var(--bdr);
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
+  height: 180px;
+  background: linear-gradient(180deg, rgba(10,16,20,.95) 0%, rgba(8,12,16,.98) 100%);
+  border-top: 1px solid rgba(255,255,255,.06);
   z-index: 900;
   backdrop-filter: blur(10px);
+}
+
+/* ── PAUSE BUTTON (hamburger, circular) ── */
+#pauseBtn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  border: 2px solid rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: rgba(255,255,255,.6);
+  cursor: pointer;
+  z-index: 910;
+  transition: all .15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#pauseBtn:hover {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.25);
+  color: #fff;
+}
+
+#pauseBtn:active {
+  transform: translate(-50%, -50%) scale(.9);
+}
+
+/* ── BUTTON A (Jump) — Nintendo diagonal: arriba-derecha ── */
+#btnA {
+  position: absolute;
+  right: 24px;
+  bottom: 110px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, rgba(76,175,80,.95), rgba(56,142,60,.92));
+  border: 2.5px solid rgba(100,200,100,.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  color: rgba(255,255,255,.95);
+  cursor: pointer;
+  z-index: 910;
+  box-shadow: 0 4px 0 rgba(30,100,30,.6), 0 6px 16px rgba(76,175,80,.35);
+  transition: transform .07s, box-shadow .07s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#btnA:active, #btnA.pressed {
+  transform: translateY(3px) scale(.93);
+  box-shadow: 0 1px 0 rgba(30,100,30,.6), 0 2px 8px rgba(76,175,80,.25);
+}
+
+/* ── BUTTON B (Action) — Nintendo diagonal: abajo-izquierda ── */
+#btnB {
+  position: absolute;
+  right: 84px;
+  bottom: 52px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, rgba(229,57,53,.95), rgba(198,40,40,.92));
+  border: 2.5px solid rgba(240,100,100,.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  color: rgba(255,255,255,.95);
+  cursor: pointer;
+  z-index: 910;
+  box-shadow: 0 4px 0 rgba(140,20,20,.6), 0 6px 16px rgba(229,57,53,.35);
+  transition: transform .07s, box-shadow .07s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#btnB:active, #btnB.pressed {
+  transform: translateY(3px) scale(.93);
+  box-shadow: 0 1px 0 rgba(140,20,20,.6), 0 2px 8px rgba(229,57,53,.25);
+}
+
+/* ── CHAT BUBBLE — right side, above slots ── */
+#chatBubble {
+  position: absolute;
+  right: 12px;
+  bottom: 262px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--g);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 860;
+  box-shadow: 0 4px 20px rgba(0, 200, 83, .4);
+  transition: transform .12s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#chatBubble:hover {
+  transform: scale(1.08);
+}
+
+#chatBubble:active {
+  transform: scale(.92);
+}
+
+#chatBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0A1014;
+  animation: bp 2s ease-in-out infinite;
+}
+
+/* ── ITEM PICKER POPUP ── */
+#pickerOverlay {
+  position: absolute;
+  bottom: 250px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 16, 20, .95);
+  border: 1px solid rgba(255,215,0,.2);
+  border-radius: 16px;
+  padding: 12px;
+  z-index: 870;
+  display: none;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  min-width: 260px;
+}
+
+#pickerOverlay.show {
+  display: block;
+  animation: pickerSlideUp .2s ease-out;
+}
+
+@keyframes pickerSlideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+#pickerOverlay .picker-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: #FFD700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+#pickerItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.picker-item {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.picker-item:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,215,0,.4);
+  transform: scale(1.08);
+}
+
+.picker-item:active {
+  transform: scale(.9);
+}
+
+#pickerCancel {
+  display: block;
+  margin: 8px auto 0;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.6);
+  padding: 6px 20px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+#pickerCancel:hover {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+}
+
+/* ── PAUSE OVERLAY ── */
+#pauseOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .85);
+  backdrop-filter: blur(8px);
+  z-index: 950;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#pauseOverlay.show {
+  display: flex;
+  animation: fadeIn .2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#pauseMenu {
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  border: 2px solid rgba(255,215,0,.2);
+  border-radius: 20px;
+  padding: 0;
+  width: 280px;
+  max-width: 90%;
+  box-shadow: 0 12px 48px rgba(0,0,0,.6);
+  overflow: hidden;
+}
+
+.pause-header {
+  text-align: center;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.pause-header span {
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  color: #FFD700;
+  letter-spacing: 2px;
+}
+
+.pause-items {
+  padding: 8px 0;
+}
+
+.pause-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background .15s;
+  color: rgba(255,255,255,.8);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pause-item:hover {
+  background: rgba(255,255,255,.08);
+}
+
+.pause-item:active {
+  background: rgba(255,255,255,.14);
+}
+
+.pause-item .pi-em {
+  font-size: 22px;
+  width: 28px;
+  text-align: center;
+}
+
+.pause-item .pi-nm {
+  flex: 1;
+}
+
+.pause-divider {
+  height: 1px;
+  background: rgba(255,255,255,.06);
+  margin: 4px 16px;
+}
+
+.pause-continue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  cursor: pointer;
+  transition: background .15s;
+  color: #4CAF50;
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.pause-continue:hover {
+  background: rgba(76,175,80,.1);
+}
+
+.pause-continue:active {
+  background: rgba(76,175,80,.2);
+}
+
+/* ═══════════════════════════════════════
+   OLD ELEMENTS — REMOVED
+   ═══════════════════════════════════════ */
+
+/* ── RESPONSIVE STYLES ── */
+@media(max-width:899px) {
+  #controlArea {
+    height: 170px;
+  }
+
+  #powerBar {
+    bottom: 170px;
+  }
+
+  #chatBubble {
+    bottom: 252px;
+  }
+
+  #btnA {
+    right: 20px;
+    bottom: 100px;
+  }
+
+  #btnB {
+    right: 76px;
+    bottom: 46px;
+  }
+
+  #pauseBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
+
+@media(max-width:420px) {
+  .tb-keys {
+    display: none !important;
+  }
+
+  .tb-stat {
+    padding: 2px 6px;
+  }
+
+  .tb-logo span {
+    display: none;
+  }
+
+  .power-slot {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+
+  #btnA, #btnB {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
+  }
 }
 
 .bnb {
@@ -916,7 +1538,7 @@ body {
 .cave-blocked .cave-em { filter: grayscale(.5) drop-shadow(0 4px 12px rgba(0,0,0,.8)); }
 
 #caveBlockMsg {
-  position: fixed; bottom: 90px; left: 50%;
+  position: fixed; bottom: 260px; left: 50%;
   transform: translateX(-50%) translateY(20px);
   background: rgba(0,0,0,.92); color: #FFD700;
   font-size: 13px; font-weight: 900;
@@ -1146,8 +1768,9 @@ body {
 }
 
 /* INVENTORY */
+/* INVENTORY PANEL */
 #invPanel {
-  position: fixed; bottom: 60px; left: 0; right: 0;
+  position: fixed; bottom: 250px; left: 0; right: 0;
   background: #0b1a10;
   border-top: 2px solid #2E7D32;
   z-index: 890;
@@ -1185,7 +1808,7 @@ body {
 .inv-nm { font-size:9px; font-weight:800; color:#A5D6A7; text-align:center; line-height:1.2; }
 .inv-qty { position:absolute; top:3px; right:5px; font-size:9px; font-weight:900; color:#FFD700; }
 .inv-active-lbl {
-  position: fixed; bottom: 64px; left: 50%;
+  position: fixed; bottom: 254px; left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,.85); color: #FFD700;
   font-size: 12px; font-weight: 900;

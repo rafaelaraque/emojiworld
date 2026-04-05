@@ -210,12 +210,12 @@
         <!-- Portón Oeste — subido 45px -->
         <div class="castle-gate" id="mainGate" style="left:1950px;top:435px;width:45px;height:96px;"></div>
 
-        <!-- 💂 Dos guardias a 45px al oeste del portón -->
-        <div class="npc" style="left:1905px;top:445px;" onclick="showNpc('guardia')" data-npcid="guardia">
+        <!-- 💂 Dos guardias a 70px al oeste del portón -->
+        <div class="npc" style="left:1880px;top:445px;" onclick="showNpc('guardia')" data-npcid="guardia">
           <span class="npe">💂</span><span class="npn">Guardia Norte</span>
           <div class="prox-bubble" id="prox-guardia">Hablar</div>
         </div>
-        <div class="npc" style="left:1905px;top:505px;" onclick="showNpc('guardia2')" data-npcid="guardia2">
+        <div class="npc" style="left:1880px;top:505px;" onclick="showNpc('guardia2')" data-npcid="guardia2">
           <span class="npe">💂</span><span class="npn">Guardia Sur</span>
           <div class="prox-bubble" id="prox-guardia2">Hablar</div>
         </div>
@@ -675,20 +675,62 @@
         <div id="joyBase"></div>
         <div id="joyKnob"></div>
       </div>
-      <!-- BOTÓN DE SALTO -->
-      <div id="jumpBtn">▲</div>
 
-      <!-- FAB -->
-      <div id="fab" onclick="openIb()">💬<div id="fbadge">5</div>
+      <!-- CHAT BUBBLE -->
+      <div id="chatBubble" onclick="openIb()">💬<div id="chatBadge">5</div></div>
+
+      <!-- POWER SLOTS BAR -->
+      <div id="powerBar">
+        <div class="power-slot" id="ps0"></div>
+        <div class="power-slot" id="ps1"></div>
+        <div class="power-slot" id="ps2"></div>
+        <div class="power-slot" id="ps3"></div>
+        <div class="power-slot" id="ps4"></div>
       </div>
 
-      <!-- BOTTOM NAV -->
-      <div id="bNav">
-        <div class="bnb on" onclick="openIb()"><span class="bni">💬</span><span>Chats</span></div>
-        <div class="bnb" onclick="ctr()"><span class="bni">🗺️</span><span>Mapa</span></div>
-        <div class="bnb" id="bnbInv" onclick="toggleInv()"><span class="bni">🎒</span><span>Mochila</span></div>
-        <div class="bnb" onclick="showNpc('c1')"><span class="bni">🏆</span><span>Ranking</span></div>
-        <div class="bnb"><span class="bni">🧑‍🚀</span><span>Perfil</span></div>
+      <!-- CONTROL AREA -->
+      <div id="controlArea">
+        <!-- PAUSE BUTTON -->
+        <div id="pauseBtn" onclick="togglePause()">☰</div>
+        <!-- BUTTON A (Jump) -->
+        <div id="btnA">▲</div>
+        <!-- BUTTON B (Action) -->
+        <div id="btnB">⚡</div>
+      </div>
+
+      <!-- ITEM PICKER POPUP -->
+      <div id="pickerOverlay">
+        <div class="picker-title">🎒 MOCHILA</div>
+        <div id="pickerItems"></div>
+        <button id="pickerCancel" onclick="closePicker()">✕ Cancelar</button>
+      </div>
+
+      <!-- PAUSE OVERLAY -->
+      <div id="pauseOverlay">
+        <div id="pauseMenu">
+          <div class="pause-header"><span>⏸ PAUSA</span></div>
+          <div class="pause-items">
+            <div class="pause-item" onclick="openIb(); togglePause();">
+              <span class="pi-em">💬</span><span class="pi-nm">Chats</span>
+            </div>
+            <div class="pause-item" onclick="ctr(); togglePause();">
+              <span class="pi-em">🗺️</span><span class="pi-nm">Mapa</span>
+            </div>
+            <div class="pause-item" onclick="toggleInv(); togglePause();">
+              <span class="pi-em">🎒</span><span class="pi-nm">Mochila</span>
+            </div>
+            <div class="pause-item" onclick="showNpc('c1'); togglePause();">
+              <span class="pi-em">🏆</span><span class="pi-nm">Ranking</span>
+            </div>
+            <div class="pause-item">
+              <span class="pi-em">🧑‍🚀</span><span class="pi-nm">Perfil</span>
+            </div>
+            <div class="pause-divider"></div>
+            <div class="pause-continue" onclick="togglePause()">
+              ▶ CONTINUAR
+            </div>
+          </div>
+        </div>
       </div>
 
     </div><!-- mapVP -->
