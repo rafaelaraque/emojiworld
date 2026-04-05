@@ -15,7 +15,7 @@
     let vpW = 800, vpH = 600;
     const MW = 2800, MH = 2000, SPD = 7;
     let keys = {};
-    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:0, bombs:0, apple:0, relic:0, gem:0, watergun:0, rain:0, bubbles:0, wind:0, flashlight:0}, _pendingUnr: {}, wallDestroyed: false };
+    let G = { xp: 0, coins: 0, ms: 0, cv: {}, att: {}, mx: 900, my: 600, mktLv: 0, mangoUnr: 0, inv: {shovel:0, bombs:0, apple:0, relic:0, gem:0, watergun:0, rain:0, bubbles:0, wind:0, flashlight:0}, _pendingUnr: {}, wallDestroyed: false, storyProgress: 0 };
 
     // ── DATA ──────────────────────────────
     const NPCS = {
@@ -39,6 +39,7 @@
       emma: {
         id: 'emma', nm: 'Emma 🤗', em: '🤗', bg: 'bg0', mt: '¿Cuál es la fruta oficial de Emoji City?', xp: 80, co: 20, tm: '09:41', unr: 3, pv: '¡Hola! Tengo una misión para ti 🌟',
         init: ['¡Hola aventurero! 😊 ¡Bienvenido a Emoji City!', 'Soy Emma, tu guía oficial. Tengo una misión 🎯', '¿Sabes cuál es la **fruta oficial** de Emoji City? Explora el Mercado Feliz 🏪'],
+        introMsg: '¡Hola! 😊 ¡Bienvenido a Emoji City! Soy Emma, tu guía. Visita a Don Mango en el Mercado Feliz 🏪 — ¡él tiene una misión importante para ti sobre la fruta oficial de Emoji City! 🍉',
         ans: ['sandía', 'sandia', '🍉'], hints: ['💡 Visita el *Mercado Feliz* al noroeste 🏪', '💡 Habla con *Don Mango* 🧑‍🍳', '💡 Es verde por fuera, roja por dentro y MUY grande 🍉'],
         wrong: ['¡Mmm no es esa! 🤔 Explora el Mercado Feliz 🗺️', '¡Casi! Habla con el dueño del mercado 🧑‍🍳', '¡Sigue buscando! La pista está en el mapa 🌍'],
         ok: '¡¡CORRECTO!! 🎉 ¡La **sandía 🍉** es la fruta oficial de Emoji City! ¡Eres increíble!', dn: '😊 ¡Ya completaste esta misión! ¡Eres el mejor aventurero!'
@@ -1903,11 +1904,41 @@
       document.getElementById('mchip').style.opacity = ch.done ? .55 : 1;
       const area = document.getElementById('msgs');
       area.innerHTML = '<div class="dchip">Hoy</div>';
-      if (!G.cv[id] || G.cv[id].length === 0) { G.cv[id] = []; playInit(ch); }
-      else { G.cv[id].forEach(m => bub(m.t, m.s, m.ts, false)); area.scrollTop = area.scrollHeight; }
+
+      // Intro mode: show only Emma's intro message
+      if (id === 'emma' && G.storyProgress === 1 && (!G.cv[id] || G.cv[id].length === 0)) {
+        G.cv[id] = [];
+        const introText = ch.introMsg || ch.init[0];
+        setTimeout(() => {
+          showTyp();
+          setTimeout(() => {
+            hideTyp();
+            bub(introText, 'c', now(), true);
+            G.cv[id].push({ t: introText, s: 'c', ts: now() });
+            sv();
+            // Show close button after 3 seconds
+            setTimeout(() => {
+              const ibx = document.querySelector('.ibx');
+              if (ibx) ibx.classList.remove('intro-hidden');
+            }, 3000);
+          }, 800);
+        }, 300);
+      } else if (!G.cv[id] || G.cv[id].length === 0) {
+        G.cv[id] = []; playInit(ch);
+      } else {
+        G.cv[id].forEach(m => bub(m.t, m.s, m.ts, false));
+        area.scrollTop = area.scrollHeight;
+      }
+
       document.getElementById('chPanel').classList.add('show');
       setTimeout(() => document.getElementById('minp').focus(), 300);
       updatePermitChip();
+
+      // Hide close button in intro mode
+      if (G.storyProgress === 1 && id === 'emma') {
+        const ibx = document.querySelector('.ibx');
+        if (ibx) ibx.classList.add('intro-hidden');
+      }
     }
     function closeChat() { document.getElementById('chPanel').classList.remove('show'); G._c = null; renderList(); updatePermitChip(); }
 
@@ -2692,6 +2723,24 @@
       Market.endDrag(t.clientX, t.clientY);
     }, { passive: false });
 
+    function disableControls() {
+      const bc = document.getElementById('bottomControls');
+      const cb = document.getElementById('chatBubble');
+      const tb = document.getElementById('topBar');
+      if (bc) bc.style.display = 'none';
+      if (cb) cb.style.display = 'none';
+      if (tb) tb.style.display = 'none';
+    }
+
+    function enableControls() {
+      const bc = document.getElementById('bottomControls');
+      const cb = document.getElementById('chatBubble');
+      const tb = document.getElementById('topBar');
+      if (bc) bc.style.display = '';
+      if (cb) cb.style.display = '';
+      if (tb) tb.style.display = '';
+    }
+
     function init() {
       loadGameFiles();
       
@@ -2767,6 +2816,19 @@
 
       // ── RENDER INITIAL SLOTS ──
       renderPowerSlots();
+
+      // ── CINEMATIC INTRO (first play only) ──
+      if (!G.storyProgress || G.storyProgress === 0) {
+        disableControls();
+        // Hide player sprite during cinematic
+        const pl = document.getElementById('player');
+        if (pl) pl.style.opacity = '0';
+        Cinematic.play();
+        // Restore player after cinematic
+        const t = setTimeout(() => {
+          if (pl) pl.style.opacity = '';
+        }, 12000);
+      }
     }
     window.addEventListener('resize', () => {
       getVP(); applyMap(); updateResponsive();

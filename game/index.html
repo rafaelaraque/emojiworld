@@ -19,8 +19,25 @@
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/ui.css">
   <link rel="stylesheet" href="css/levels.css">
+  <link rel="stylesheet" href="css/intro.css">
 </head>
 <body>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splashScreen">
+    <div class="splash-content">
+      <div class="splash-emoji">🎮</div>
+      <div class="splash-title">Emoji City</div>
+      <div class="splash-subtitle">World Game</div>
+      <div class="splash-bar"><div class="splash-fill"></div></div>
+      <div class="splash-text">Cargando Emoji City...</div>
+    </div>
+  </div>
+
+  <!-- CINEMATIC OVERLAY -->
+  <div id="cinematicOverlay" onclick="Cinematic.skip()">
+    <div class="skip-hint">Toca para saltar ▸</div>
+  </div>
 
   <div id="toast">+50 XP ⚡</div>
   <div id="msgNotifWrap"></div>
@@ -619,6 +636,12 @@
           <div class="prox-bubble" id="prox-c2">Hablar</div>
         </div>
 
+        <!-- 🤗 EMMA — aparece después de la cinemática, oculta al inicio -->
+        <div class="npc" id="emmaNpc" style="left:1350px;top:860px;display:none;" onclick="showNpc('emma')" data-npcid="emma">
+          <span class="npe">🤗</span><span class="npn">Emma</span>
+          <div class="prox-bubble" id="prox-emma">Hablar</div>
+        </div>
+
         <!-- PLAYER: sprite 2D emoji 8-direcciones -->
         <div id="player" style="left:1350px;top:930px;">
           <span id="playerSprite">😊</span>
@@ -795,6 +818,7 @@
 
     </div><!-- ibPanel -->
 
+  <script src="js/cinematic.js"></script>
   <script src="js/game-main.js"></script>
 
 

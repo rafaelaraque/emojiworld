@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════
+   SPLASH SCREEN & CINEMATIC INTRO
+   ═══════════════════════════════════════ */
+
+/* SPLASH SCREEN */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: #0a0a1a;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .6s ease;
+}
+
+#splashScreen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: splashIn .8s ease-out;
+}
+
+@keyframes splashIn {
+  from { opacity: 0; transform: scale(.8) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.splash-emoji {
+  font-size: 72px;
+  animation: splashBounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255,215,0,.4));
+}
+
+@keyframes splashBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-12px) rotate(-3deg); }
+  75%      { transform: translateY(-6px) rotate(3deg); }
+}
+
+.splash-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(28px, 6vw, 42px);
+  background: linear-gradient(135deg, #FFD700, #FF6B35);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+
+.splash-subtitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(14px, 3vw, 20px);
+  color: rgba(255,255,255,.5);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-top: -8px;
+}
+
+.splash-bar {
+  width: 200px;
+  height: 8px;
+  background: rgba(255,255,255,.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.splash-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #FFD700, #FF6B35);
+  border-radius: 4px;
+  transition: width .1s linear;
+}
+
+.splash-text {
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+  font-weight: 600;
+  animation: splashPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes splashPulse {
+  0%, 100% { opacity: .4; }
+  50%      { opacity: .8; }
+}
+
+/* CINEMATIC OVERLAY */
+#cinematicOverlay {
+  position: fixed;
+  inset: 0;
+  background: #0a0a1a;
+  z-index: 99998;
+  display: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+#cinematicOverlay.active {
+  display: block;
+}
+
+#cinematicOverlay .skip-hint {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  color: rgba(255,255,255,.3);
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 10;
+  animation: skipPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes skipPulse {
+  0%, 100% { opacity: .3; }
+  50%      { opacity: .7; }
+}
+
+/* Emma temporal durante cinematica */
+.emma-temp {
+  position: absolute;
+  z-index: 5;
+  transition: none;
+  pointer-events: none;
+}
+
+.emma-temp .npe {
+  font-size: 42px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+  display: block;
+}
+
+/* Emma rotando al irse */
+.emma-spin {
+  animation: emmaSpin 1.5s ease-in forwards;
+}
+
+@keyframes emmaSpin {
+  0%   { transform: rotate(0deg) translateY(0); opacity: 1; }
+  50%  { transform: rotate(720deg) translateY(-40px); opacity: 1; }
+  100% { transform: rotate(1080deg) translateY(-200px); opacity: 0; }
+}
+
+/* Burbujas de dialogo cinematica */
+.cine-bubble {
+  position: absolute;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  padding: 10px 16px;
+  max-width: 280px;
+  font-size: 14px;
+  color: #fff;
+  line-height: 1.4;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .3s, transform .3s;
+  pointer-events: none;
+}
+
+.cine-bubble.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cine-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid rgba(0,0,0,.85);
+}
+
+/* Ocultar boton cerrar en modo intro */
+.ibx.intro-hidden {
+  display: none !important;
+}
