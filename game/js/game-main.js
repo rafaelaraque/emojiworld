@@ -1523,14 +1523,14 @@
     const vp = document.getElementById('mapVP');
       if (MAP_DRAG_ENABLED) {
       vp.addEventListener('mousedown', e => {
-        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#chatBubble') || e.target.closest('#controlArea') || e.target.closest('#powerBar') || e.target.closest('#invPanel') || e.target.closest('#digBtn') || e.target.closest('#caveOv') || e.target.closest('#emojiGameOv') || e.target.closest('#elfaGateOv') || e.target.closest('#alienGateOv')) return;
+        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#chatBubble') || e.target.closest('#controlArea') || e.target.closest('#slotsBar') || e.target.closest('#invPanel') || e.target.closest('#digBtn') || e.target.closest('#caveOv') || e.target.closest('#emojiGameOv') || e.target.closest('#elfaGateOv') || e.target.closest('#alienGateOv')) return;
         drag = { sx: e.clientX, sy: e.clientY, mx: G.mx, my: G.my };
         vp.classList.add('drag'); e.preventDefault();
       });
       window.addEventListener('mousemove', e => { if (!drag) return; G.mx = drag.mx - (e.clientX - drag.sx); G.my = drag.my - (e.clientY - drag.sy); applyMap(); });
       window.addEventListener('mouseup', () => { drag = null; vp.classList.remove('drag'); });
       vp.addEventListener('touchstart', e => {
-        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#chatBubble') || e.target.closest('#controlArea') || e.target.closest('#powerBar') || e.target.closest('#invPanel') || e.target.closest('#digBtn')) return;
+        if (e.target.closest('.npc') || e.target.closest('#joystick') || e.target.closest('#chatBubble') || e.target.closest('#controlArea') || e.target.closest('#slotsBar') || e.target.closest('#invPanel') || e.target.closest('#digBtn')) return;
         const t = e.touches[0]; tdrag = { sx: t.clientX, sy: t.clientY, mx: G.mx, my: G.my };
       }, { passive: true });
       vp.addEventListener('touchmove', e => {

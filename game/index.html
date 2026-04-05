@@ -670,17 +670,15 @@
         </div>
       </div>
 
-      <!-- JOYSTICK TÁCTIL -->
-      <div id="joystick">
-        <div id="joyBase"></div>
-        <div id="joyKnob"></div>
-      </div>
+    </div><!-- mapVP -->
 
-      <!-- CHAT BUBBLE -->
-      <div id="chatBubble" onclick="openIb()">💬<div id="chatBadge">5</div></div>
+    <!-- CHAT BUBBLE -->
+    <div id="chatBubble" onclick="openIb()">💬<div id="chatBadge">5</div></div>
 
-      <!-- POWER SLOTS BAR -->
-      <div id="powerBar">
+    <!-- BOTTOM CONTROLS: slots + control area -->
+    <div id="bottomControls">
+      <!-- SLOTS BAR -->
+      <div id="slotsBar">
         <div class="power-slot" id="ps0"></div>
         <div class="power-slot" id="ps1"></div>
         <div class="power-slot" id="ps2"></div>
@@ -690,6 +688,11 @@
 
       <!-- CONTROL AREA -->
       <div id="controlArea">
+        <!-- JOYSTICK TÁCTIL -->
+        <div id="joystick">
+          <div id="joyBase"></div>
+          <div id="joyKnob"></div>
+        </div>
         <!-- PAUSE BUTTON -->
         <div id="pauseBtn" onclick="togglePause()">☰</div>
         <!-- BUTTON A (Jump) -->
@@ -697,43 +700,42 @@
         <!-- BUTTON B (Action) -->
         <div id="btnB">⚡</div>
       </div>
+    </div>
 
-      <!-- ITEM PICKER POPUP -->
-      <div id="pickerOverlay">
-        <div class="picker-title">🎒 MOCHILA</div>
-        <div id="pickerItems"></div>
-        <button id="pickerCancel" onclick="closePicker()">✕ Cancelar</button>
-      </div>
+    <!-- ITEM PICKER POPUP -->
+    <div id="pickerOverlay">
+      <div class="picker-title">🎒 MOCHILA</div>
+      <div id="pickerItems"></div>
+      <button id="pickerCancel" onclick="closePicker()">✕ Cancelar</button>
+    </div>
 
-      <!-- PAUSE OVERLAY -->
-      <div id="pauseOverlay">
-        <div id="pauseMenu">
-          <div class="pause-header"><span>⏸ PAUSA</span></div>
-          <div class="pause-items">
-            <div class="pause-item" onclick="openIb(); togglePause();">
-              <span class="pi-em">💬</span><span class="pi-nm">Chats</span>
-            </div>
-            <div class="pause-item" onclick="ctr(); togglePause();">
-              <span class="pi-em">🗺️</span><span class="pi-nm">Mapa</span>
-            </div>
-            <div class="pause-item" onclick="toggleInv(); togglePause();">
-              <span class="pi-em">🎒</span><span class="pi-nm">Mochila</span>
-            </div>
-            <div class="pause-item" onclick="showNpc('c1'); togglePause();">
-              <span class="pi-em">🏆</span><span class="pi-nm">Ranking</span>
-            </div>
-            <div class="pause-item">
-              <span class="pi-em">🧑‍🚀</span><span class="pi-nm">Perfil</span>
-            </div>
-            <div class="pause-divider"></div>
-            <div class="pause-continue" onclick="togglePause()">
-              ▶ CONTINUAR
-            </div>
+    <!-- PAUSE OVERLAY -->
+    <div id="pauseOverlay">
+      <div id="pauseMenu">
+        <div class="pause-header"><span>⏸ PAUSA</span></div>
+        <div class="pause-items">
+          <div class="pause-item" onclick="openIb(); togglePause();">
+            <span class="pi-em">💬</span><span class="pi-nm">Chats</span>
+          </div>
+          <div class="pause-item" onclick="ctr(); togglePause();">
+            <span class="pi-em">🗺️</span><span class="pi-nm">Mapa</span>
+          </div>
+          <div class="pause-item" onclick="toggleInv(); togglePause();">
+            <span class="pi-em">🎒</span><span class="pi-nm">Mochila</span>
+          </div>
+          <div class="pause-item" onclick="showNpc('c1'); togglePause();">
+            <span class="pi-em">🏆</span><span class="pi-nm">Ranking</span>
+          </div>
+          <div class="pause-item">
+            <span class="pi-em">🧑‍🚀</span><span class="pi-nm">Perfil</span>
+          </div>
+          <div class="pause-divider"></div>
+          <div class="pause-continue" onclick="togglePause()">
+            ▶ CONTINUAR
           </div>
         </div>
       </div>
-
-    </div><!-- mapVP -->
+    </div>
 
     <!-- INBOX PANEL -->
     <div id="ibPanel">
