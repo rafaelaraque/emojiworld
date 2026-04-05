@@ -438,6 +438,7 @@
       { id:'bspot-5', item:'relic', val:1,   txt:'🏺 ¡Reliquia valiosa!' },
       { id:'bspot-6', item:'coins', val:15,  txt:'💰 +15 🪙' },
       { id:'bspot-7', item:'gem',   val:1,   txt:'💎 ¡Gema rara!' },
+      { id:'bspot-8', item:'relic', val:1,   txt:'🏺 ¡Reliquia enterrada en Tecnozona!' },
     ];
     const foundBuried = new Set();
 
@@ -2711,6 +2712,21 @@
       },
     };
 
+    function tryEnterCave() {
+      // If Emma hasn't arrived or gave the commission, we can't enter
+      if (!G.storyProgress || G.storyProgress === 0) {
+        toast('🔒 ¡Área desconocida! Sigue explorando para desbloquear secretos.');
+        return;
+      }
+      if (!G.hasPermit && (typeof G.questDone === 'undefined' || !G.questDone.emma)) {
+        toast('🔒 Necesitas el 📃 Permiso de Emma para entrar a la zona de excavación.');
+        return;
+      }
+      if (typeof openCave === 'function') openCave();
+      else toast('⚡ Cargando cueva... (inténtalo de nuevo en unos segundos)');
+    }
+    window.tryEnterCave = tryEnterCave;
+
     document.addEventListener('mousemove', e => {
       if (Market.drag) Market.moveDrag(e.clientX, e.clientY);
     });
@@ -2845,9 +2861,21 @@
       } else {
         // No cinematic — start normally
         console.log('[Init] Returning player — skipping cinematic');
+        const ss = document.getElementById('splashScreen');
+        if (ss) ss.remove();
+        const co = document.getElementById('cinematicOverlay');
+        if (co) co.remove();
+        
         startGameLoop();
       }
-        startGameLoop();
+
+      // Ensure Emma NPC is visible if she has already arrived
+      if (G.storyProgress >= 1) {
+        const emma = document.getElementById('emmaNpc');
+        if (emma) {
+          emma.style.display = '';
+          emma.style.opacity = '1';
+        }
       }
     }
     window.addEventListener('resize', () => {

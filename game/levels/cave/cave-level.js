@@ -1565,6 +1565,9 @@
     if (!gameActive) return;
     frameCount++;
 
+    // Periodic inventory sync with parent (every 5 seconds)
+    if (frameCount % 300 === 0) syncCaveInventoryToParent();
+
     try {
       updatePlayer(); updateEnemies(); updateProjectiles();
       updateRain(); updateDrips(); updateBubbles(); updateParticles();
@@ -1616,8 +1619,27 @@
     document.getElementById('win-stats').textContent = `¡Has escapado!`;
     document.getElementById('victory-screen').classList.add('show');
 
-    // Send message to main game with ring status
-    window.parent.postMessage({ type: 'CAVE_EXIT', hasRing: playerHasRing }, '*');
+    const returnInv = {};
+    if (gunAmmo > 0) returnInv.watergun = 1;
+    returnInv.flashlight = lightOn ? 1 : 0;
+    returnInv.rain = rainOn ? 1 : 0;
+    returnInv.wind = windOn ? 1 : 0;
+    returnInv.bubbles = bubblesOn ? 1 : 0;
+
+    window.parent.postMessage({ type: 'CAVE_EXIT', hasRing: playerHasRing, inventory: returnInv }, '*');
+  }
+
+  function showDead() {
+    gameActive = false; stopMusic(); document.getElementById('game-over').classList.add('show');
+
+    const returnInv = {};
+    if (gunAmmo > 0) returnInv.watergun = 1;
+    returnInv.flashlight = lightOn ? 1 : 0;
+    returnInv.rain = rainOn ? 1 : 0;
+    returnInv.wind = windOn ? 1 : 0;
+    returnInv.bubbles = bubblesOn ? 1 : 0;
+
+    window.parent.postMessage({ type: 'CAVE_EXIT', hasRing: false, inventory: returnInv }, '*');
   }
 
   function showDead() {
@@ -1681,6 +1703,42 @@
   document.getElementById('btn-win').onclick = startGame;
 
   initQuickPick();
+
+  // ── INVENTORY SYNC WITH PARENT ──
+  let caveInvSync = {};
+
+  function syncCaveInventoryToParent() {
+    const inv = {};
+    // Map cave items to parent inventory keys
+    if (gunAmmo > 0) inv.watergun = 1;
+    inv.flashlight = lightOn ? 1 : 0;
+    inv.rain = rainOn ? 1 : 0;
+    inv.wind = windOn ? 1 : 0;
+    inv.bubbles = bubblesOn ? 1 : 0;
+    // Only send if changed
+    const changed = Object.keys(inv).some(k => inv[k] !== caveInvSync[k]);
+    if (changed) {
+      caveInvSync = { ...inv };
+      window.parent.postMessage({ type: 'CAVE_INV_UPDATE', inventory: inv }, '*');
+    }
+  }
+
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'CAVE_INIT') {
+      const parentInv = e.data.inventory || {};
+      // Apply parent inventory to cave
+      if (parentInv.watergun > 0) gunAmmo = 5;
+      if (parentInv.flashlight > 0) { /* flashlight available in quick pick */ }
+      if (parentInv.rain > 0) { /* rain power available */ }
+      if (parentInv.wind > 0) { /* wind power available */ }
+      if (parentInv.bubbles > 0) { /* bubbles power available */ }
+      if (e.data.caveBombsUnlimited) {
+        // Bombs are unlimited in cave
+        caveInvSync.unlimitedBombs = true;
+      }
+      if (e.data.hp) hearts = Math.min(e.data.hp, 5);
+    }
+  });
 
   function resizeCanvas() {
     const c = document.getElementById('game-container');

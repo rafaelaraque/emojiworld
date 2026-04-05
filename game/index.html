@@ -36,8 +36,8 @@
   </div>
 
   <!-- CINEMATIC OVERLAY -->
-  <div id="cinematicOverlay" onclick="Cinematic.skip()">
-    <div class="skip-hint">Toca para saltar ▸</div>
+  <div id="cinematicOverlay">
+    <div class="skip-hint" onclick="Cinematic.skip()">Toca para saltar ▸</div>
   </div>
 
   <div id="toast">+50 XP ⚡</div>
@@ -349,8 +349,7 @@
         <div class="tree" style="left:1452px;top:0px;"></div>
         <div class="tree" style="left:1504px;top:0px;"></div>
         <div class="tree" style="left:1556px;top:0px;"></div>
-        <div class="tree" style="left:2600px;top:0px;"></div>
-        <div class="tree" style="left:2652px;top:0px;"></div>
+        <!-- Gap for North Access (3 trees removed) -->
         <div class="tree" style="left:2704px;top:0px;"></div>
         <div class="tree" style="left:2756px;top:0px;"></div>
 
@@ -436,8 +435,11 @@
         <div class="tree dark" style="left:2624px;top:780px;transform:scale(1.0);"></div>
         <div class="tree dark" style="left:2676px;top:780px;transform:scale(0.9);"></div>
         <!-- Sur (con apertura para el sendero) -->
+        <div class="tree dark" style="left:1948px;top:1340px;transform:scale(1.0);"></div>
         <div class="tree dark" style="left:2000px;top:1340px;transform:scale(1.05);"></div>
         <div class="tree dark" style="left:2052px;top:1340px;transform:scale(0.88);"></div>
+        <!-- VERTICAL PASSAGE (Grid 3-4: 2104-2208 open) -->
+        <div class="tree dark" style="left:2208px;top:1340px;transform:scale(1.0);"></div>
         <div class="tree dark" style="left:2260px;top:1340px;transform:scale(0.95);"></div>
         <div class="tree dark" style="left:2312px;top:1340px;transform:scale(1.1);"></div>
         <div class="tree dark" style="left:2364px;top:1340px;transform:scale(0.85);"></div>
@@ -664,6 +666,13 @@
         </div>
         <div class="buried-spot" id="bspot-4" style="left:1820px;top:380px;">
           <div class="dig-prompt">🪏 Cavar</div>
+        </div>
+        <!-- 🔬 TECNOZONA Interaction -->
+        <div class="buried-spot excavable" id="bspot-8" style="left:2104px;top:1280px;">
+          <div class="dig-prompt">🪏 Cavar</div>
+        </div>
+        <div class="cave-entrance" id="techHole" style="left:2550px;top:900px;" onclick="tryEnterCave()">
+          <div class="cave-hole">🕳️</div>
         </div>
 
       </div><!-- mapWorld -->

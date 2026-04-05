@@ -18,13 +18,13 @@ const Cinematic = {
     this.skipped = false;
     window._cinematicActive = true;
 
-    // Safety: force end after 15 seconds no matter what
+    // Safety: force end after 25 seconds no matter what
     const self = this;
     this.safetyTimer = setTimeout(function() {
       console.log('[Cinematic] Safety timeout triggered, forcing end');
       self.skipped = true;
       self._cleanup();
-    }, 15000);
+    }, 25000);
 
     this._run();
   },
@@ -91,12 +91,16 @@ const Cinematic = {
       if (fill) fill.style.width = progress + '%';
 
       if (progress >= 100) {
-        overlay.classList.add('fade-out');
-        const t = setTimeout(function() {
-          overlay.style.display = 'none';
+        if (overlay) {
+          overlay.classList.add('fade-out');
+          const t = setTimeout(function() {
+            overlay.remove(); // Use remove() directly
+            callback();
+          }, 600);
+          self.timers.push(t);
+        } else {
           callback();
-        }, 600);
-        self.timers.push(t);
+        }
       } else {
         const t = setTimeout(tick, 50);
         self.timers.push(t);
@@ -116,7 +120,7 @@ const Cinematic = {
     overlay.classList.add('active');
 
     const waypoints = [
-      [0, 0],
+      [1350, 930], // Start at player pos to avoid jump
       [200, 200],
       [2100, 200],
       [2200, 900],
@@ -184,10 +188,10 @@ const Cinematic = {
     if (!emma) { callback(); return; }
 
     const messages = [
-      { text: '¡Hola! 😊 ¡Bienvenido a Emoji City!', delay: 0 },
-      { text: 'Soy Emma, tu guía en esta aventura.', delay: 1800 },
-      { text: 'Si necesitas ayuda, contáctame por Emoji Chat 💬', delay: 3600 },
-      { text: '¡Mira! Ya te envié un mensaje. ¡Léelo!', delay: 5400 },
+      { text: '¡Hola! 😊 ¡Bienvenido a Emoji City!', delay: 500 },
+      { text: 'Soy Emma, tu guía en esta aventura.', delay: 2800 },
+      { text: 'Si necesitas ayuda, contáctame por Emoji Chat 💬', delay: 5100 },
+      { text: '¡Mira! Ya te envié un mensaje. ¡Léelo!', delay: 7400 },
     ];
 
     messages.forEach(function(msg) {
@@ -198,7 +202,7 @@ const Cinematic = {
       self.timers.push(t);
     });
 
-    const t = setTimeout(callback, 7400);
+    const t = setTimeout(callback, 9500);
     this.timers.push(t);
   },
 
@@ -235,20 +239,11 @@ const Cinematic = {
 
     if (typeof enableControls === 'function') enableControls();
 
-    // Show Emma NPC on map for 8 seconds
+    // Show Emma NPC permanently once she arrives
     const emmaNpc = document.getElementById('emmaNpc');
     if (emmaNpc) {
       emmaNpc.style.display = '';
-      const t = setTimeout(function() {
-        emmaNpc.style.transition = 'opacity 1s';
-        emmaNpc.style.opacity = '0';
-        setTimeout(function() {
-          emmaNpc.style.display = 'none';
-          emmaNpc.style.opacity = '';
-          emmaNpc.style.transition = '';
-        }, 1000);
-      }, 8000);
-      this.timers.push(t);
+      emmaNpc.style.opacity = '1';
     }
 
     // Auto-open chat
@@ -279,6 +274,16 @@ const Cinematic = {
     if (emma) emma.remove();
 
     document.querySelectorAll('.cine-bubble').forEach(function(b) { b.remove(); });
+
+    // Restore player visibility immediately on cleanup
+    const pl = document.getElementById('player');
+    if (pl) pl.style.opacity = '';
+
+    const emmaNpc = document.getElementById('emmaNpc');
+    if (emmaNpc) {
+      emmaNpc.style.display = '';
+      emmaNpc.style.opacity = '1';
+    }
 
     if (typeof enableControls === 'function') enableControls();
 

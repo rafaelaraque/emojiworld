@@ -109,7 +109,7 @@
 #cinematicOverlay {
   position: fixed;
   inset: 0;
-  background: #0a0a1a;
+  background: transparent;
   z-index: 99998;
   display: none;
   cursor: pointer;
@@ -140,7 +140,7 @@
 /* Emma temporal durante cinematica */
 .emma-temp {
   position: absolute;
-  z-index: 5;
+  z-index: 200;
   transition: none;
   pointer-events: none;
 }

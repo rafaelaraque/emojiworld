@@ -247,3 +247,147 @@
   font-size: 12px;
   padding: 4px 12px;
 }
+
+/* ═══════════════════════════════════════
+   WORLD MAP BARRIERS - Zonas Aisladas
+   ═══════════════════════════════════════ */
+
+.world-barrier {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  background: rgba(20, 20, 30, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.world-barrier .barrier-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  animation: barrier-pulse 2s ease-in-out infinite;
+}
+
+.world-barrier .barrier-label {
+  font-family: 'Fredoka One', cursive;
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  margin-top: 2px;
+}
+
+.world-barrier .barrier-lock {
+  font-size: 14px;
+  margin-top: 2px;
+  transition: transform 0.3s;
+}
+
+.world-barrier.locked .barrier-lock {
+  animation: lock-shake 1s ease-in-out infinite;
+}
+
+.world-barrier.unlocked {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+  cursor: default;
+}
+
+.world-barrier.unlocked .barrier-lock {
+  display: none;
+}
+
+@keyframes barrier-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes lock-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+/* Barrier hover effect */
+.world-barrier:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+/* Proximity message for barriers */
+.barrier-prox {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: 'Nunito', sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  border: 1px solid rgba(255, 200, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  animation: barrier-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes barrier-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* ═══════════════════════════════════════
+   MURALLA DEL REINO - Bloques de piedra
+   ═══════════════════════════════════════ */
+
+.wall-block {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+.breakable-wall {
+  position: absolute;
+  display: flex;
+  gap: 2px;
+  z-index: 12;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+  transition: transform 0.2s;
+}
+
+.breakable-wall:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(255, 100, 0, 0.5));
+}
+
+/* Animación de explosión */
+@keyframes explode {
+  0% { transform: scale(0.5); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Hint para paredes rompibles */
+.breakable-wall::after {
+  content: '💣';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}

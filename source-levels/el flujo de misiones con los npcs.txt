@@ -1,0 +1,96 @@
+el flujo de misiones con los npc es de la siguiente forma:
+
+el jugador abre el juego desde la web site ya sea en inicio juego principal o en games
+
+se debe mostrar una pantalla de carga de emoji world
+
+se hace un paneo aéreo del mundo, una animacion tipo vista al emoji world con acercamiento al centro (emoji city)
+
+se muestra la posición del jugador ya implementada pero con una animación de Emma llegando a saludar a Emoji nuestro héroe
+
+ella le da la bienvenida
+
+y le explica que puede contactarse con ella a travez de Chat Emoji (chat emoji inicia vacio)
+
+ella le dice, mira ya te envié un mensaje leelo! y se vá
+
+se abre automáticamente el chat emoji (el jugador debe leer lo que dice el mensaje, no podrá cerrar la aplicación. botón salir oculto) (el único chat o mensaje recibido es el de Emma, los demás mensajes van llegando según se vaya avanzando)
+
+al abrir el chat con Emma ahora si se puede salir de la aplicación y moverse libremente por el mapa. (inventario vacio)
+- aquí el jugador podrá ir libremente y hablar con los personajes del bosque, el minero, don mango, y la tienda de objetos (a implementar) 
+-si habla con Minero el minero no lo dejara entrar a la cueva si no tiene el permiso.
+- si habla con la elfa, ella le hablará de los poderes de los emojis (fuego, furia, hielo) 
+
+el primer mensaje de Emma en el chat tiene que ver con lo de la pista de la fruta...y la primera misión de Don Mango
+
+cuando el jugador haya hecho la misión de don mango y este le de la pista, debe abrir el chat y escribirle a Emma "Sandia" o mandarle el emoji de sandia, (importante, si un jugador sin hacer la misión de don mango le escribe o manda el emoji de sandia a Emma, esta le va a contestar que ese no es el espíritu de un aventurero) y no avanza con el siguiente mensaje, lo mismo si le escriben o mandan un anillo sin completar la misión de la cueva, si le escriben permiso sin antes hacer la misión de don mango ella le dice que me da el permiso si ayudas a don mango
+
+después de la misión de don mango y escribirle a Emma la fruta, esta le manda el mensaje de que se fue de exploración y se le perdió el anillo en el pozo...
+
+Emma te envia el permiso. lo ves en el inventario (mochila)
+
+se lo entregas al minero
+
+minero te permite pasar
+
+haces la misión de la cueva recuperando el anillo, si no lo recuperas y sales (lógica implementada) y le escribes o emoji de anillo a Emma, ella te dira que ese no es su anillo...
+
+debería entrar a la cueva otra vez a buscar el anillo
+
+IMPORTANTE:
+
+*los objetos que se utilizan en la cueva, se los queda el jugador (poder de la lluvia, viento, burbujas, pistola)
+
+anillo en inventario, se le entrega a Emma (ya implementado)
+
+Emma te felicita se pone contenta. misión completada. experiencia
+
+una vez sales del chat con Emma, te llega un mensaje del rey Roland,
+
+diciéndote que tiene un problema en una de sus torres
+un dragón esta amenazando con llevarse los diamantes del reino
+que deberías ir a verlo a su reino y ayudarle, pero no podrá utilizar el camino o la entrada al reino normalmente porque están cerrado los portones por una posible invasión de la que le ha hablado la elfa.
+por eso tendrá que ingeniársela para entrar por otro lado
+
+aquí el jugador tendría monedas suficientes para comprar objetos en la tienda (bombas) y la pala
+
+accediendo por la parte norte rompiendo la barrera con bomba podrá entrar a la zona real, hablar con el rey y aquí le va decir que como hará para subir y acabar con el dragón
+se necesitaría al con que pueda subir fácilmente, con burbuja es complicado por que no hay plataforma donde descansar
+
+el rey le dice que vaya donde la elfa para ver en que le puede ayudar.
+
+hablando con la elfa mágica esta le dice que habría un método para subir y derrotar al dragón de la torre: utilizar el poder del hielo y las gotas de lluvia (gotas se congelan y forman plataforma para subir)
+
+la elfa le dice al héroe que le presta ese poder solo para eso pero a cambio debe ayudarle cuando venga la invasión
+aceptas el reto?
+si dice si le otorga el emoji de congelado en inventario
+si dice no, entonces el rey le manda un mensaje al chat diciendo que le diga que si a la Elfa
+
+ya teniendo el poder solo se podría usar en la torre
+
+hacer llover y congelar las gotas para subir, golpear al dragón, ojo con la lluvia también caen diamantes que dañan
+
+teniendo la pala (se compra en la tienda) se podrá desenterrar tesoros y lo mas importante abrir un pozo que comunica con la tecnozona
+
+en la tecnozona podremos hablar con doctor Bits y hacer un puzzle tipo minijuego para ayudar a mantener el generador que le da energía a Emoji City
+
+al completar la misión nos dará debido a sus experimentos un emoji de invisibilidad, el cual conservara 
+
+después podría llegar a la zona de fuego y hablar con blaze y el le pone un reto:
+
+consiste en que el lanzara una serie de objetos tipo boomerang o bataran que persiguen al jugador este debe esquivarlas y vencerlo, al ganarle nos dará las gafas de COOL
+
+ya con estas misiones terminadas, se activa la misión de la invasión.
+
+
+
+
+
+
+
+
+
+
+
+
+
