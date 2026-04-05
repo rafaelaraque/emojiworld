@@ -226,17 +226,31 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
     overflow: hidden;
     background: var(--dark);
+    position: fixed;
   }
 
   #ibPanel.open {
     transform: translateX(0);
   }
 
+  /* Chat panel - cubre todo el ibPanel tipo WhatsApp */
   #chPanel {
-    position: relative !important;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
     inset: auto !important;
-    flex: 1 1 0% !important;
-    min-height: 0 !important;
+    background: var(--dark);
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #chPanel.show {
+    display: flex !important;
   }
 }
 
