@@ -212,13 +212,20 @@
 @media(max-width:899px) {
   #ibPanel {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100dvh;
+    min-height: 100dvh;
     width: 100% !important;
     transform: translateX(105%);
     transition: transform .3s cubic-bezier(.4, 0, .2, 1);
     border: none;
     z-index: 970;
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+    background: var(--dark);
   }
 
   #ibPanel.open {
@@ -226,8 +233,13 @@
   }
 
   #chPanel {
-    position: fixed !important;
-    inset: 0 0 250px 0 !important;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    inset: auto !important;
   }
 }
 
