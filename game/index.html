@@ -702,43 +702,45 @@
       </div>
     </div>
 
-    <!-- ITEM PICKER POPUP -->
-    <div id="pickerOverlay">
-      <div class="picker-title">🎒 MOCHILA</div>
-      <div id="pickerItems"></div>
-      <button id="pickerCancel" onclick="closePicker()">✕ Cancelar</button>
-    </div>
+  </div><!-- gameArea -->
 
-    <!-- PAUSE OVERLAY -->
-    <div id="pauseOverlay">
-      <div id="pauseMenu">
-        <div class="pause-header"><span>⏸ PAUSA</span></div>
-        <div class="pause-items">
-          <div class="pause-item" onclick="openIb(); togglePause();">
-            <span class="pi-em">💬</span><span class="pi-nm">Chats</span>
-          </div>
-          <div class="pause-item" onclick="ctr(); togglePause();">
-            <span class="pi-em">🗺️</span><span class="pi-nm">Mapa</span>
-          </div>
-          <div class="pause-item" onclick="toggleInv(); togglePause();">
-            <span class="pi-em">🎒</span><span class="pi-nm">Mochila</span>
-          </div>
-          <div class="pause-item" onclick="showNpc('c1'); togglePause();">
-            <span class="pi-em">🏆</span><span class="pi-nm">Ranking</span>
-          </div>
-          <div class="pause-item">
-            <span class="pi-em">🧑‍🚀</span><span class="pi-nm">Perfil</span>
-          </div>
-          <div class="pause-divider"></div>
-          <div class="pause-continue" onclick="togglePause()">
-            ▶ CONTINUAR
-          </div>
+  <!-- ITEM PICKER POPUP -->
+  <div id="pickerOverlay">
+    <div class="picker-title">🎒 MOCHILA</div>
+    <div id="pickerItems"></div>
+    <button id="pickerCancel" onclick="closePicker()">✕ Cancelar</button>
+  </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="pauseOverlay">
+    <div id="pauseMenu">
+      <div class="pause-header"><span>⏸ PAUSA</span></div>
+      <div class="pause-items">
+        <div class="pause-item" onclick="openIb(); togglePause();">
+          <span class="pi-em">💬</span><span class="pi-nm">Chats</span>
+        </div>
+        <div class="pause-item" onclick="ctr(); togglePause();">
+          <span class="pi-em">🗺️</span><span class="pi-nm">Mapa</span>
+        </div>
+        <div class="pause-item" onclick="toggleInv(); togglePause();">
+          <span class="pi-em">🎒</span><span class="pi-nm">Mochila</span>
+        </div>
+        <div class="pause-item" onclick="showNpc('c1'); togglePause();">
+          <span class="pi-em">🏆</span><span class="pi-nm">Ranking</span>
+        </div>
+        <div class="pause-item">
+          <span class="pi-em">🧑‍🚀</span><span class="pi-nm">Perfil</span>
+        </div>
+        <div class="pause-divider"></div>
+        <div class="pause-continue" onclick="togglePause()">
+          ▶ CONTINUAR
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- INBOX PANEL -->
-    <div id="ibPanel">
+  <!-- INBOX PANEL -->
+  <div id="ibPanel">
       <div class="ibhdr">
         <div class="ibl"><span style="font-size:22px;">💬</span><span class="ibt">EmojiChat</span></div>
         <button class="ibx" onclick="closeIb()" title="Cerrar">✕</button>
@@ -803,8 +805,6 @@
       </div>
 
     </div><!-- ibPanel -->
-
-  </div><!-- gameArea -->
 
   <script src="js/game-main.js"></script>
 
