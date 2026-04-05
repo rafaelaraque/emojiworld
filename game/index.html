@@ -194,28 +194,28 @@
           <div class="prox-bubble" id="prox-vendedor">Hablar</div>
         </div>
 
-        <!-- 🏰 ZONA REAL — Muralla de cemento claro con portón -->
+        <!-- 🏰 ZONA REAL — Muralla de cemento claro con portón alineado a road Y=10 -->
         <!-- Muralla Norte -->
         <div class="castle-wall" style="left:1950px;top:80px;width:550px;height:20px;"></div>
         <!-- Muralla Norte-Este (pared rompible con bomba) -->
         <div class="breakable-wall" id="breakableWallNE" style="left:2500px;top:80px;width:150px;height:20px;" onclick="tryBreakWall()"></div>
-        <!-- Muralla Sur -->
-        <div class="castle-wall" style="left:1950px;top:660px;width:700px;height:20px;"></div>
-        <!-- Muralla Este -->
-        <div class="castle-wall" style="left:2630px;top:80px;width:20px;height:600px;"></div>
+        <!-- Muralla Sur (extendida hasta road Y=10 / tile 11) -->
+        <div class="castle-wall" style="left:1950px;top:1056px;width:700px;height:20px;"></div>
+        <!-- Muralla Este (extendida hasta road Y=10) -->
+        <div class="castle-wall" style="left:2630px;top:80px;width:20px;height:976px;"></div>
         <!-- Muralla Oeste — parte norte (sobre el portón) -->
-        <div class="castle-wall" style="left:1950px;top:80px;width:20px;height:220px;"></div>
+        <div class="castle-wall" style="left:1950px;top:80px;width:20px;height:832px;"></div>
         <!-- Muralla Oeste — parte sur (bajo el portón) -->
-        <div class="castle-wall" style="left:1950px;top:400px;width:20px;height:280px;"></div>
-        <!-- Portón Oeste (entrada principal hacia Plaza Central) -->
-        <div class="castle-gate" id="mainGate" style="left:1950px;top:300px;width:20px;height:100px;"></div>
+        <div class="castle-wall" style="left:1950px;top:1008px;width:20px;height:48px;"></div>
+        <!-- Portón Oeste — alineado con road Y=10 (tile 10), centrado en tile 9-11 -->
+        <div class="castle-gate" id="mainGate" style="left:1950px;top:912px;width:20px;height:96px;"></div>
 
-        <!-- 💂 Dos guardias en el portón oeste -->
-        <div class="npc" style="left:1920px;top:310px;" onclick="showNpc('guardia')" data-npcid="guardia">
+        <!-- 💂 Dos guardias delante del portón -->
+        <div class="npc" style="left:1910px;top:920px;" onclick="showNpc('guardia')" data-npcid="guardia">
           <span class="npe">💂</span><span class="npn">Guardia Norte</span>
           <div class="prox-bubble" id="prox-guardia">Hablar</div>
         </div>
-        <div class="npc" style="left:1920px;top:370px;" onclick="showNpc('guardia2')" data-npcid="guardia2">
+        <div class="npc" style="left:1910px;top:970px;" onclick="showNpc('guardia2')" data-npcid="guardia2">
           <span class="npe">💂</span><span class="npn">Guardia Sur</span>
           <div class="prox-bubble" id="prox-guardia2">Hablar</div>
         </div>
