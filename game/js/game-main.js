@@ -1835,6 +1835,9 @@
       if (bc) bc.classList.add('hidden');
       if (cb) cb.classList.add('hidden');
       closeInv();
+      // Ensure invPanel is fully hidden
+      const ip = document.getElementById('invPanel');
+      if (ip) ip.style.transform = 'translateY(102%)';
     }
     function closeIb() {
       document.getElementById('ibPanel').classList.remove('open');
@@ -1843,6 +1846,9 @@
       const cb = document.getElementById('chatBubble');
       if (bc) bc.classList.remove('hidden');
       if (cb) cb.classList.remove('hidden');
+      // Restore invPanel transform
+      const ip = document.getElementById('invPanel');
+      if (ip) ip.style.transform = '';
       G._c = null;
     }
     function closeIb() {
