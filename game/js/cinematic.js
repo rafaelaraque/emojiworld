@@ -61,23 +61,33 @@ const Cinematic = {
     return new Promise(resolve => {
       const overlay = document.getElementById('splashScreen');
       const fill = document.querySelector('.splash-fill');
-      if (!overlay || !fill) { resolve(); return; }
+      if (!overlay) { resolve(); return; }
 
       let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 15 + 5;
+      const startTime = Date.now();
+      const maxDuration = 2000; // max 2 seconds
+
+      const tick = () => {
+        if (this.skipped) { resolve(); return; }
+
+        const elapsed = Date.now() - startTime;
+        progress = Math.min(100, (elapsed / maxDuration) * 100);
+
+        if (fill) fill.style.width = progress + '%';
+
         if (progress >= 100) {
-          progress = 100;
-          fill.style.width = '100%';
-          clearInterval(interval);
+          // Fade out splash
+          overlay.classList.add('fade-out');
           setTimeout(() => {
-            overlay.classList.add('fade-out');
-            setTimeout(resolve, 600);
-          }, 400);
+            overlay.style.display = 'none';
+            resolve();
+          }, 600);
         } else {
-          fill.style.width = progress + '%';
+          setTimeout(tick, 50);
         }
-      }, 100);
+      };
+
+      setTimeout(tick, 100);
     });
   },
 
@@ -102,9 +112,14 @@ const Cinematic = {
 
       let i = 0;
       const stepDuration = 500; // ms per waypoint
+      const maxTotalTime = 8000; // safety timeout
+      const startTime = Date.now();
 
       const animate = () => {
-        if (this.skipped || i >= waypoints.length) { resolve(); return; }
+        if (this.skipped || i >= waypoints.length || (Date.now() - startTime) > maxTotalTime) {
+          resolve();
+          return;
+        }
         const [tx, ty] = waypoints[i];
         this._smoothCamera(tx, ty, stepDuration, () => {
           i++;
