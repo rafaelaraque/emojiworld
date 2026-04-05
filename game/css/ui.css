@@ -217,7 +217,7 @@
     transform: translateX(105%);
     transition: transform .3s cubic-bezier(.4, 0, .2, 1);
     border: none;
-    z-index: 80;
+    z-index: 970;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
@@ -227,7 +227,7 @@
 
   #chPanel {
     position: fixed !important;
-    inset: 0 0 60px 0 !important;
+    inset: 0 0 250px 0 !important;
   }
 }
 

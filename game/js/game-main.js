@@ -1851,15 +1851,6 @@
       if (ip) ip.style.transform = '';
       G._c = null;
     }
-    function closeIb() {
-      document.getElementById('ibPanel').classList.remove('open');
-      document.getElementById('chPanel').classList.remove('show');
-      const bc = document.getElementById('bottomControls');
-      const cb = document.getElementById('chatBubble');
-      if (bc) bc.classList.remove('hidden');
-      if (cb) cb.classList.remove('hidden');
-      G._c = null;
-    }
     function toggleIb() { document.getElementById('ibPanel').classList.contains('open') ? closeIb() : openIb(); }
 
     function renderList() {
